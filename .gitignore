@@ -1,0 +1,32 @@
+# Environment — contains real API keys, NEVER commit
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# Node
+node_modules/
+.next/
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary / runtime
+/tmp/
+/vision-minio/vision-uploads/*
+!vision-minio/vision-uploads/.gitkeep
+
+# Docker volumes
+vision_pgdata/
+vision_minio_data/

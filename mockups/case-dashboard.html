@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vision — Case Dashboard Mockup</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        surface: {
+          0: '#FAFBFC',
+          1: '#FFFFFF',
+          2: '#F5F6F8',
+          3: '#EBEDF0',
+          4: '#FFFFFF',
+          5: '#E1E4E8',
+        },
+        text: {
+          primary: '#1A1D26',
+          secondary: '#5F6675',
+          disabled: '#9DA3AE',
+        },
+        brand: {
+          DEFAULT: '#B8860B',
+          hover: '#9F7309',
+          active: '#866007',
+          bg: '#FFF7EB',
+          ring: 'rgba(184, 134, 11, 0.2)',
+        },
+        success: { DEFAULT: '#2D8A4E', bg: '#EDF7F0' },
+        warning: { DEFAULT: '#B85C0A', bg: '#FFF8F0' },
+        danger:  { DEFAULT: '#C53030', bg: '#FEF2F2' },
+        info:   { DEFAULT: '#3B6CB5', bg: '#F0F5FC' },
+        border: {
+          DEFAULT: '#E1E4E8',
+          light: '#EBEDF0',
+          strong: '#C4C9D2',
+        }
+      }
+    }
+  }
+}
+</script>
+<style>
+  /* Hide mobile/desktop panels based on breakpoint */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: flex; }
+  @media (max-width: 767px) {
+    .desktop-sidebar { display: none; }
+    .mobile-tabs { display: flex; }
+    .tab-panel { flex-direction: column; }
+  }
+  @media (min-width: 768px) {
+    .desktop-sidebar { display: flex; }
+    .mobile-tabs { display: none; }
+    .tab-panel { flex-direction: row; }
+  }
+  /* Smooth tab transitions */
+  .tab-btn { transition: all 0.15s ease; }
+  .tab-btn.active { color: #B8860B; border-color: #B8860B; }
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #E1E4E8; border-radius: 2px; }
+</style>
+</head>
+<body class="bg-surface-0 text-text-primary font-sans antialiased">
+
+<!-- ============================================================ -->
+<!-- DESKTOP LAYOUT                                                 -->
+<!-- ============================================================ -->
+<div class="hidden md:flex h-screen overflow-hidden">
+
+  <!-- Left Sidebar (280px) -->
+  <aside class="w-[280px] shrink-0 bg-surface-1 border-r border-border flex flex-col">
+    <!-- Case header -->
+    <div class="p-4 border-b border-border">
+      <div class="flex items-center gap-2 mb-1">
+        <a href="#" class="text-sm text-text-secondary hover:text-text-primary transition-colors">&larr; Cases</a>
+      </div>
+      <h1 class="text-lg font-semibold truncate">Alhad v. Edmonds</h1>
+      <div class="flex items-center gap-2 mt-2 flex-wrap">
+        <span class="text-xs px-2 py-0.5 rounded-sm bg-surface-2 text-text-secondary">medical board complaint</span>
+        <span class="text-xs px-2 py-0.5 rounded-sm bg-info-bg text-info">intake</span>
+      </div>
+      <p class="text-xs text-text-disabled mt-2">Created June 4, 2026</p>
+    </div>
+
+    <!-- Desktop tab nav -->
+    <nav class="flex-1 p-2 flex flex-col gap-0.5">
+      <button class="tab-btn active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-text-secondary hover:bg-surface-2 hover:text-text-primary"
+              data-tab="context" onclick="switchTab('context', this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Context
+      </button>
+      <button class="tab-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-text-secondary hover:bg-surface-2 hover:text-text-primary"
+              data-tab="chat" onclick="switchTab('chat', this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Chat
+      </button>
+      <button class="tab-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-text-secondary hover:bg-surface-2 hover:text-text-primary"
+              data-tab="documents" onclick="switchTab('documents', this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Documents
+      </button>
+      <button class="tab-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-text-secondary hover:bg-surface-2 hover:text-text-primary"
+              data-tab="drafts" onclick="switchTab('drafts', this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Drafts
+      </button>
+    </nav>
+
+    <!-- User footer -->
+    <div class="p-3 border-t border-border flex items-center gap-2">
+      <div class="size-8 rounded-full bg-surface-3 flex items-center justify-center text-xs font-medium text-text-secondary">IB</div>
+      <span class="text-sm text-text-secondary flex-1 truncate">ian@justicequest.ai</span>
+      <button class="text-xs text-text-disabled hover:text-text-secondary transition-colors">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- Main content area -->
+  <main class="flex-1 overflow-hidden flex flex-col">
+
+    <!-- ============ CONTEXT TAB ============ -->
+    <div id="tab-context" class="tab-panel active flex-1 overflow-hidden">
+      <div class="flex-1 overflow-y-auto p-6 space-y-6">
+        <!-- Narrative section -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h2 class="text-lg font-semibold">Case Narrative</h2>
+              <p class="text-sm text-text-secondary">Tell the agent everything about this case. <span class="text-danger">*Required</span></p>
+            </div>
+            <span class="text-xs text-text-disabled bg-surface-2 px-2 py-1 rounded-sm">Last saved 2m ago</span>
+          </div>
+          <textarea class="w-full h-48 bg-surface-1 border border-border rounded-lg p-4 text-sm leading-relaxed
+                           placeholder:text-text-disabled resize-y
+                           focus:border-brand focus:ring-2 focus:ring-brand-ring focus:outline-hidden
+                           transition-colors duration-150"
+                    placeholder="Tell us everything you know about this case. For example:
+
+- Who is the patient? What procedure or treatment did they receive?
+- Who is the respondent physician or provider? What is their specialty?
+- What facility did this occur at? When?
+- What went wrong? What are the specific allegations?
+- What records do you have? (medical records, imaging, correspondence)
+- What is your case theory?
+
+The more detail you provide, the better the agent can organize the evidence and target the relevant parts of the record."></textarea>
+          <p class="text-xs text-text-disabled mt-2">Once you provide a narrative, the agent can begin analyzing your case.</p>
+        </div>
+
+        <!-- Quick stats -->
+        <div>
+          <h3 class="text-sm font-medium text-text-secondary mb-3">Case Overview</h3>
+          <div class="grid grid-cols-3 gap-3">
+            <div class="bg-surface-1 border border-border rounded-lg p-3 text-center">
+              <p class="text-2xl font-semibold tabular-nums">3</p>
+              <p class="text-xs text-text-secondary mt-0.5">Documents</p>
+            </div>
+            <div class="bg-surface-1 border border-border rounded-lg p-3 text-center">
+              <p class="text-2xl font-semibold tabular-nums">7</p>
+              <p class="text-xs text-text-secondary mt-0.5">Allegations</p>
+            </div>
+            <div class="bg-surface-1 border border-border rounded-lg p-3 text-center">
+              <p class="text-2xl font-semibold tabular-nums">4</p>
+              <p class="text-xs text-text-secondary mt-0.5">Parties</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div>
+          <h3 class="text-sm font-medium text-text-secondary mb-3">Recent Activity</h3>
+          <div class="bg-surface-1 border border-border rounded-lg divide-y divide-border">
+            <div class="p-3 flex items-center gap-3 text-sm">
+              <span class="size-2 rounded-full bg-success shrink-0"></span>
+              <span class="flex-1">Medical record ingested — 327 pages</span>
+              <span class="text-xs text-text-disabled">10m ago</span>
+            </div>
+            <div class="p-3 flex items-center gap-3 text-sm">
+              <span class="size-2 rounded-full bg-success shrink-0"></span>
+              <span class="flex-1">ICR document ingested — 3 pages</span>
+              <span class="text-xs text-text-disabled">12m ago</span>
+            </div>
+            <div class="p-3 flex items-center gap-3 text-sm">
+              <span class="size-2 rounded-full bg-warning shrink-0"></span>
+              <span class="flex-1">Parties extracted — 4 identified</span>
+              <span class="text-xs text-text-disabled">15m ago</span>
+            </div>
+            <div class="p-3 flex items-center gap-3 text-sm">
+              <span class="size-2 rounded-full bg-text-disabled shrink-0"></span>
+              <span class="flex-1">Case created</span>
+              <span class="text-xs text-text-disabled">June 4, 2026</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Parties -->
+        <div>
+          <h3 class="text-sm font-medium text-text-secondary mb-3">Parties</h3>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-surface-1 border border-border rounded-lg p-3 flex items-center gap-3">
+              <div class="size-8 rounded-full bg-danger-bg text-danger flex items-center justify-center text-xs font-bold shrink-0">RA</div>
+              <div class="min-w-0">
+                <p class="text-sm font-medium truncate">Roohi Ameenudeen Alhad</p>
+                <p class="text-xs text-text-secondary">Claimant / Patient</p>
+              </div>
+            </div>
+            <div class="bg-surface-1 border border-border rounded-lg p-3 flex items-center gap-3">
+              <div class="size-8 rounded-full bg-info-bg text-info flex items-center justify-center text-xs font-bold shrink-0">KE</div>
+              <div class="min-w-0">
+                <p class="text-sm font-medium truncate">Dr. Kevin J. Edmonds</p>
+                <p class="text-xs text-text-secondary">Respondent / OB-GYN</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right info panel (desktop only) -->
+      <div class="hidden xl:block w-[260px] shrink-0 border-l border-border bg-surface-1 p-4 overflow-y-auto">
+        <h4 class="text-xs font-semibold text-text-disabled uppercase tracking-wider mb-3">Case Info</h4>
+        <dl class="space-y-3 text-sm">
+          <div><dt class="text-xs text-text-disabled">Type</dt><dd class="text-text-primary">Medical Board Complaint</dd></div>
+          <div><dt class="text-xs text-text-disabled">Status</dt><dd class="text-text-primary">Intake</dd></div>
+          <div><dt class="text-xs text-text-disabled">Jurisdiction</dt><dd class="text-text-disabled italic">Not set</dd></div>
+          <div><dt class="text-xs text-text-disabled">Created</dt><dd class="text-text-primary">June 4, 2026</dd></div>
+          <div><dt class="text-xs text-text-disabled">Documents</dt><dd class="text-text-primary">3</dd></div>
+          <div><dt class="text-xs text-text-disabled">Allegations</dt><dd class="text-text-primary">7</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <!-- ============ CHAT TAB ============ -->
+    <div id="tab-chat" class="tab-panel flex-1 overflow-hidden">
+      <div class="flex-1 flex flex-col">
+        <!-- Chat messages -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-4">
+          <!-- Agent message -->
+          <div class="flex gap-3 max-w-2xl">
+            <div class="size-8 rounded-full bg-brand-bg text-brand flex items-center justify-center shrink-0 mt-0.5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <div>
+              <div class="bg-surface-1 border border-border rounded-lg rounded-tl-sm px-4 py-3 text-sm leading-relaxed">
+                <p>I've reviewed the case materials you've uploaded. Here's what I've found so far:</p>
+                <ul class="list-disc ml-4 mt-2 space-y-1">
+                  <li><strong>327-page</strong> medical record ingested and indexed</li>
+                  <li><strong>7 allegations</strong> extracted from your intake narrative</li>
+                  <li><strong>4 parties</strong> identified (1 claimant, 1 respondent, 2 facilities)</li>
+                  <li><strong>Key sections flagged:</strong> Operative Report (pp. 12-16), Pathology Report (pp. 28-31), Discharge Summary (pp. 33-37)</li>
+                </ul>
+                <p class="mt-2">Would you like me to begin analyzing the allegations against the medical record?</p>
+              </div>
+              <p class="text-xs text-text-disabled mt-1 ml-1">Vision Agent · 3 minutes ago</p>
+            </div>
+          </div>
+
+          <!-- User message -->
+          <div class="flex gap-3 max-w-2xl ml-auto flex-row-reverse">
+            <div class="size-8 rounded-full bg-surface-3 flex items-center justify-center text-xs font-medium text-text-secondary shrink-0 mt-0.5">IB</div>
+            <div>
+              <div class="bg-info-bg border border-info/20 rounded-lg rounded-tr-sm px-4 py-3 text-sm leading-relaxed">
+                Yes, start with A01 — the surgical error allegation. Focus on the operative report and pathology report.
+              </div>
+              <p class="text-xs text-text-disabled mt-1 mr-1 text-right">You · 2 minutes ago</p>
+            </div>
+          </div>
+
+          <!-- Agent analysis -->
+          <div class="flex gap-3 max-w-2xl">
+            <div class="size-8 rounded-full bg-brand-bg text-brand flex items-center justify-center shrink-0 mt-0.5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <div>
+              <div class="bg-surface-1 border border-border rounded-lg rounded-tl-sm px-4 py-3 text-sm leading-relaxed">
+                <p class="font-medium text-sm mb-2">Allegation A01 — Surgical Error</p>
+                <p>The tissue exam report (<span class="font-mono text-xs bg-surface-3 px-1 rounded">page 117, block /page/116/Text/6</span>) states:</p>
+                <blockquote class="border-l-2 border-brand pl-3 my-2 text-text-secondary italic">
+                  "Received in formalin labeled with the patient's name and 'left fallopian tube and ovary' is a 5.5 cm length of fallopian tube with attached fibrofatty tissue and a 2.8 × 1.5 × 0.8 cm portion of tan-pink soft tissue consistent with ovary."
+                </blockquote>
+                <p>The operative report describes the procedure as "left salpingectomy" but <strong>does not mention adhesions, lysis of adhesions, or any attempt to separate the ovary from the fallopian tube prior to removal.</strong></p>
+                <p class="mt-2 flex items-center gap-2">
+                  <span class="text-xs px-2 py-0.5 rounded-sm bg-success-bg text-success font-medium">SUPPORTED</span>
+                  <span class="text-xs text-text-secondary">Evidence confirms ovarian tissue was present in the removed specimen.</span>
+                </p>
+              </div>
+              <p class="text-xs text-text-disabled mt-1 ml-1">Vision Agent · 1 minute ago</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat input -->
+        <div class="border-t border-border p-4 bg-surface-0">
+          <div class="max-w-2xl mx-auto flex gap-2">
+            <input type="text"
+                   class="flex-1 bg-surface-1 border border-border rounded-lg px-4 py-2.5 text-sm
+                          placeholder:text-text-disabled
+                          focus:border-brand focus:ring-2 focus:ring-brand-ring focus:outline-hidden
+                          transition-colors duration-150"
+                   placeholder="Ask the agent anything about this case..." />
+            <button class="bg-brand hover:bg-brand-hover active:bg-brand-active text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 shrink-0">
+              Send
+            </button>
+          </div>
+          <p class="text-xs text-text-disabled text-center mt-2 max-w-2xl mx-auto">
+            Vision Agent has access to all case documents, evidence, and strategy data.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DOCUMENTS TAB ============ -->
+    <div id="tab-documents" class="tab-panel flex-1 overflow-hidden">
+      <div class="flex-1 overflow-y-auto">
+        <div class="p-6 space-y-6 max-w-3xl">
+
+          <!-- Upload zone -->
+          <div>
+            <h2 class="text-lg font-semibold mb-3">Upload Documents</h2>
+            <div class="border-2 border-dashed border-border rounded-lg p-8 text-center
+                        hover:border-brand hover:bg-brand-bg/30 active:border-brand
+                        transition-colors duration-150 cursor-pointer">
+              <svg class="mx-auto mb-3 text-text-disabled" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <p class="text-sm text-text-primary">
+                <span class="text-brand font-medium">Click to upload</span> or drag and drop
+              </p>
+              <p class="text-xs text-text-disabled mt-1">PDF, DOCX, TXT up to 50MB</p>
+            </div>
+          </div>
+
+          <!-- Processing jobs -->
+          <div>
+            <h3 class="text-sm font-medium text-text-secondary mb-3">Processing</h3>
+            <div class="space-y-2">
+              <div class="bg-surface-1 border border-border rounded-lg p-3">
+                <div class="flex items-center gap-3">
+                  <svg class="text-warning animate-spin shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium truncate">02._Medical_Records_decrypted.pdf</p>
+                    <p class="text-xs text-text-disabled">327 pages · Ingestion in progress...</p>
+                  </div>
+                  <span class="text-xs text-warning font-medium">68%</span>
+                </div>
+                <div class="mt-2 w-full bg-surface-3 rounded-full h-1.5">
+                  <div class="bg-warning h-1.5 rounded-full transition-all" style="width:68%"></div>
+                </div>
+              </div>
+              <div class="bg-surface-1 border border-border rounded-lg p-3">
+                <div class="flex items-center gap-3">
+                  <svg class="text-text-disabled shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium truncate">ICR_2025-0421.pdf</p>
+                    <p class="text-xs text-text-disabled">3 pages · Queued</p>
+                  </div>
+                  <span class="text-xs text-text-disabled">Pending</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ingested documents -->
+          <div>
+            <h3 class="text-sm font-medium text-text-secondary mb-3">Ingested Documents</h3>
+            <div class="bg-surface-1 border border-border rounded-lg divide-y divide-border">
+              <div class="p-3 flex items-center gap-3 hover:bg-surface-2 transition-colors duration-100 cursor-pointer">
+                <svg class="text-text-disabled shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium truncate">02._Medical_Records_decrypted.pdf</p>
+                  <p class="text-xs text-text-disabled">327 pages · 8,500 blocks · Ingested June 4</p>
+                </div>
+                <span class="text-xs px-2 py-0.5 rounded-sm bg-success-bg text-success">Ready</span>
+                <button class="text-xs text-info hover:text-brand transition-colors shrink-0">Preview</button>
+              </div>
+              <div class="p-3 flex items-center gap-3 hover:bg-surface-2 transition-colors duration-100 cursor-pointer">
+                <svg class="text-text-disabled shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium truncate">ICR_2025-0421.pdf</p>
+                  <p class="text-xs text-text-disabled">3 pages · 95 blocks · Ingested June 4</p>
+                </div>
+                <span class="text-xs px-2 py-0.5 rounded-sm bg-success-bg text-success">Ready</span>
+                <button class="text-xs text-info hover:text-brand transition-colors shrink-0">Preview</button>
+              </div>
+              <div class="p-3 flex items-center gap-3 hover:bg-surface-2 transition-colors duration-100 cursor-pointer">
+                <svg class="text-text-disabled shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium truncate">Patient_Consent_Form.pdf</p>
+                  <p class="text-xs text-text-disabled">2 pages · 42 blocks · Ingested June 5</p>
+                </div>
+                <span class="text-xs px-2 py-0.5 rounded-sm bg-success-bg text-success">Ready</span>
+                <button class="text-xs text-info hover:text-brand transition-colors shrink-0">Preview</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Document preview pane (desktop only) -->
+        <div class="hidden lg:block w-[320px] shrink-0 border-l border-border bg-surface-1 flex flex-col">
+          <div class="p-3 border-b border-border flex items-center justify-between">
+            <h4 class="text-sm font-medium truncate">Medical Records — Page 117</h4>
+            <button class="text-text-disabled hover:text-text-secondary transition-colors">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="flex-1 overflow-y-auto p-4 text-sm leading-relaxed">
+            <p class="text-xs text-text-disabled mb-3 font-mono">Block /page/116/Text/6</p>
+            <p class="mb-3">Received in formalin labeled with the patient's name and <mark class="bg-brand-bg text-text-primary px-0.5">"left fallopian tube and ovary"</mark> is a 5.5 cm length of fallopian tube with attached fibrofatty tissue and a 2.8 × 1.5 × 0.8 cm portion of tan-pink soft tissue consistent with ovary.</p>
+            <p class="text-xs text-text-disabled mt-4">Section: Visits → Pathology Report → Tissue Exam</p>
+            <div class="flex items-center gap-2 mt-4">
+              <button class="text-xs px-2 py-1 rounded-sm border border-border text-text-secondary hover:bg-surface-2 transition-colors">&larr; Prev</button>
+              <span class="text-xs text-text-disabled">Page 117 of 327</span>
+              <button class="text-xs px-2 py-1 rounded-sm border border-border text-text-secondary hover:bg-surface-2 transition-colors">Next &rarr;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DRAFTS TAB ============ -->
+    <div id="tab-drafts" class="tab-panel flex-1 overflow-hidden">
+      <div class="flex-1 overflow-y-auto p-6">
+        <div class="max-w-2xl space-y-6">
+          <div>
+            <h2 class="text-lg font-semibold mb-1">Drafts & Outputs</h2>
+            <p class="text-sm text-text-secondary">Documents generated by Vision from your case materials.</p>
+          </div>
+
+          <!-- Draft cards -->
+          <div class="space-y-3">
+            <div class="bg-surface-1 border border-border rounded-lg p-4 flex items-start gap-4 hover:border-border-strong transition-colors cursor-pointer">
+              <div class="size-10 rounded-lg bg-warning-bg flex items-center justify-center text-warning shrink-0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-medium text-sm">Board Complaint — Draft v1</h3>
+                <p class="text-xs text-text-secondary mt-0.5">Generated from 7 allegations · 12 pages</p>
+                <p class="text-xs text-text-disabled mt-1">Last edited June 5, 2026</p>
+              </div>
+              <span class="text-xs px-2 py-0.5 rounded-sm bg-warning-bg text-warning shrink-0">Draft</span>
+            </div>
+
+            <div class="bg-surface-1 border border-border rounded-lg p-4 flex items-start gap-4 hover:border-border-strong transition-colors cursor-pointer">
+              <div class="size-10 rounded-lg bg-info-bg flex items-center justify-center text-info shrink-0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-medium text-sm">Case Screening Report</h3>
+                <p class="text-xs text-text-secondary mt-0.5">Citation-anchored analysis · 5 sections</p>
+                <p class="text-xs text-text-disabled mt-1">Generated June 5, 2026</p>
+              </div>
+              <span class="text-xs px-2 py-0.5 rounded-sm bg-success-bg text-success shrink-0">Complete</span>
+            </div>
+
+            <div class="bg-surface-1 border border-border rounded-lg p-4 flex items-start gap-4 hover:border-border-strong transition-colors cursor-pointer opacity-60">
+              <div class="size-10 rounded-lg bg-surface-3 flex items-center justify-center text-text-disabled shrink-0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-medium text-sm">Demand Letter</h3>
+                <p class="text-xs text-text-secondary mt-0.5">Not yet generated</p>
+              </div>
+              <span class="text-xs px-2 py-0.5 rounded-sm bg-surface-2 text-text-disabled shrink-0">Pending</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ============================================================ -->
+<!-- MOBILE LAYOUT                                                    -->
+<!-- ============================================================ -->
+<div class="md:hidden flex flex-col h-dvh overflow-hidden">
+
+  <!-- Mobile header -->
+  <header class="shrink-0 bg-surface-1 border-b border-border px-4 h-14 flex items-center justify-between">
+    <div class="flex items-center gap-2 min-w-0">
+      <a href="#" class="text-text-secondary shrink-0">&larr;</a>
+      <h1 class="text-sm font-semibold truncate">Alhad v. Edmonds</h1>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="text-xs px-2 py-0.5 rounded-sm bg-info-bg text-info">intake</span>
+    </div>
+  </header>
+
+  <!-- Tab content area -->
+  <div class="flex-1 overflow-hidden">
+
+    <!-- Context tab (mobile) -->
+    <div id="mob-context" class="tab-panel active flex-1 overflow-y-auto p-4 space-y-4">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-base font-semibold">Case Narrative</h2>
+          <span class="text-xs text-danger font-medium">*Required</span>
+        </div>
+        <textarea class="w-full h-40 bg-surface-1 border border-border rounded-lg p-3 text-sm leading-relaxed
+                         placeholder:text-text-disabled resize-y text-[16px]
+                         focus:border-brand focus:ring-2 focus:ring-brand-ring focus:outline-hidden"
+                  placeholder="Tell the agent everything about this case. Who is involved? What happened? What are the allegations? What records do you have?"></textarea>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <div class="bg-surface-1 border border-border rounded-lg p-3 text-center">
+          <p class="text-xl font-semibold">3</p>
+          <p class="text-xs text-text-secondary">Documents</p>
+        </div>
+        <div class="bg-surface-1 border border-border rounded-lg p-3 text-center">
+          <p class="text-xl font-semibold">7</p>
+          <p class="text-xs text-text-secondary">Allegations</p>
+        </div>
+        <div class="bg-surface-1 border border-border rounded-lg p-3 text-center">
+          <p class="text-xl font-semibold">4</p>
+          <p class="text-xs text-text-secondary">Parties</p>
+        </div>
+      </div>
+
+      <div class="bg-surface-1 border border-border rounded-lg divide-y divide-border">
+        <div class="p-3 flex items-center gap-2 text-sm">
+          <span class="size-1.5 rounded-full bg-success shrink-0"></span>
+          <span class="flex-1 text-xs">Medical record ingested</span>
+          <span class="text-xs text-text-disabled">10m</span>
+        </div>
+        <div class="p-3 flex items-center gap-2 text-sm">
+          <span class="size-1.5 rounded-full bg-success shrink-0"></span>
+          <span class="flex-1 text-xs">ICR document ingested</span>
+          <span class="text-xs text-text-disabled">12m</span>
+        </div>
+        <div class="p-3 flex items-center gap-2 text-sm">
+          <span class="size-1.5 rounded-full bg-warning shrink-0"></span>
+          <span class="flex-1 text-xs">Parties extracted</span>
+          <span class="text-xs text-text-disabled">15m</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat tab (mobile) -->
+    <div id="mob-chat" class="tab-panel flex-1 flex flex-col overflow-hidden">
+      <div class="flex-1 overflow-y-auto p-4 space-y-3">
+        <div class="flex gap-2">
+          <div class="size-7 rounded-full bg-brand-bg text-brand flex items-center justify-center shrink-0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div class="bg-surface-1 border border-border rounded-lg rounded-tl-sm px-3 py-2 text-sm leading-relaxed">
+            <p>I've reviewed the case materials. Medical record ingested (327 pages), 7 allegations extracted. The operative report and pathology report are flagged as key sections.</p>
+            <p class="mt-1">Would you like me to begin analyzing the allegations?</p>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-row-reverse">
+          <div class="size-7 rounded-full bg-surface-3 flex items-center justify-center text-xs font-medium shrink-0">IB</div>
+          <div class="bg-info-bg border border-info/20 rounded-lg rounded-tr-sm px-3 py-2 text-sm">
+            Yes, start with A01 — the surgical error allegation.
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <div class="size-7 rounded-full bg-brand-bg text-brand flex items-center justify-center shrink-0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div class="bg-surface-1 border border-border rounded-lg rounded-tl-sm px-3 py-2 text-sm">
+            <p class="font-medium text-xs mb-1">A01 — Surgical Error</p>
+            <p class="text-xs">Pathology report (p.117) confirms ovarian tissue in specimen. Operative report does not document adhesiolysis.</p>
+            <span class="inline-block mt-1 text-xs px-1.5 py-0.5 rounded-sm bg-success-bg text-success font-medium">SUPPORTED</span>
+          </div>
+        </div>
+      </div>
+      <div class="border-t border-border p-3 flex gap-2">
+        <input type="text" class="flex-1 bg-surface-1 border border-border rounded-lg px-3 py-2.5 text-sm text-[16px] placeholder:text-text-disabled focus:border-brand focus:ring-2 focus:ring-brand-ring focus:outline-hidden" placeholder="Ask the agent..." />
+        <button class="bg-brand hover:bg-brand-hover text-white px-4 py-2.5 rounded-lg text-sm font-medium shrink-0">Send</button>
+      </div>
+    </div>
+
+    <!-- Documents tab (mobile) -->
+    <div id="mob-documents" class="tab-panel flex-1 overflow-y-auto p-4 space-y-4">
+      <h2 class="text-base font-semibold">Documents</h2>
+      <div class="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer
+                  hover:border-brand active:border-brand transition-colors">
+        <svg class="mx-auto mb-2 text-text-disabled" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p class="text-sm"><span class="text-brand font-medium">Tap to upload</span></p>
+        <p class="text-xs text-text-disabled mt-0.5">PDF, DOCX, TXT up to 50MB</p>
+      </div>
+      <div class="space-y-2">
+        <div class="bg-surface-1 border border-border rounded-lg p-3 flex items-center gap-2">
+          <div class="size-2 rounded-full bg-warning animate-pulse shrink-0"></div>
+          <span class="text-sm flex-1 truncate">Medical_Records.pdf</span>
+          <span class="text-xs text-warning">68%</span>
+        </div>
+        <div class="bg-surface-1 border border-border rounded-lg p-3 flex items-center gap-2">
+          <svg class="text-text-disabled shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span class="text-sm flex-1 truncate">ICR_2025-0421.pdf</span>
+          <span class="text-xs text-text-disabled">Queued</span>
+        </div>
+        <div class="bg-surface-1 border border-border rounded-lg p-3 flex items-center gap-2">
+          <svg class="text-text-disabled shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span class="text-sm flex-1 truncate">Consent_Form.pdf</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-sm bg-success-bg text-success">Ready</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Drafts tab (mobile) -->
+    <div id="mob-drafts" class="tab-panel flex-1 overflow-y-auto p-4 space-y-3">
+      <h2 class="text-base font-semibold">Drafts & Outputs</h2>
+      <p class="text-xs text-text-secondary -mt-1">Documents generated from your case.</p>
+      <div class="bg-surface-1 border border-border rounded-lg p-3 flex items-start gap-3">
+        <div class="size-9 rounded-lg bg-warning-bg flex items-center justify-center text-warning shrink-0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="font-medium text-sm">Board Complaint — Draft v1</h3>
+          <p class="text-xs text-text-disabled mt-0.5">12 pages · June 5, 2026</p>
+        </div>
+        <span class="text-xs px-1.5 py-0.5 rounded-sm bg-warning-bg text-warning shrink-0">Draft</span>
+      </div>
+      <div class="bg-surface-1 border border-border rounded-lg p-3 flex items-start gap-3">
+        <div class="size-9 rounded-lg bg-info-bg flex items-center justify-center text-info shrink-0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="font-medium text-sm">Case Screening Report</h3>
+          <p class="text-xs text-text-disabled mt-0.5">5 sections · June 5, 2026</p>
+        </div>
+        <span class="text-xs px-1.5 py-0.5 rounded-sm bg-success-bg text-success shrink-0">Done</span>
+      </div>
+      <div class="bg-surface-1 border border-border rounded-lg p-3 flex items-start gap-3 opacity-60">
+        <div class="size-9 rounded-lg bg-surface-3 flex items-center justify-center text-text-disabled shrink-0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="font-medium text-sm">Demand Letter</h3>
+          <p class="text-xs text-text-disabled mt-0.5">Not yet generated</p>
+        </div>
+        <span class="text-xs px-1.5 py-0.5 rounded-sm bg-surface-2 text-text-disabled shrink-0">Pending</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Mobile bottom tab bar -->
+  <nav class="mobile-tabs shrink-0 bg-surface-1 border-t border-border flex items-center justify-around
+              h-14 pb-[env(safe-area-inset-bottom,0px)]">
+    <button class="tab-btn active flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium text-text-secondary"
+            data-tab="context" onclick="switchTabMobile('context', this)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+      Context
+    </button>
+    <button class="tab-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium text-text-secondary"
+            data-tab="chat" onclick="switchTabMobile('chat', this)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Chat
+    </button>
+    <button class="tab-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium text-text-secondary"
+            data-tab="documents" onclick="switchTabMobile('documents', this)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      Docs
+    </button>
+    <button class="tab-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium text-text-secondary"
+            data-tab="drafts" onclick="switchTabMobile('drafts', this)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Drafts
+    </button>
+  </nav>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB SWITCHING LOGIC                                             -->
+<!-- ============================================================ -->
+<script>
+function switchTab(tab, btn) {
+  // Desktop tabs
+  document.querySelectorAll('#tab-context, #tab-chat, #tab-documents, #tab-drafts').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  // Highlight active button
+  btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function switchTabMobile(tab, btn) {
+  // Mobile tabs
+  document.querySelectorAll('#mob-context, #mob-chat, #mob-documents, #mob-drafts').forEach(el => el.classList.remove('active'));
+  document.getElementById('mob-' + tab).classList.add('active');
+  // Highlight active button in the bottom bar
+  btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+
+</body>
+</html>

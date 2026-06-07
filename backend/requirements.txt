@@ -1,0 +1,11 @@
+psycopg2-binary>=2.9
+datalab-python-sdk
+fastapi>=0.100
+uvicorn[standard]>=0.23
+python-multipart>=0.0.5
+claude-agent-sdk
+bcrypt>=4.0.0
+pyjwt>=2.0.0
+minio>=7.0
+python-docx>=1.0
+openpyxl>=3.0

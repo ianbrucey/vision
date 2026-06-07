@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+/* =============================================
+   Command Design System — Light Theme Tokens
+   See: context-engine/standards/01-FRONTEND-STANDARDS/design-system.md
+   ============================================= */
+
+@theme inline {
+  /* Surfaces (lightest → darkest) */
+  --color-surface-0: #FAFBFC;
+  --color-surface-1: #FFFFFF;
+  --color-surface-2: #F5F6F8;
+  --color-surface-3: #EBEDF0;
+  --color-surface-4: #FFFFFF;
+  --color-surface-5: #E1E4E8;
+
+  /* Text */
+  --color-text-primary: #1A1D26;
+  --color-text-secondary: #5F6675;
+  --color-text-disabled: #9DA3AE;
+
+  /* Accent — Warm Amber (adjusted for light backgrounds) */
+  --color-brand: #B8860B;
+  --color-brand-hover: #9F7309;
+  --color-brand-active: #866007;
+  --color-brand-bg: #FFF7EB;
+  --color-brand-ring: rgba(184, 134, 11, 0.2);
+
+  /* Semantic (light-background variants) */
+  --color-success: #2D8A4E;
+  --color-success-bg: #EDF7F0;
+  --color-warning: #B85C0A;
+  --color-warning-bg: #FFF8F0;
+  --color-danger: #C53030;
+  --color-danger-bg: #FEF2F2;
+  --color-info: #3B6CB5;
+  --color-info-bg: #F0F5FC;
+
+  /* Borders */
+  --color-border: #E1E4E8;
+  --color-border-light: #EBEDF0;
+  --color-border-strong: #C4C9D2;
+
+  /* Misc */
+  --color-msg-user: #F0F5FC;
+  --color-msg-system: #F5F6F8;
+
+  /* Fonts (defined in layout.tsx via next/font/google) */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* =============================================
+   Base Styles
+   ============================================= */
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-surface-0);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

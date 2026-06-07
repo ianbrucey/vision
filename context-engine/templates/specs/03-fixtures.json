@@ -1,0 +1,48 @@
+{
+  "_meta": {
+    "description": "Fixtures - Zero Ambiguity Artifact (THE EVIDENCE)",
+    "generated_from": "02-api-contract.json",
+    "rule": "No code handles data unless this file contains real examples of that data.",
+    "commandment": "III. Thou Shalt Not Code Without Fixtures"
+  },
+  "fixtures": {
+    "resource_name": {
+      "description": "Real-world examples of this data type",
+      "samples": [
+        {
+          "_comment": "Sample 1 - Happy path",
+          "id": "550e8400-e29b-41d4-a716-446655440000",
+          "field_name": "Example value"
+        },
+        {
+          "_comment": "Sample 2 - Edge case",
+          "id": "550e8400-e29b-41d4-a716-446655440001",
+          "field_name": ""
+        },
+        {
+          "_comment": "Sample 3 - Maximum values",
+          "id": "550e8400-e29b-41d4-a716-446655440002",
+          "field_name": "A very long string that tests the limits of the field..."
+        }
+      ]
+    },
+    "api_responses": {
+      "description": "Expected API response shapes",
+      "samples": {
+        "success_response": {},
+        "error_response": {}
+      }
+    },
+    "external_api_data": {
+      "description": "Mock data from external APIs (so we don't hit live APIs during dev)",
+      "samples": []
+    }
+  },
+  "validation_checklist": [
+    "All data types in fixtures match schema types",
+    "Edge cases are represented (empty strings, nulls, max values)",
+    "External API responses are captured",
+    "Fixtures can be used to run tests without network calls"
+  ]
+}
+

@@ -1,0 +1,52 @@
+{
+  "_meta": {
+    "description": "API Contract - Zero Ambiguity Artifact",
+    "generated_from": "01-schema.sql",
+    "rule": "UI cannot request data not defined here. Builders cannot invent endpoints."
+  },
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/v1/resource",
+      "description": "Description of what this endpoint does",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer {token}"
+        },
+        "query_params": {
+          "param_name": {
+            "type": "string",
+            "required": false,
+            "description": ""
+          }
+        }
+      },
+      "response": {
+        "200": {
+          "description": "Success response",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string", "format": "uuid" },
+              "field_name": { "type": "string" }
+            }
+          }
+        },
+        "400": {
+          "description": "Bad request"
+        },
+        "401": {
+          "description": "Unauthorized"
+        }
+      }
+    }
+  ],
+  "validation_checklist": [
+    "All response fields match schema columns",
+    "All required fields are marked",
+    "All error responses are defined",
+    "Authentication requirements are explicit",
+    "Rate limits are documented (if applicable)"
+  ]
+}
+

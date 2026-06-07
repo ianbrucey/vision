@@ -1,0 +1,464 @@
+"""
+Vision — Database Connection & Schema Management.
+
+Provides the connection primitives and insert helpers for the evidence store
+and case core. Schema definitions live in .sql files (not Python strings) so
+they can be reviewed, versioned, and migrated independently.
+
+Port of section_mapping_20260505/pipeline/db.py — cleaned up and aligned with
+the vision/schema.sql contract.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+from contextlib import contextmanager
+from pathlib import Path
+
+import psycopg2
+import psycopg2.extras
+from psycopg2.extensions import connection
+
+# ---------------------------------------------------------------------------
+# Configuration — override via environment or .env
+# ---------------------------------------------------------------------------
+
+_DEFAULT_HOST = os.environ.get("VISION_DB_HOST", "127.0.0.1")
+_DEFAULT_PORT = int(os.environ.get("VISION_DB_PORT", "5433"))
+_DEFAULT_DB = os.environ.get("VISION_DB_DATABASE", "vision")
+_DEFAULT_USER = os.environ.get("VISION_DB_USERNAME", "vision")
+_DEFAULT_PASSWORD = os.environ.get("VISION_DB_PASSWORD", "vision_dev")
+
+# Path to the schema files, relative to this module
+_SCHEMA_DIR = Path(__file__).resolve().parent.parent / "schemas"
+_SCHEMA_FILES = [
+    "001_core.sql",
+    # 002_strategy.sql is applied separately when the strategy
+    # engine is initialized. It depends on tables in 001_core.sql.
+]
+
+
+def _load_dotenv() -> None:
+    """Load environment variables from .env files if not already set.
+
+    Checks, in order:
+      1. The project root .env (war_room/.env)
+      2. The vision directory .env (war_room/scripts/vision/.env)
+
+    Existing environment variables take precedence (never overwritten).
+    """
+    candidates = [
+        _SCHEMA_DIR.parents[3] / ".env",                    # scripts/.env
+        _SCHEMA_DIR.parents[3] / "mcp-server" / ".env",     # scripts/mcp-server/.env
+        _SCHEMA_DIR.parents[2] / ".env",                    # vision/.env
+    ]
+    for env_path in candidates:
+        if not env_path.exists():
+            continue
+        for line in env_path.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and value and key not in os.environ:
+                os.environ[key] = value
+
+
+# Auto-load on import so downstream code doesn't need to think about it.
+_load_dotenv()
+
+
+# ---------------------------------------------------------------------------
+# Connection
+# ---------------------------------------------------------------------------
+
+def connect() -> connection:
+    """Return a new psycopg2 connection using configured credentials."""
+    return psycopg2.connect(
+        host=_DEFAULT_HOST,
+        port=_DEFAULT_PORT,
+        dbname=_DEFAULT_DB,
+        user=_DEFAULT_USER,
+        password=_DEFAULT_PASSWORD,
+    )
+
+
+@contextmanager
+def tx():
+    """Context manager yielding a connection with autocommit off.
+
+    Commits on clean exit, rolls back on exception, always closes.
+    """
+    conn = connect()
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Schema management
+# ---------------------------------------------------------------------------
+
+def ensure_schema() -> list[str]:
+    """Apply all schema files in order. Idempotent — uses IF NOT EXISTS.
+
+    Returns the list of schema file paths that were applied.
+    """
+    applied = []
+    with tx() as conn:
+        with conn.cursor() as cur:
+            for filename in _SCHEMA_FILES:
+                sql_path = _SCHEMA_DIR / filename
+                if not sql_path.exists():
+                    raise FileNotFoundError(
+                        f"Schema file not found: {sql_path}"
+                    )
+                cur.execute(sql_path.read_text())
+                applied.append(str(sql_path))
+    return applied
+
+
+def ensure_strategy_schema() -> list[str]:
+    """Apply the strategy engine schema. Call after ensure_schema().
+
+    Requires schema.sql tables to already exist.
+    """
+    sql_path = _SCHEMA_DIR / "002_strategy.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Strategy schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_chat_schema() -> list[str]:
+    """Apply the chat infrastructure schema. Call after ensure_schema().
+
+    Creates session_store_entries, chat_sessions, and chat_messages tables.
+    Idempotent — uses IF NOT EXISTS.
+    """
+    sql_path = _SCHEMA_DIR / "003_chat.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Chat schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def drop_schema() -> None:
+    """Drop all vision tables. DESTRUCTIVE — for development only."""
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DROP SCHEMA IF EXISTS vision CASCADE")
+            cur.execute("DROP SCHEMA IF EXISTS agent_work CASCADE")
+    print("[db] vision + agent_work schemas dropped.")
+
+
+def reset_schema() -> list[str]:
+    """drop_schema() + ensure_schema(). Fresh start."""
+    drop_schema()
+    return ensure_schema()
+
+
+# ---------------------------------------------------------------------------
+# Insert helpers — thin wrappers that return the new row id
+# ---------------------------------------------------------------------------
+
+def _j(d: dict | None) -> str:
+    """Serialize a dict to a JSONB-safe string."""
+    return json.dumps(d) if d else "{}"
+
+
+# -- documents ---------------------------------------------------------------
+
+def insert_document(
+    conn: connection,
+    case_id: int,
+    name: str,
+    page_count: int | None = None,
+    storage_path: str | None = None,
+    document_type: str | None = None,
+    source: str = "user_upload",
+    metadata: dict | None = None,
+) -> int:
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO documents (case_id, name, page_count,
+               storage_path, document_type, source, metadata)
+               VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb)
+               ON CONFLICT (case_id, name)
+               DO UPDATE SET page_count = EXCLUDED.page_count,
+                             updated_at = now()
+               RETURNING id""",
+            (case_id, name, page_count, storage_path, document_type,
+             source, _j(metadata)),
+        )
+        return cur.fetchone()[0]
+
+
+# -- sections ----------------------------------------------------------------
+
+def insert_section(
+    conn: connection,
+    document_id: int,
+    datalab_id: str | None = None,
+    parent_id: int | None = None,
+    heading_level: int | None = None,
+    title: str | None = None,
+    page_start: int = 0,
+    page_end: int | None = None,
+    block_count: int = 0,
+    search_text: str = "",
+    heading_chain: list[str] | None = None,
+    metadata: dict | None = None,
+) -> int:
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO sections (document_id, datalab_id, parent_id,
+               heading_level, title, page_start, page_end, block_count,
+               search_text, heading_chain, metadata)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s::text[], %s::jsonb)
+               RETURNING id""",
+            (document_id, datalab_id, parent_id, heading_level, title,
+             page_start, page_end, block_count, search_text,
+             heading_chain or [], _j(metadata)),
+        )
+        return cur.fetchone()[0]
+
+
+# -- blocks ------------------------------------------------------------------
+
+def insert_block(
+    conn: connection,
+    document_id: int,
+    datalab_id: str | None = None,
+    section_id: int | None = None,
+    block_type: str = "Text",
+    page: int = 0,
+    html_content: str | None = None,
+    text_content: str | None = None,
+    bbox: tuple[float, float, float, float] | None = None,
+    metadata: dict | None = None,
+) -> int:
+    bbox_x1, bbox_y1, bbox_x2, bbox_y2 = bbox or (None, None, None, None)
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO blocks (document_id, datalab_id, section_id,
+               block_type, page, html_content, text_content,
+               bbox_x1, bbox_y1, bbox_x2, bbox_y2, metadata)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+               RETURNING id""",
+            (document_id, datalab_id, section_id, block_type, page,
+             html_content, text_content, bbox_x1, bbox_y1, bbox_x2, bbox_y2,
+             _j(metadata)),
+        )
+        return cur.fetchone()[0]
+
+
+# -- block headings ----------------------------------------------------------
+
+def insert_block_heading(
+    conn: connection,
+    block_id: int,
+    section_id: int,
+    heading_level: int,
+    depth: int = 1,
+) -> None:
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO block_headings (block_id, section_id,
+               heading_level, depth)
+               VALUES (%s, %s, %s, %s)
+               ON CONFLICT (block_id, section_id, heading_level)
+               DO NOTHING""",
+            (block_id, section_id, heading_level, depth),
+        )
+
+
+# -- cases -------------------------------------------------------------------
+
+def insert_case(
+    conn: connection,
+    name: str,
+    case_type: str,
+    narrative: str | None = None,
+    description: str | None = None,
+    case_number: str | None = None,
+    jurisdiction: str | None = None,
+    filing_date: str | None = None,
+    metadata: dict | None = None,
+) -> int:
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO cases (name, case_type, narrative, description,
+               case_number, jurisdiction, filing_date, metadata)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+               RETURNING id""",
+            (name, case_type, narrative, description, case_number,
+             jurisdiction, filing_date, _j(metadata)),
+        )
+        return cur.fetchone()[0]
+
+
+# -- parties -----------------------------------------------------------------
+
+def insert_party(
+    conn: connection,
+    case_id: int,
+    name: str,
+    party_kind: str = "individual",
+    roles: list[str] | None = None,
+    notes: str | None = None,
+    discovered_by: str = "user",
+    metadata: dict | None = None,
+) -> int:
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO parties (case_id, name, party_kind, roles,
+               notes, discovered_by, metadata)
+               VALUES (%s, %s, %s, %s::text[], %s, %s, %s::jsonb)
+               RETURNING id""",
+            (case_id, name, party_kind, roles or [], notes,
+             discovered_by, _j(metadata)),
+        )
+        return cur.fetchone()[0]
+
+
+# -- allegations -------------------------------------------------------------
+
+def insert_allegation(
+    conn: connection,
+    case_id: int,
+    allegation_id: str,
+    text: str,
+    category: str | None = None,
+    targets: list[int] | None = None,
+    extraction_focus: list[str] | None = None,
+    metadata: dict | None = None,
+) -> int:
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO allegations (case_id, allegation_id, text,
+               category, targets, extraction_focus, metadata)
+               VALUES (%s, %s, %s, %s, %s::int[], %s::text[], %s::jsonb)
+               ON CONFLICT (case_id, allegation_id)
+               DO UPDATE SET text = EXCLUDED.text,
+                             category = EXCLUDED.category,
+                             updated_at = now()
+               RETURNING id""",
+            (case_id, allegation_id, text, category,
+             targets or [], extraction_focus or [], _j(metadata)),
+        )
+        return cur.fetchone()[0]
+
+
+# -- events ------------------------------------------------------------------
+
+def insert_event(
+    conn: connection,
+    case_id: int,
+    summary: str,
+    kind: str = "other",
+    event_at: str | None = None,
+    event_date: str | None = None,
+    actor: str | None = None,
+    actor_id: int | None = None,
+    source: str = "agent",
+    sequence_hint: int = 0,
+    metadata: dict | None = None,
+) -> int:
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO events (case_id, summary, kind, event_at,
+               event_date, actor, actor_id, source, sequence_hint, metadata)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+               RETURNING id""",
+            (case_id, summary, kind, event_at, event_date, actor,
+             actor_id, source, sequence_hint, _j(metadata)),
+        )
+        return cur.fetchone()[0]
+
+
+# -- citations ---------------------------------------------------------------
+
+def insert_citation(
+    conn: connection,
+    case_id: int,
+    source_type: str,
+    source_id: int,
+    block_id: int,
+    quote: str | None = None,
+    page: int | None = None,
+) -> int:
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO citations (case_id, source_type, source_id,
+               block_id, quote, page)
+               VALUES (%s, %s, %s, %s, %s, %s)
+               RETURNING id""",
+            (case_id, source_type, source_id, block_id, quote, page),
+        )
+        return cur.fetchone()[0]
+
+
+# ---------------------------------------------------------------------------
+# Query helpers — the read side of the query interface (Phase 4)
+# ---------------------------------------------------------------------------
+
+def get_document_structure(conn: connection, document_id: int) -> list[dict]:
+    """Return the section outline for a document — the table of contents."""
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            """SELECT id, title, heading_level, page_start, page_end,
+                      block_count, heading_chain
+               FROM sections
+               WHERE document_id = %s
+               ORDER BY page_start, id""",
+            (document_id,),
+        )
+        return cur.fetchall()
+
+
+def get_block_context(
+    conn: connection,
+    block_id: int,
+    window: int = 3,
+) -> list[dict]:
+    """Return a block plus ±N surrounding blocks for reading in context."""
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            """WITH target AS (
+                   SELECT document_id, page, id FROM blocks WHERE id = %s
+               )
+               SELECT b.*
+               FROM blocks b, target t
+               WHERE b.document_id = t.document_id
+                 AND b.page BETWEEN t.page - 1 AND t.page + 1
+               ORDER BY b.page, b.id""",
+            (block_id,),
+        )
+        return cur.fetchall()
+
+
+__all__ = [
+    "connect", "tx",
+    "ensure_schema", "ensure_strategy_schema", "drop_schema", "reset_schema",
+    "insert_document", "insert_section", "insert_block", "insert_block_heading",
+    "insert_case", "insert_party", "insert_allegation", "insert_event",
+    "insert_citation",
+    "get_document_structure", "get_block_context",
+]
