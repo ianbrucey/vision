@@ -28,10 +28,9 @@ logger = logging.getLogger("vision.chat.manager")
 # (ephemeral) and mirrors to PostgresSessionStore (durable).
 _TMP_ROOT = Path(os.environ.get("VISION_SDK_TMP", "/tmp/vision/sdk"))
 
-# Agent CLI tool path — tells the agent how to invoke database operations
-_VISION_CLI_PATH = (
-    Path(__file__).resolve().parents[2] / "chat" / "cli.py"
-)
+# Agent CLI tool path — tells the agent how to invoke database operations.
+# manager.py lives in backend/chat/, so parents[0] is backend/chat/
+_VISION_CLI_PATH = Path(__file__).resolve().parents[0] / "cli.py"
 
 
 class ChatManager:
@@ -243,6 +242,10 @@ class ChatManager:
 
         try:
             from claude_agent_sdk import ClaudeSDKClient, ClaudeAgentOptions
+            from claude_agent_sdk.types import (
+                SystemMessage, AssistantMessage, UserMessage, ResultMessage, StreamEvent,
+                TextBlock, ToolUseBlock, ToolResultBlock, ThinkingBlock,
+            )
         except ImportError:
             yield _sse("error", {
                 "message": "claude-agent-sdk not installed. Run: pip install claude-agent-sdk"
@@ -257,19 +260,18 @@ class ChatManager:
         )
 
         sdk_session_id: str | None = session.get("sdk_session_id")
+        streamed_text_this_turn = False  # avoid duplicate text from deltas + final
 
         try:
             async with ClaudeSDKClient(options=options) as client:
                 await client.query(full_prompt)
 
                 async for sdk_msg in client.receive_response():
-                    # Extract session ID from init messages
-                    msg_type = getattr(sdk_msg, "type", "")
-
-                    if msg_type == "system":
-                        subtype = getattr(sdk_msg, "subtype", "")
+                    # --- System messages (init, status) ---
+                    if isinstance(sdk_msg, SystemMessage):
+                        subtype = sdk_msg.subtype
                         if subtype == "init":
-                            data = getattr(sdk_msg, "data", {}) or {}
+                            data = sdk_msg.data or {}
                             if isinstance(data, dict):
                                 sdk_session_id = data.get("session_id", sdk_session_id)
                             yield _sse("init", {"session_id": sdk_session_id})
@@ -277,35 +279,52 @@ class ChatManager:
                             yield _sse("status", {"subtype": subtype})
                         continue
 
-                    # Assistant message — may contain text + tool_use blocks
-                    if msg_type == "assistant":
-                        blocks = getattr(sdk_msg, "content", []) or []
+                    # --- Stream events (partial assistant text) ---
+                    if isinstance(sdk_msg, StreamEvent):
+                        event = sdk_msg.event or {}
+                        event_type = event.get("type", "")
+                        if event_type == "content_block_delta":
+                            delta = event.get("delta", {})
+                            text = delta.get("text", "")
+                            if text:
+                                streamed_text_this_turn = True
+                                yield _sse("assistant", {"content": text})
+                        continue
+
+                    # --- Assistant message (text + tool_use blocks) ---
+                    if isinstance(sdk_msg, AssistantMessage):
+                        blocks = sdk_msg.content or []
                         for block in blocks:
-                            bt = getattr(block, "type", "")
-                            if bt == "text":
-                                text = getattr(block, "text", "")
+                            if isinstance(block, TextBlock):
+                                text = block.text or ""
                                 if text:
+                                    # Always persist to DB for history reload
                                     await self._save_message(session_id, "assistant", text)
-                                    yield _sse("assistant", {"content": text})
-                            elif bt == "tool_use":
-                                name = getattr(block, "name", "")
-                                inp = getattr(block, "input", {})
+                                    # Only yield to SSE if we didn't already stream deltas
+                                    if not streamed_text_this_turn:
+                                        yield _sse("assistant", {"content": text})
+                            elif isinstance(block, ToolUseBlock):
+                                name = block.name or ""
+                                inp = block.input or {}
                                 await self._save_message(
                                     session_id, "tool_call", "",
                                     tool_name=name, tool_inputs=inp if isinstance(inp, dict) else {},
                                 )
                                 yield _sse("tool_call", {"name": name, "inputs": inp})
+                            elif isinstance(block, ThinkingBlock):
+                                # Thinking blocks are internal reasoning — skip for UI
+                                pass
                         continue
 
-                    # Tool results
-                    if msg_type == "user":
-                        blocks = getattr(sdk_msg, "content", []) or []
+                    # --- User messages (tool results) ---
+                    if isinstance(sdk_msg, UserMessage):
+                        content = sdk_msg.content
+                        blocks = content if isinstance(content, list) else []
                         for block in blocks:
-                            bt = getattr(block, "type", "")
-                            if bt == "tool_result":
-                                tid = getattr(block, "tool_use_id", "")
-                                content = getattr(block, "content", "")
-                                content_str = str(content)[:1000] if content else ""
+                            if isinstance(block, ToolResultBlock):
+                                tid = block.tool_use_id or ""
+                                result_content = block.content
+                                content_str = str(result_content)[:1000] if result_content else ""
                                 await self._save_message(
                                     session_id, "tool_result", content_str,
                                     tool_result={"tool_use_id": tid, "summary": content_str},
@@ -316,10 +335,10 @@ class ChatManager:
                                 })
                         continue
 
-                    # Final result
-                    if msg_type == "result":
-                        subtype = getattr(sdk_msg, "subtype", "")
-                        cost = getattr(sdk_msg, "total_cost_usd", None)
+                    # --- Final result ---
+                    if isinstance(sdk_msg, ResultMessage):
+                        subtype = sdk_msg.subtype or ""
+                        cost = sdk_msg.total_cost_usd
                         yield _sse("done", {
                             "subtype": subtype,
                             "session_id": sdk_session_id,

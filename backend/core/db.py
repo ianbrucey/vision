@@ -24,12 +24,6 @@ from psycopg2.extensions import connection
 # Configuration — override via environment or .env
 # ---------------------------------------------------------------------------
 
-_DEFAULT_HOST = os.environ.get("VISION_DB_HOST", "127.0.0.1")
-_DEFAULT_PORT = int(os.environ.get("VISION_DB_PORT", "5433"))
-_DEFAULT_DB = os.environ.get("VISION_DB_DATABASE", "vision")
-_DEFAULT_USER = os.environ.get("VISION_DB_USERNAME", "vision")
-_DEFAULT_PASSWORD = os.environ.get("VISION_DB_PASSWORD", "vision_dev")
-
 # Path to the schema files, relative to this module
 _SCHEMA_DIR = Path(__file__).resolve().parent.parent / "schemas"
 _SCHEMA_FILES = [
@@ -49,9 +43,7 @@ def _load_dotenv() -> None:
     Existing environment variables take precedence (never overwritten).
     """
     candidates = [
-        _SCHEMA_DIR.parents[3] / ".env",                    # scripts/.env
-        _SCHEMA_DIR.parents[3] / "mcp-server" / ".env",     # scripts/mcp-server/.env
-        _SCHEMA_DIR.parents[2] / ".env",                    # vision/.env
+        _SCHEMA_DIR.parents[1] / ".env",                    # vision/.env
     ]
     for env_path in candidates:
         if not env_path.exists():
@@ -67,8 +59,14 @@ def _load_dotenv() -> None:
                 os.environ[key] = value
 
 
-# Auto-load on import so downstream code doesn't need to think about it.
+# Load .env BEFORE reading config values from os.environ
 _load_dotenv()
+
+_DEFAULT_HOST = os.environ.get("VISION_DB_HOST", "127.0.0.1")
+_DEFAULT_PORT = int(os.environ.get("VISION_DB_PORT", "5433"))
+_DEFAULT_DB = os.environ.get("VISION_DB_DATABASE", "vision")
+_DEFAULT_USER = os.environ.get("VISION_DB_USERNAME", "vision")
+_DEFAULT_PASSWORD = os.environ.get("VISION_DB_PASSWORD", "vision_dev")
 
 
 # ---------------------------------------------------------------------------
