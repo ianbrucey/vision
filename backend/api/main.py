@@ -21,6 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from core.case import CaseManager
+from core.db import ensure_schema, ensure_strategy_schema, ensure_chat_schema
 from ingestion.storage import upload_file as _upload_to_minio
 from ingestion.jobs import enqueue as _enqueue_job, get_job, list_jobs
 from auth import create_user, authenticate_user, create_token, get_current_user
@@ -42,6 +43,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+def _apply_schemas():
+    """Idempotent schema application on every startup.
+
+    Ensures all three schema files are applied before the first request.
+    Uses IF NOT EXISTS internally — safe to run on every restart.
+    """
+    ensure_schema()            # 001 — cases, parties, evidence store, users
+    ensure_strategy_schema()   # 002 — strategies, propositions, gauntlet
+    ensure_chat_schema()       # 003 — chat sessions, messages, session store
+
 
 mgr = CaseManager()
 
