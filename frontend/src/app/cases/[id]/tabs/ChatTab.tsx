@@ -3,6 +3,7 @@
 import {
   useState, useEffect, useRef, useCallback, type FormEvent,
 } from "react";
+import ReactMarkdown from "react-markdown";
 import { AlertCircle, MessageCircle, Plus, Send, Loader2, Wrench, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import type { TabId } from "../TabNav";
 import {
@@ -28,6 +29,7 @@ interface ChatTabProps {
 interface UIMessage {
   role: "user" | "assistant" | "tool_call" | "tool_result" | "system" | "error";
   content: string;
+  sequence: number | null;  // DB sequence — null until saved; sort key
   toolName?: string;
   toolInputs?: unknown;
   toolResult?: unknown;
@@ -111,14 +113,22 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
     getChatMessages(activeSessionId)
       .then((msgs: ChatMessage[]) => {
         if (cancelled) return;
-        setMessages(msgs.map(m => ({
+        const loaded = msgs.map(m => ({
           role: m.role,
           content: m.content,
+          sequence: m.sequence ?? null,
           toolName: m.tool_name || undefined,
           toolInputs: m.tool_inputs || undefined,
           toolResult: m.tool_result || undefined,
           timestamp: new Date(m.created_at),
-        })));
+        }));
+        // Sort by sequence; missing sequences go last
+        loaded.sort((a, b) => {
+          const sa = a.sequence ?? Number.MAX_SAFE_INTEGER;
+          const sb = b.sequence ?? Number.MAX_SAFE_INTEGER;
+          return sa - sb;
+        });
+        setMessages(loaded);
       })
       .catch(() => { if (!cancelled) setMessages([]); })
       .finally(() => { if (!cancelled) setMessagesLoading(false); });
@@ -153,12 +163,12 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
     }
 
     setInput("");
-    const userMsg: UIMessage = { role: "user", content: text, timestamp: new Date() };
+    const userMsg: UIMessage = { role: "user", content: text, sequence: null, timestamp: new Date() };
     setMessages(prev => [...prev, userMsg]);
     setStreaming(true);
 
     // Placeholder for streaming assistant message
-    const assistantMsg: UIMessage = { role: "assistant", content: "", timestamp: new Date() };
+    const assistantMsg: UIMessage = { role: "assistant", content: "", sequence: null, timestamp: new Date() };
     setMessages(prev => [...prev, assistantMsg]);
 
     streamCtrlRef.current = streamChatMessage(
@@ -167,45 +177,79 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
       (event) => {
         setMessages(prev => {
           const copy = [...prev];
-          const last = copy[copy.length - 1];
 
           switch (event.type) {
-            case "assistant":
-              if (last && last.role === "assistant") {
-                last.content += event.content || "";
+            case "user_echo":
+              // Stamp the user message with its DB sequence
+              for (let i = copy.length - 1; i >= 0; i--) {
+                if (copy[i].role === "user" && copy[i].sequence === null) {
+                  copy[i] = { ...copy[i], sequence: event.sequence ?? null };
+                  break;
+                }
               }
               break;
+
+            case "assistant": {
+              // Streaming delta — append to the assistant placeholder
+              for (let i = copy.length - 1; i >= 0; i--) {
+                if (copy[i].role === "assistant" && copy[i].sequence === null) {
+                  copy[i] = {
+                    ...copy[i],
+                    content: copy[i].content + (event.content || ""),
+                  };
+                  break;
+                }
+              }
+              break;
+            }
+
+            case "assistant_final":
+              // Stamp the assistant placeholder with its DB sequence
+              for (let i = copy.length - 1; i >= 0; i--) {
+                if (copy[i].role === "assistant" && copy[i].sequence === null) {
+                  copy[i] = { ...copy[i], sequence: event.sequence ?? null };
+                  break;
+                }
+              }
+              break;
+
             case "tool_call":
+            case "tool_result":
               copy.push({
-                role: "tool_call",
+                role: event.type as "tool_call" | "tool_result",
                 content: "",
-                toolName: event.name || "",
-                toolInputs: event.inputs,
+                sequence: event.sequence ?? null,
+                toolName: event.type === "tool_call" ? (event.name || "") : undefined,
+                toolInputs: event.type === "tool_call" ? event.inputs : undefined,
+                toolResult: event.type === "tool_result" ? event.content : undefined,
                 toolExpanded: false,
                 timestamp: new Date(),
               });
               break;
-            case "tool_result":
-              copy.push({
-                role: "tool_result",
-                content: "",
-                toolName: undefined,
-                toolResult: event.content,
-                timestamp: new Date(),
-              });
-              break;
+
             case "status":
-              // thinking / progress — ignore for now
-              break;
             case "init":
               break;
+
             case "done":
               break;
+
             case "error":
-              copy.push({ role: "error", content: event.message || "Unknown error", timestamp: new Date() });
+              copy.push({
+                role: "error", content: event.message || "Unknown error",
+                sequence: null, timestamp: new Date(),
+              });
               break;
           }
-          return [...copy];
+
+          // Sort by sequence — unsequenced messages (deltas mid-stream) float to end
+          copy.sort((a, b) => {
+            const sa = a.sequence ?? Number.MAX_SAFE_INTEGER;
+            const sb = b.sequence ?? Number.MAX_SAFE_INTEGER;
+            return sa - sb;
+          });
+
+          return copy;
         });
       },
       () => {
@@ -215,7 +259,7 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
       },
       (err) => {
         setStreaming(false);
-        setMessages(prev => [...prev, { role: "error", content: err, timestamp: new Date() }]);
+        setMessages(prev => [...prev, { role: "error", content: err, sequence: null, timestamp: new Date() }]);
       },
     );
   };
@@ -370,14 +414,21 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
                 )}
 
                 {/* Assistant / user / error content */}
-                {(msg.role === "assistant" || msg.role === "user" || msg.role === "error") && (
-                  <div className="whitespace-pre-wrap break-words">
-                    {msg.content || (msg.role === "assistant" && streaming ? (
+                {msg.role === "assistant" && (
+                  <div className="wrap-break-word prose prose-sm max-w-none prose-table:text-sm prose-td:border prose-td:border-border prose-td:px-2 prose-td:py-1 prose-th:bg-surface-2 prose-th:px-2 prose-th:py-1 prose-th:font-semibold">
+                    {msg.content ? (
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    ) : streaming ? (
                       <span className="inline-flex items-center gap-1 text-text-disabled">
                         <Loader2 size={12} className="animate-spin" />
                         Thinking...
                       </span>
-                    ) : null)}
+                    ) : null}
+                  </div>
+                )}
+                {(msg.role === "user" || msg.role === "error") && (
+                  <div className="whitespace-pre-wrap wrap-break-word">
+                    {msg.content}
                   </div>
                 )}
               </div>

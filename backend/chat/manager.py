@@ -2,9 +2,8 @@
 Vision — ChatManager.
 
 Manages the lifecycle of Agent SDK sessions for the chat interface.
-One ChatManager per backend process. Creates and tracks ClaudeSDKClient
-instances, bridges streaming responses to SSE events, and handles
-session persistence via PostgresSessionStore.
+One AgentSession per chat session — kept alive across turns for
+conversation continuity. Bridges streaming responses to SSE events.
 """
 
 from __future__ import annotations
@@ -24,35 +23,162 @@ from core.db import connect, ensure_chat_schema
 
 logger = logging.getLogger("vision.chat.manager")
 
-# Temporary directory for SDK working files. The SDK writes local JSONL here
-# (ephemeral) and mirrors to PostgresSessionStore (durable).
 _TMP_ROOT = Path(os.environ.get("VISION_SDK_TMP", "/tmp/vision/sdk"))
 
-# Agent CLI tool path — tells the agent how to invoke database operations.
-# manager.py lives in backend/chat/, so parents[0] is backend/chat/
-_VISION_CLI_PATH = Path(__file__).resolve().parents[0] / "cli.py"
+
+# ---------------------------------------------------------------------------
+# AgentSession — a long-lived ClaudeSDKClient for one chat session
+# ---------------------------------------------------------------------------
+
+
+class AgentSession:
+    """Wraps a persistent ClaudeSDKClient for a single chat session.
+
+    Created on first message, stays alive until the chat session is archived.
+    Each turn: client.query(user_message) → client.receive_response().
+    """
+
+    def __init__(self, session_id: int, case_id: int, system_prompt: str):
+        self.session_id = session_id
+        self.case_id = case_id
+        self.system_prompt = system_prompt
+        self._client = None
+        self._connected = False
+
+    async def _ensure_connected(self):
+        """Connect the SDK client on first use."""
+        if self._connected:
+            return
+
+        from claude_agent_sdk import ClaudeSDKClient, ClaudeAgentOptions
+
+        store = PostgresSessionStore(lambda: connect())
+        sdk_workdir = _TMP_ROOT / f"case_{self.case_id}"
+        sdk_workdir.mkdir(parents=True, exist_ok=True)
+
+        options = ClaudeAgentOptions(
+            system_prompt=self.system_prompt,
+            allowed_tools=["Bash", "Read", "Glob", "Grep", "Write", "Edit",
+                           "WebSearch", "WebFetch"],
+            session_store=store,
+            setting_sources=["project"],
+            cwd=str(sdk_workdir),
+            permission_mode="bypassPermissions",
+            # DeepSeek uses reasoning_effort natively and rejects Anthropic's
+            # thinking type parameter. Explicitly disable SDK thinking config.
+            thinking=None,
+            max_thinking_tokens=None,
+        )
+
+        self._client = ClaudeSDKClient(options=options)
+        await self._client.connect()
+        self._connected = True
+
+    async def send_message(self, content: str):
+        """Send a user message to the agent. Must be connected first."""
+        await self._ensure_connected()
+        await self._client.query(content)
+
+    async def receive(self) -> AsyncIterator[dict]:
+        """Yield SSE-ready event dicts from the agent's response stream.
+
+        Yields until ResultMessage, then returns. Call send_message() again
+        for the next turn.
+        """
+        from claude_agent_sdk.types import (
+            AssistantMessage, UserMessage, ResultMessage, StreamEvent,
+            TextBlock, ToolUseBlock, ToolResultBlock, ThinkingBlock,
+        )
+
+        streamed_text = False
+
+        async for msg in self._client.receive_response():
+            # --- StreamEvent: partial text deltas ---
+            if isinstance(msg, StreamEvent):
+                event = msg.event or {}
+                if event.get("type") == "content_block_delta":
+                    delta = event.get("delta", {})
+                    text = delta.get("text", "")
+                    if text:
+                        streamed_text = True
+                        yield {"type": "assistant", "content": text}
+                continue
+
+            # --- AssistantMessage: final text + tool_use blocks ---
+            if isinstance(msg, AssistantMessage):
+                for block in (msg.content or []):
+                    if isinstance(block, TextBlock):
+                        text = block.text or ""
+                        if text and not streamed_text:
+                            yield {"type": "assistant", "content": text}
+                    elif isinstance(block, ToolUseBlock):
+                        name = block.name or ""
+                        inp = block.input or {}
+                        yield {"type": "tool_call", "name": name, "inputs": inp}
+                    elif isinstance(block, ThinkingBlock):
+                        pass  # internal reasoning — skip
+                continue
+
+            # --- UserMessage: tool results ---
+            if isinstance(msg, UserMessage):
+                blocks = msg.content if isinstance(msg.content, list) else []
+                for block in blocks:
+                    if isinstance(block, ToolResultBlock):
+                        content_str = str(block.content)[:2000] if block.content else ""
+                        yield {
+                            "type": "tool_result",
+                            "tool_use_id": block.tool_use_id or "",
+                            "content": content_str,
+                        }
+                continue
+
+            # --- ResultMessage: end of turn ---
+            if isinstance(msg, ResultMessage):
+                yield {
+                    "type": "done",
+                    "subtype": msg.subtype or "",
+                    "session_id": getattr(msg, "session_id", None),
+                    "cost": msg.total_cost_usd,
+                }
+                continue
+
+    async def close(self):
+        """Disconnect the SDK client."""
+        if self._client and self._connected:
+            try:
+                await self._client.disconnect()
+            except Exception:
+                pass
+        self._connected = False
+        self._client = None
+
+
+# ---------------------------------------------------------------------------
+# ChatManager — session lifecycle + SSE streaming
+# ---------------------------------------------------------------------------
 
 
 class ChatManager:
-    """Manages Agent SDK client instances and SSE streaming."""
+    """Manages AgentSession instances and bridges to SSE events."""
 
     def __init__(self):
         _TMP_ROOT.mkdir(parents=True, exist_ok=True)
-        ensure_chat_schema()  # apply 003_chat.sql if not already applied
-
-    # ------------------------------------------------------------------
-    # Session lifecycle
-    # ------------------------------------------------------------------
+        ensure_chat_schema()
+        self._sessions: dict[int, AgentSession] = {}
 
     def _conn_factory(self):
         return connect()
 
-    async def create_session(self, case_id: int, system_prompt: str | None = None) -> dict:
-        """Create a new chat session for a case."""
+    # ------------------------------------------------------------------
+    # Session CRUD
+    # ------------------------------------------------------------------
+
+    async def create_session(
+        self, case_id: int, system_prompt: str | None = None
+    ) -> dict:
+        """Create a new chat session row. AgentSession is lazily created on first message."""
         prompt = system_prompt or WAR_ROOM_SYSTEM_PROMPT
         project_key = f"case_{case_id}"
-        sdk_workdir = _TMP_ROOT / project_key
-        sdk_workdir.mkdir(parents=True, exist_ok=True)
 
         conn = self._conn_factory()
         try:
@@ -107,12 +233,19 @@ class ChatManager:
             conn.close()
 
     async def archive_session(self, session_id: int) -> bool:
-        """Archive a session."""
+        """Archive a session and close its agent."""
+        # Close the agent if connected
+        agent = self._sessions.pop(session_id, None)
+        if agent:
+            await agent.close()
+
         conn = self._conn_factory()
         try:
             with conn.cursor() as cur:
                 cur.execute(
-                    "UPDATE chat_sessions SET status = 'archived', updated_at = now() WHERE id = %s",
+                    """UPDATE chat_sessions
+                       SET status = 'archived', updated_at = now()
+                       WHERE id = %s""",
                     (session_id,),
                 )
             conn.commit()
@@ -121,7 +254,7 @@ class ChatManager:
             conn.close()
 
     # ------------------------------------------------------------------
-    # Message history
+    # Message persistence
     # ------------------------------------------------------------------
 
     async def get_messages(self, session_id: int) -> list[dict]:
@@ -145,8 +278,8 @@ class ChatManager:
         self, session_id: int, role: str, content: str,
         tool_name: str | None = None, tool_inputs: dict | None = None,
         tool_result: dict | None = None, citations: list | None = None,
-    ) -> int:
-        """Save a message to the database. Fire-and-forget safe."""
+    ) -> tuple[int, int]:
+        """Persist a message to the database. Returns (id, sequence)."""
         conn = self._conn_factory()
         try:
             with conn.cursor() as cur:
@@ -155,37 +288,22 @@ class ChatManager:
                     (session_id,),
                 )
                 seq = cur.fetchone()[0]
-
                 cur.execute(
                     """INSERT INTO chat_messages
                        (session_id, role, content, tool_name, tool_inputs,
                         tool_result, citations, sequence)
                        VALUES (%s, %s, %s, %s, %s::jsonb, %s::jsonb, %s::jsonb, %s)
                        RETURNING id""",
-                    (
-                        session_id, role, content,
-                        tool_name,
-                        json.dumps(tool_inputs) if tool_inputs else None,
-                        json.dumps(tool_result) if tool_result else None,
-                        json.dumps(citations) if citations else None,
-                        seq,
-                    ),
+                    (session_id, role, content,
+                     tool_name,
+                     json.dumps(tool_inputs) if tool_inputs else None,
+                     json.dumps(tool_result) if tool_result else None,
+                     json.dumps(citations) if citations else None,
+                     seq),
                 )
-                conn.commit()
-                return cur.fetchone()[0]
-        finally:
-            conn.close()
-
-    async def _update_sdk_session_id(self, session_id: int, sdk_id: str):
-        """Store the SDK session ID for later resumption."""
-        conn = self._conn_factory()
-        try:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "UPDATE chat_sessions SET sdk_session_id = %s, updated_at = now() WHERE id = %s",
-                    (sdk_id, session_id),
-                )
+                msg_id = cur.fetchone()[0]
             conn.commit()
+            return msg_id, seq
         finally:
             conn.close()
 
@@ -211,7 +329,7 @@ class ChatManager:
             conn.close()
 
     # ------------------------------------------------------------------
-    # Streaming
+    # Streaming — the main event
     # ------------------------------------------------------------------
 
     async def stream_message(
@@ -219,166 +337,98 @@ class ChatManager:
     ) -> AsyncIterator[str]:
         """Send a user message and stream the agent response as SSE events.
 
-        Yields SSE-formatted strings:
-            data: {"type":"assistant","content":"..."}
-            data: {"type":"tool_call","name":"...","inputs":{...}}
-            data: {"type":"tool_result","name":"...","result":{...}}
-            data: {"type":"done","session_id":"...","cost":0.01}
-            data: {"type":"error","message":"..."}
+        Creates the AgentSession on first message, reuses it thereafter.
+        Each SSE event includes the DB sequence number so the frontend
+        can sort messages into correct chronological order.
         """
         session = await self.get_session(session_id)
         if not session:
             yield _sse("error", {"message": f"Session {session_id} not found"})
             return
 
-        # Save the user message
-        await self._save_message(session_id, "user", user_message)
+        # Persist user message
+        _user_id, user_seq = await self._save_message(session_id, "user", user_message)
+        yield _sse("user_echo", {"sequence": user_seq, "content": user_message})
 
-        # Build the prompt with CLI tool instructions and case context
-        full_prompt = _build_prompt(user_message, session, _VISION_CLI_PATH)
-
-        # Session store for durability — mirrors SDK writes to PostgreSQL
-        store = PostgresSessionStore(lambda: connect())
-
-        try:
-            from claude_agent_sdk import ClaudeSDKClient, ClaudeAgentOptions
-            from claude_agent_sdk.types import (
-                SystemMessage, AssistantMessage, UserMessage, ResultMessage, StreamEvent,
-                TextBlock, ToolUseBlock, ToolResultBlock, ThinkingBlock,
+        # Get or create the persistent agent for this session
+        agent = self._sessions.get(session_id)
+        if agent is None:
+            agent = AgentSession(
+                session_id=session_id,
+                case_id=session["case_id"],
+                system_prompt=session["system_prompt"] or WAR_ROOM_SYSTEM_PROMPT,
             )
-        except ImportError:
-            yield _sse("error", {
-                "message": "claude-agent-sdk not installed. Run: pip install claude-agent-sdk"
-            })
-            return
-
-        options = ClaudeAgentOptions(
-            system_prompt=session["system_prompt"] or WAR_ROOM_SYSTEM_PROMPT,
-            allowed_tools=["Bash", "Read", "Glob", "Grep", "Write", "Edit"],
-            session_store=store,
-            setting_sources=["project"],
-        )
-
-        sdk_session_id: str | None = session.get("sdk_session_id")
-        streamed_text_this_turn = False  # avoid duplicate text from deltas + final
+            self._sessions[session_id] = agent
 
         try:
-            async with ClaudeSDKClient(options=options) as client:
-                await client.query(full_prompt)
+            await agent.send_message(user_message)
 
-                async for sdk_msg in client.receive_response():
-                    # --- System messages (init, status) ---
-                    if isinstance(sdk_msg, SystemMessage):
-                        subtype = sdk_msg.subtype
-                        if subtype == "init":
-                            data = sdk_msg.data or {}
-                            if isinstance(data, dict):
-                                sdk_session_id = data.get("session_id", sdk_session_id)
-                            yield _sse("init", {"session_id": sdk_session_id})
-                        else:
-                            yield _sse("status", {"subtype": subtype})
-                        continue
+            # Accumulate assistant text across the turn — save once at the end
+            assistant_text = ""
 
-                    # --- Stream events (partial assistant text) ---
-                    if isinstance(sdk_msg, StreamEvent):
-                        event = sdk_msg.event or {}
-                        event_type = event.get("type", "")
-                        if event_type == "content_block_delta":
-                            delta = event.get("delta", {})
-                            text = delta.get("text", "")
-                            if text:
-                                streamed_text_this_turn = True
-                                yield _sse("assistant", {"content": text})
-                        continue
+            async for event in agent.receive():
+                event_type = event.get("type", "")
 
-                    # --- Assistant message (text + tool_use blocks) ---
-                    if isinstance(sdk_msg, AssistantMessage):
-                        blocks = sdk_msg.content or []
-                        for block in blocks:
-                            if isinstance(block, TextBlock):
-                                text = block.text or ""
-                                if text:
-                                    # Always persist to DB for history reload
-                                    await self._save_message(session_id, "assistant", text)
-                                    # Only yield to SSE if we didn't already stream deltas
-                                    if not streamed_text_this_turn:
-                                        yield _sse("assistant", {"content": text})
-                            elif isinstance(block, ToolUseBlock):
-                                name = block.name or ""
-                                inp = block.input or {}
-                                await self._save_message(
-                                    session_id, "tool_call", "",
-                                    tool_name=name, tool_inputs=inp if isinstance(inp, dict) else {},
-                                )
-                                yield _sse("tool_call", {"name": name, "inputs": inp})
-                            elif isinstance(block, ThinkingBlock):
-                                # Thinking blocks are internal reasoning — skip for UI
-                                pass
-                        continue
-
-                    # --- User messages (tool results) ---
-                    if isinstance(sdk_msg, UserMessage):
-                        content = sdk_msg.content
-                        blocks = content if isinstance(content, list) else []
-                        for block in blocks:
-                            if isinstance(block, ToolResultBlock):
-                                tid = block.tool_use_id or ""
-                                result_content = block.content
-                                content_str = str(result_content)[:1000] if result_content else ""
-                                await self._save_message(
-                                    session_id, "tool_result", content_str,
-                                    tool_result={"tool_use_id": tid, "summary": content_str},
-                                )
-                                yield _sse("tool_result", {
-                                    "tool_use_id": tid,
-                                    "content": content_str,
-                                })
-                        continue
-
-                    # --- Final result ---
-                    if isinstance(sdk_msg, ResultMessage):
-                        subtype = sdk_msg.subtype or ""
-                        cost = sdk_msg.total_cost_usd
-                        yield _sse("done", {
-                            "subtype": subtype,
-                            "session_id": sdk_session_id,
-                            "cost": cost,
+                if event_type == "assistant":
+                    # Streaming delta — accumulate, emit immediately, save later
+                    content = event.get("content", "")
+                    if content:
+                        assistant_text += content
+                        yield _sse("assistant", {
+                            "content": content,
+                            "sequence": None,  # delta — sequence assigned on final save
                         })
-                        continue
 
-                # Persist SDK session ID for resumption
-                if sdk_session_id:
-                    await self._update_sdk_session_id(session_id, sdk_session_id)
+                elif event_type == "tool_call":
+                    _tid, tseq = await self._save_message(
+                        session_id, "tool_call", "",
+                        tool_name=event.get("name", ""),
+                        tool_inputs=event.get("inputs"),
+                    )
+                    yield _sse("tool_call", {
+                        "name": event.get("name", ""),
+                        "inputs": event.get("inputs"),
+                        "sequence": tseq,
+                    })
+
+                elif event_type == "tool_result":
+                    _rid, rseq = await self._save_message(
+                        session_id, "tool_result", event.get("content", ""),
+                        tool_result=event,
+                    )
+                    yield _sse("tool_result", {
+                        "tool_use_id": event.get("tool_use_id", ""),
+                        "content": event.get("content", ""),
+                        "sequence": rseq,
+                    })
+
+                elif event_type == "done":
+                    # Save the accumulated assistant text as one row
+                    if assistant_text:
+                        _aid, aseq = await self._save_message(
+                            session_id, "assistant", assistant_text,
+                        )
+                        yield _sse("assistant_final", {
+                            "sequence": aseq,
+                        })
                     await self._auto_title(session_id)
+                    yield _sse("done", {
+                        "subtype": event.get("subtype", ""),
+                        "session_id": event.get("session_id"),
+                        "cost": event.get("cost"),
+                    })
 
         except Exception as exc:
             logger.exception("Agent SDK streaming failed")
+            # Save whatever text we accumulated before the error
+            if assistant_text:
+                await self._save_message(session_id, "assistant", assistant_text)
             yield _sse("error", {"message": str(exc)})
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
-def _build_prompt(user_message: str, session: dict, cli_path: Path) -> str:
-    """Build the full prompt with CLI tool instructions and case context."""
-    return f"""[Case ID: {session['case_id']}]
-
-Database exploration tools (use Bash to run these):
-  python3 {cli_path} list-cases [--status active] [--limit N]
-  python3 {cli_path} get-case --case-id {session['case_id']}
-  python3 {cli_path} search-blocks --case-id {session['case_id']} --query "text" [--document-id N] [--limit N]
-  python3 {cli_path} get-document-structure --document-id N
-  python3 {cli_path} get-block-context --block-id N [--window 3]
-  python3 {cli_path} get-strategies --case-id {session['case_id']}
-  python3 {cli_path} get-strategy-tree --strategy-id N
-
-You are working on Case ID {session['case_id']}. Use the tools above to explore
-the case before answering. All commands return JSON to stdout. If you need to
-search the evidence store, use search-blocks. If you need case context, use
-get-case. Always cite your sources when presenting findings.
-
-{user_message}"""
 
 
 def _sse(event_type: str, data: dict) -> str:

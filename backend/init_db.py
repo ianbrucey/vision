@@ -131,7 +131,7 @@ def main() -> int:
     conn = connect()
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT version, name FROM schema_migrations ORDER BY version")
+            cur.execute("SELECT version, name FROM vision.schema_migrations ORDER BY version")
             migrations = cur.fetchall()
     finally:
         conn.close()

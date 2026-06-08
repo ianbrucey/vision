@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import uuid
+from datetime import timedelta
 from pathlib import Path
 
 from minio import Minio
@@ -97,4 +98,4 @@ def delete_file(bucket: str, object_key: str) -> bool:
 def get_public_url(bucket: str, object_key: str, expires_seconds: int = 3600) -> str:
     """Generate a presigned download URL. Valid for expires_seconds (default 1 hour)."""
     client = _get_client()
-    return client.presigned_get_object(bucket, object_key, expires=expires_seconds)
+    return client.presigned_get_object(bucket, object_key, expires=timedelta(seconds=expires_seconds))

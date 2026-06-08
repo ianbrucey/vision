@@ -40,23 +40,22 @@ Three processes, two persistent services. The API auto-bootstraps the database o
 
 | Dependency | Version | Check |
 |---|---|---|
-| Docker | Any recent | `docker --version` |
-| Python | 3.14+ | `python3 --version` |
+| Python | 3.11+ | `python3 --version` |
 | Node.js | 22+ | `node --version` |
 | npm | 10+ | `npm --version` |
 | psql | 15+ | `psql --version` |
+| PostgreSQL | 15+ with pgvector | See §3 (DBngin or Docker) |
+| MinIO | Any recent | See §3 (DBngin or Docker) |
 
-Python venv and Node modules (one-time):
-
+**One-time setup:**
 ```bash
-cd scripts/vision
-
-# Python virtual environment
+./setup.sh
+```
+Or manually:
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r backend/requirements.txt
-
-# Frontend dependencies
 cd frontend && npm install && cd ..
 ```
 
@@ -64,7 +63,34 @@ cd frontend && npm install && cd ..
 
 ## 3. Infrastructure Services
 
-### Docker Compose
+Two options: **DBngin** (macOS GUI — zero config) or **Docker Compose** (cross-platform).
+
+### Option A: DBngin (macOS)
+
+DBngin is a native macOS app that manages PostgreSQL and MinIO with a menu bar UI.
+Download from [dbngin.com](https://dbngin.com).
+
+| Service | Port | Credentials |
+|---|---|---|
+| PostgreSQL 15+ with pgvector | `5432` | System user (no password) |
+| MinIO | `9000` (S3 API) | `minioadmin` / `minioadmin` |
+
+Create the database and bucket:
+```bash
+createdb -h 127.0.0.1 -p 5432 -U "$(whoami)" vision
+```
+The MinIO `vision-uploads` bucket is created automatically by `./setup.sh` or on first upload.
+
+`.env` for DBngin:
+```
+VISION_DB_HOST=127.0.0.1
+VISION_DB_PORT=5432
+VISION_DB_USERNAME=<your macOS username>
+VISION_DB_PASSWORD=
+MINIO_ENDPOINT=127.0.0.1:9000
+```
+
+### Option B: Docker Compose
 
 Two services defined in [docker-compose.yml](../docker-compose.yml):
 
@@ -74,20 +100,25 @@ Two services defined in [docker-compose.yml](../docker-compose.yml):
 | `vision-minio` | `minio/minio:latest` | `9002` (S3 API), `9003` (console) | `minioadmin` / `minioadmin` |
 | `vision-minio-init` | `minio/mc:latest` | — (one-shot) | Creates `vision-uploads` bucket |
 
-**Why port 5433?** Coexists with a homebrew PostgreSQL on 5432 without conflict. If you don't have another PostgreSQL, you can change the port mapping.
+**Why port 5433?** Coexists with a homebrew PostgreSQL on 5432 without conflict.
 
 ```bash
 # Start both services
 docker compose -f docker-compose.yml up -d
 
-# Verify they're running
+# Verify
 docker compose -f docker-compose.yml ps
-
-# Check PostgreSQL
 PGPASSWORD=vision_dev psql -h 127.0.0.1 -p 5433 -U vision -d vision -c "SELECT 1"
-
-# Check MinIO
 curl -s http://127.0.0.1:9002/minio/health/live
+```
+
+`.env` for Docker:
+```
+VISION_DB_HOST=127.0.0.1
+VISION_DB_PORT=5433
+VISION_DB_USERNAME=vision
+VISION_DB_PASSWORD=vision_dev
+MINIO_ENDPOINT=127.0.0.1:9002
 ```
 
 ---
@@ -98,6 +129,7 @@ Copy and edit the template:
 ```bash
 cp .env.example .env
 ```
+`.env.example` is provided in the repo root with defaults for both DBngin and Docker.
 
 All variables and their purposes:
 
@@ -114,7 +146,7 @@ All variables and their purposes:
 | Variable | Purpose |
 |---|---|
 | `ANTHROPIC_BASE_URL` | API base URL (e.g., `https://api.deepseek.com/anthropic` for DeepSeek) |
-| `ANTHROPIC_API_KEY` | API key for the LLM provider |
+| `ANTHROPIC_AUTH_TOKEN` | API key for the LLM provider (also accepts `ANTHROPIC_API_KEY`) |
 | `ANTHROPIC_MODEL` | Model ID (e.g., `deepseek-v4-pro`, `claude-sonnet-4-6`) |
 | `MISTRAL_API_KEY` | Mistral API key (for embeddings) |
 | `DATALAB_API_KEY` | DataLab API key (for OCR — optional) |
@@ -253,11 +285,13 @@ open http://127.0.0.1:8400/docs
 |---|---|---|
 | `3000` | Next.js frontend dev server | Yes — browser |
 | `8400` | FastAPI backend | Yes — browser, frontend proxy |
+| `5432` | PostgreSQL (DBngin) | Internal |
 | `5433` | PostgreSQL (Docker) | Internal |
-| `9002` | MinIO S3 API | Internal |
-| `9003` | MinIO Web Console | Yes — browser |
+| `9000` | MinIO S3 API (DBngin) | Internal |
+| `9002` | MinIO S3 API (Docker) | Internal |
+| `9003` | MinIO Web Console (Docker) | Yes — browser |
 
-No port conflicts by design. PostgreSQL on 5433 coexists with a standard 5432 install. MinIO on 9002/9003 coexists with a standard 9000 install.
+Docker uses offset ports (5433, 9002) to coexist with DBngin/homebrew services on the standard ports (5432, 9000).
 
 ---
 
@@ -265,8 +299,8 @@ No port conflicts by design. PostgreSQL on 5433 coexists with a standard 5432 in
 
 ```
 scripts/vision/
-├── .env                          # Environment variables (gitignored)
-├── .env.example                  # Template — committed to git
+├── .env                          # Environment variables (gitignored — copy from .env.example)
+├── .env.example                  # Template with DBngin + Docker defaults — committed to git
 ├── docker-compose.yml            # Infrastructure (PostgreSQL + MinIO)
 ├── start.sh                      # All-in-one launcher
 ├── backend/
@@ -295,18 +329,21 @@ scripts/vision/
 ## 9. Common Issues
 
 ### "connection refused" on port 5433
-PostgreSQL container not running.
+PostgreSQL container not running (Docker setup).
 ```bash
 docker compose -f docker-compose.yml up -d vision-db
 docker compose -f docker-compose.yml logs vision-db
 ```
 
+### "connection refused" on port 5432
+DBngin PostgreSQL not running. Open DBngin and click "Start" on your PostgreSQL service.
+
 ### "role 'vision' does not exist" or wrong port
-`.env` not being loaded. Verify `VISION_DB_PORT` matches the docker-compose port mapping.
+`.env` doesn't match your infrastructure. For DBngin, set `VISION_DB_USERNAME` to your macOS username. For Docker, use `vision`.
 ```bash
 # Check what the API sees
 cd backend && python -c "from core.db import _DEFAULT_PORT; print(_DEFAULT_PORT)"
-# Should print 5433 (docker compose) or 5432 (homebrew)
+# Should print 5432 (DBngin) or 5433 (Docker)
 ```
 
 ### "claude-agent-sdk not installed"
@@ -320,7 +357,7 @@ source .venv/bin/activate && pip install claude-agent-sdk
 ### Chat returns no assistant messages
 Two possible causes:
 1. The Agent SDK message type detection was using `getattr(msg, "type", "")` instead of `isinstance()` — **fixed as of 2026-06-07.**
-2. `ANTHROPIC_API_KEY` not set or invalid — check `.env`.
+2. `ANTHROPIC_AUTH_TOKEN` not set or invalid — check `.env`.
 
 ### MinIO bucket missing
 ```bash

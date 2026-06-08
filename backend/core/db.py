@@ -75,13 +75,16 @@ _DEFAULT_PASSWORD = os.environ.get("VISION_DB_PASSWORD", "vision_dev")
 
 def connect() -> connection:
     """Return a new psycopg2 connection using configured credentials."""
-    return psycopg2.connect(
+    conn = psycopg2.connect(
         host=_DEFAULT_HOST,
         port=_DEFAULT_PORT,
         dbname=_DEFAULT_DB,
         user=_DEFAULT_USER,
         password=_DEFAULT_PASSWORD,
     )
+    with conn.cursor() as cur:
+        cur.execute("SET search_path TO vision, agent_work, public")
+    return conn
 
 
 @contextmanager
@@ -454,7 +457,8 @@ def get_block_context(
 
 __all__ = [
     "connect", "tx",
-    "ensure_schema", "ensure_strategy_schema", "drop_schema", "reset_schema",
+    "ensure_schema", "ensure_strategy_schema", "ensure_chat_schema",
+    "drop_schema", "reset_schema",
     "insert_document", "insert_section", "insert_block", "insert_block_heading",
     "insert_case", "insert_party", "insert_allegation", "insert_event",
     "insert_citation",

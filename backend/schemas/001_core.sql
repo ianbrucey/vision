@@ -404,6 +404,23 @@ BEGIN
 END $$;
 
 -- ============================================================================
+-- USERS — Authentication accounts.
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS users (
+    id              UUID PRIMARY KEY,
+    username        TEXT NOT NULL UNIQUE,
+    email           TEXT,
+    password_hash   TEXT NOT NULL,
+    role            TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+    is_active       BOOLEAN NOT NULL DEFAULT true,
+    last_login      TIMESTAMPTZ,
+    created_at      TIMESTAMPTZ DEFAULT now(),
+    updated_at      TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
+
+-- ============================================================================
 -- EMBEDDING CACHE — Avoid re-embedding identical text.
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS embedding_cache (
@@ -412,6 +429,34 @@ CREATE TABLE IF NOT EXISTS embedding_cache (
     model           TEXT NOT NULL,                                    -- e.g. "mistral-embed"
     created_at      TIMESTAMPTZ DEFAULT now()
 );
+
+-- ============================================================================
+-- JOBS — Background ingestion / processing queue.
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS jobs (
+    id              SERIAL PRIMARY KEY,
+    case_id         INTEGER NOT NULL,
+    job_type        TEXT NOT NULL CHECK (job_type IN (
+                        'ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
+                        'analyze', 'export', 'ocr', 'embed', 'other'
+                    )),
+    status          TEXT NOT NULL DEFAULT 'queued' CHECK (
+                        status IN ('queued', 'processing', 'complete', 'failed')
+                    ),
+    storage_ref     JSONB,
+    progress_pct    INTEGER DEFAULT 0,
+    attempts        INTEGER DEFAULT 0,
+    document_id     INTEGER,
+    error_message   TEXT,
+    started_at      TIMESTAMPTZ,
+    completed_at    TIMESTAMPTZ,
+    metadata        JSONB DEFAULT '{}',
+    created_at      TIMESTAMPTZ DEFAULT now(),
+    updated_at      TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs (status);
+CREATE INDEX IF NOT EXISTS idx_jobs_case ON jobs (case_id);
 
 -- ============================================================================
 -- AGENT WORKSPACE PERMISSIONS

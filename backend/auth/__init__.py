@@ -79,7 +79,7 @@ def authenticate_user(username: str, password: str) -> dict | None:
     try:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(
-                "SELECT * FROM users WHERE username = %s AND is_active = 1",
+                "SELECT * FROM users WHERE username = %s AND is_active = true",
                 (username,),
             )
             user = cur.fetchone()

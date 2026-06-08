@@ -132,7 +132,7 @@ export const getChatMessages = (sessionId: number): Promise<ChatMessage[]> =>
 export function streamChatMessage(
   sessionId: number,
   message: string,
-  onEvent: (event: { type: string; content?: string; name?: string; inputs?: unknown; tool_use_id?: string; subtype?: string; session_id?: string; cost?: number; message?: string }) => void,
+  onEvent: (event: { type: string; content?: string; name?: string; inputs?: unknown; tool_use_id?: string; subtype?: string; session_id?: string; cost?: number; message?: string; sequence?: number | null }) => void,
   onDone: () => void,
   onError: (err: string) => void,
 ): AbortController {
