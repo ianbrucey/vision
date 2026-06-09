@@ -18,7 +18,7 @@ from core.db import connect, tx
 
 EMBED_MODEL = "mistral-embed"
 EMBED_DIMS = 1024
-MAX_INPUT_CHARS = 30_000       # ~7,500 tokens, under Mistral's 8,192 cap
+MAX_INPUT_CHARS = 16_000       # safe under Mistral's 8,192 token limit (worst case ~2 chars/token)
 BATCH_SIZE = 16                # inputs per API request
 INTER_BATCH_SLEEP_S = 1.0      # rate-limit buffer
 

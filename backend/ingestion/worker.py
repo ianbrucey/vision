@@ -31,9 +31,10 @@ if str(_BACKEND) not in sys.path:
     sys.path.insert(0, str(_BACKEND))
 
 from core.db import connect
-from ingestion.jobs import claim_next, mark_complete, mark_failed, update_progress
+from ingestion.jobs import claim_next, mark_complete, mark_failed, update_progress, enqueue
 from ingestion.storage import download_file
 from ingestion.dispatcher import ingest_file
+from ingestion.enricher import enrich_document
 
 WORKER_ID = os.environ.get("VISION_WORKER_ID", f"worker-{os.getpid()}")
 POLL_INTERVAL = 2  # seconds between polls when idle
@@ -79,6 +80,17 @@ def process_ingest_job(job: dict) -> None:
         doc_id = result.get("document_id")
         mark_complete(job_id, document_id=doc_id)
 
+        # Enqueue enrichment — classify the document post-ingest
+        try:
+            enqueue(
+                case_id=case_id,
+                job_type="enrich",
+                metadata={"document_id": doc_id},
+            )
+            print(f"[{WORKER_ID}] Job {job_id}: enqueued enrich for doc_id={doc_id}")
+        except Exception as e:
+            print(f"[{WORKER_ID}] Job {job_id}: failed to enqueue enrich — {e}")
+
         # Store the MinIO path on the document for preview/download
         storage_path = f"{bucket}/{object_key}"
         try:
@@ -112,6 +124,45 @@ def process_ingest_job(job: dict) -> None:
             pass
 
 
+def process_enrich_job(job: dict) -> None:
+    """Classify a newly ingested document via Agent SDK sub-agent."""
+    job_id = job["id"]
+    case_id = job["case_id"]
+    meta = job.get("metadata") or {}
+    document_id = meta.get("document_id")
+
+    if not document_id:
+        mark_failed(job_id, "Missing document_id in job metadata")
+        return
+
+    try:
+        print(f"[{WORKER_ID}] Job {job_id}: enriching doc_id={document_id}...")
+        update_progress(job_id, 10)
+
+        result = enrich_document(document_id=document_id, case_id=case_id)
+
+        if result and "error" not in result:
+            print(
+                f"[{WORKER_ID}] Job {job_id}: enriched — "
+                f"type={result.get('document_type')}, "
+                f"tags={result.get('tags')}"
+            )
+        else:
+            print(
+                f"[{WORKER_ID}] Job {job_id}: enrichment returned — {result}"
+            )
+
+        update_progress(job_id, 100)
+        mark_complete(job_id, document_id=document_id)
+
+    except Exception as e:
+        print(f"[{WORKER_ID}] Job {job_id}: enrichment FAILED — {e}")
+        traceback.print_exc()
+        # Non-fatal — document is already ingested. Mark complete anyway
+        # so the job doesn't retry forever. The document just won't have tags.
+        mark_failed(job_id, str(e))
+
+
 def main():
     """Main loop — poll for jobs, process, repeat."""
     print(f"[{WORKER_ID}] Worker started. Polling every {POLL_INTERVAL}s...")
@@ -128,6 +179,8 @@ def main():
 
             if job["job_type"] == "ingest":
                 process_ingest_job(job)
+            elif job["job_type"] == "enrich":
+                process_enrich_job(job)
             else:
                 mark_failed(job["id"], f"Unknown job type: {job['job_type']}")
 

@@ -19,7 +19,7 @@ import psycopg2.extras
 
 from chat.prompt import WAR_ROOM_SYSTEM_PROMPT
 from chat.session_store import PostgresSessionStore
-from chat.tools import set_current_case_id, vision_server
+from chat.tools import create_vision_server
 from core.db import connect, ensure_chat_schema
 
 logger = logging.getLogger("vision.chat.manager")
@@ -57,6 +57,10 @@ class AgentSession:
         sdk_workdir = _TMP_ROOT / f"case_{self.case_id}"
         sdk_workdir.mkdir(parents=True, exist_ok=True)
 
+        # Create a per-session vision server — case_id is captured in
+        # every tool handler's closure. The agent never sees a case_id.
+        vision_server = create_vision_server(self.case_id)
+
         options = ClaudeAgentOptions(
             system_prompt=self.system_prompt,
             mcp_servers={"vision": vision_server},
@@ -80,9 +84,6 @@ class AgentSession:
     async def send_message(self, content: str):
         """Send a user message to the agent. Must be connected first."""
         await self._ensure_connected()
-        # Inject case_id into tool call context — all vision tools
-        # receive this via contextvars. The agent never sees it.
-        set_current_case_id(self.case_id)
         await self._client.query(content)
 
     async def receive(self) -> AsyncIterator[dict]:

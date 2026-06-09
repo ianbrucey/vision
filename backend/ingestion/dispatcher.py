@@ -410,7 +410,25 @@ def ingest_pdf(
     print(f"  PDF: {pdf_path}")
     print(f"  Case ID: {case_id}")
 
-    # -- Step 1: DataLab OCR ------------------------------------------------
+    # -- Step 1: Insert placeholder document row (visible immediately) ---------
+    with tx() as conn:
+        doc_id = insert_document(
+            conn,
+            case_id=case_id,
+            name=document_name,
+            page_count=None,     # unknown until OCR completes
+            source="user_upload",
+        )
+        with conn.cursor() as cur:
+            cur.execute(
+                """UPDATE documents
+                   SET ocr_status = 'processing',
+                       ocr_provider = 'datalab'
+                   WHERE id = %s""",
+                (doc_id,),
+            )
+
+    # -- Step 2: DataLab OCR ------------------------------------------------
     print("  → DataLab OCR (this may take a minute)...")
     t0 = time.time()
     data = _datalab_convert(
@@ -424,26 +442,19 @@ def ingest_pdf(
     page_count = len(pages)
     print(f"  ← DataLab returned {page_count} pages in {elapsed:.1f}s")
 
-    # -- Step 2: Insert document record -------------------------------------
+    # -- Step 3: Update document with page_count and ocr_status ---------------
     with tx() as conn:
-        doc_id = insert_document(
-            conn,
-            case_id=case_id,
-            name=document_name,
-            page_count=page_count,
-            source="user_upload",
-        )
-        # Store the OCR result path for reproducibility
         with conn.cursor() as cur:
             cur.execute(
                 """UPDATE documents
-                   SET ocr_status = 'complete',
-                       ocr_provider = 'datalab'
+                   SET page_count = %s,
+                       ocr_status = 'complete',
+                       ocr_result_path = NULL
                    WHERE id = %s""",
-                (doc_id,),
+                (page_count, doc_id),
             )
 
-    # -- Step 3: Normalize into evidence store ------------------------------
+    # -- Step 4: Normalize into evidence store ------------------------------
     print("  → Normalizing blocks...")
     t0 = time.time()
     with tx() as conn:
@@ -453,7 +464,7 @@ def ingest_pdf(
     elapsed = time.time() - t0
     print(f"  ← Normalized in {elapsed:.1f}s")
 
-    # -- Step 4: Gather stats -----------------------------------------------
+    # -- Step 5: Gather stats -----------------------------------------------
     conn = connect()
     try:
         with conn.cursor() as cur:
