@@ -27,8 +27,10 @@ from core.db import connect, tx
 # System prompt
 # ---------------------------------------------------------------------------
 
-SYNTHESIZER_SYSTEM_PROMPT = """You are a legal case analyst. Your job is to read a case
-narrative written by an attorney and extract structured data from it.
+SYNTHESIZER_SYSTEM_PROMPT = """You are a case analyst. Your job is to read a case
+narrative and extract structured data from it. The case could be about anything —
+medical malpractice, contract dispute, RFP response, tax audit, employment claim,
+regulatory investigation, or any other legal or business matter.
 
 You have two tools:
   read_narrative   — Returns the full case narrative text. Call this first.
@@ -37,37 +39,67 @@ You have two tools:
 
 EXTRACTION GUIDELINES
 
+CRITICAL: You MUST extract parties AND issues. Do not skip parties just
+because the narrative uses structured headers like "RESPONDENT" or
+"COMPLAINANT." Labeled sections are not a substitute — the database needs
+every party as a row. If you can see a person or organization name with
+a role in the matter, extract it.
+
 Parties — every person or organization mentioned in the narrative who plays a
-role in the case. For each:
+role in the matter. For each:
   - name: Full name as it appears in the narrative.
-  - party_kind: "individual" or "organization".
-  - roles: Array of role tags. Choose from: plaintiff, defendant, respondent,
-           claimant, petitioner, witness, expert, treating_physician,
-           attending_physician, surgeon, nurse, hospital, insurer, employer,
-           regulatory_body, opposing_counsel, co_counsel, interested_party,
-           other. A party can have multiple roles.
+  - party_kind: "individual" or "organization". Facilities like hospitals
+                or office locations are organizations; list the facility
+                name, not just the parent entity.
+  - roles: Array of role tags that describe this party's position. Choose from:
+           plaintiff, defendant, respondent, claimant, petitioner,
+           witness, expert, counsel, opposing_counsel,
+           employer, employee, contractor, subcontractor,
+           government_agency, regulatory_body, insurer,
+           medical_provider, hospital, physician, nurse,
+           vendor, supplier, client, customer,
+           interested_party, other.
+           A party can have multiple roles. Pick the most specific ones.
+           Look for implicit roles — a "patient" is likely the claimant,
+           a "respondent" in a complaint form is the defendant.
   - notes: Brief context about this party's involvement. 1-2 sentences.
 
-Allegations — every claim, accusation, or legal theory mentioned. For each:
-  - allegation_id: "A01", "A02", "A03"... assigned in the order they appear or
-                   by importance.
-  - text: Clear, concise statement of the allegation. One sentence.
-  - category: Choose the best fit from: failure_to_diagnose, failure_to_treat,
-              surgical_error, medication_error, diagnostic_delay,
-              post_op_management, informed_consent, documentation,
-              communication, negligent_referral, negligent_credentialing,
-              breach_of_contract, negligence, fraud, breach_of_warranty,
-              strict_liability, discrimination, retaliation, other.
-  - extraction_focus: Array of phrases to search for in the medical records
-                      or evidence. Be specific: "operative report for May 2024
-                      surgery", "nursing notes from post-op day 1-3",
-                      "informed consent form for the procedure",
-                      "communication between Dr. X and Dr. Y about the
-                      complication". These guide document searches.
+Allegations — every claim, accusation, issue, or theory mentioned. This could
+be a legal claim, a regulatory violation, a contractual breach, a factual
+dispute, a compliance gap, or anything the attorney is investigating. For each:
+  - allegation_id: "A01", "A02", "A03"... in order of appearance or importance.
+  - text: Clear, concise statement. One sentence.
+  - category: Best-fit label. Choose from:
+              Medical: failure_to_diagnose, failure_to_treat, surgical_error,
+                medication_error, diagnostic_delay, post_op_management,
+                informed_consent, documentation, communication
+              Contract/Business: breach_of_contract, breach_of_warranty,
+                non_performance, non_payment, misrepresentation, fraud
+              Employment: discrimination, retaliation, wrongful_termination,
+                harassment, wage_dispute
+              Regulatory: compliance_violation, licensing, data_privacy
+              Tax: underreporting, audit_finding, penalty_dispute
+              General: negligence, strict_liability, defamation,
+                professional_misconduct, other
+  - extraction_focus: Array of specific phrases to search for in the evidence.
+                      Be concrete about what documents, dates, people, or
+                      keywords would prove or disprove this allegation.
+                      Examples by case type:
+                      Medical: "operative report May 2024", "nursing notes
+                        post-op day 1-3", "informed consent form"
+                      Contract: "statement of work section 3.2", "delivery
+                        receipts Q2 2025", "email chain about deadline change"
+                      Tax: "2024 1099 forms", "correspondence with IRS",
+                        "expense categorization for contractor payments"
+                      Employment: "performance reviews 2024", "HR complaint
+                        filed March 2025", "termination letter"
+                      These guide document searches — be as specific as the
+                      narrative allows.
 
-Be thorough. Extract EVERY party and EVERY allegation mentioned. Do not invent
-or assume facts not in the narrative. If the narrative is vague about something,
-note that. Quality over quantity — but don't miss anything the attorney included."""
+Be thorough. Extract EVERY party and EVERY allegation the narrative mentions.
+Do not invent or assume facts not in the narrative. If the narrative is vague
+about something, note that. The case type determines what's relevant — do not
+default to medical unless the narrative is clearly about medical care."""
 
 
 # ---------------------------------------------------------------------------
@@ -218,6 +250,7 @@ async def _run_synthesis(case_id: int) -> dict:
             "properties": {
                 "parties": {
                     "type": "array",
+                    "minItems": 1,
                     "items": {
                         "type": "object",
                         "properties": {
@@ -234,7 +267,7 @@ async def _run_synthesis(case_id: int) -> dict:
                         },
                         "required": ["name", "party_kind", "roles"],
                     },
-                    "description": "Every person or organization in the case.",
+                    "description": "Every person or organization in the case. At least one required.",
                 },
                 "allegations": {
                     "type": "array",

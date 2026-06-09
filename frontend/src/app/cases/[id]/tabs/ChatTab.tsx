@@ -4,7 +4,7 @@ import {
   useState, useEffect, useRef, useCallback, type FormEvent,
 } from "react";
 import ReactMarkdown from "react-markdown";
-import { AlertCircle, MessageCircle, Plus, Send, Loader2, Wrench, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
+import { AlertCircle, MessageCircle, Plus, Send, Loader2, Wrench, ChevronDown, ChevronRight, Trash2, Mic, MicOff } from "lucide-react";
 import type { TabId } from "../TabNav";
 import {
   listChatSessions, createChatSession, archiveChatSession,
@@ -54,9 +54,14 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
   /* input */
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
+  const [recording, setRecording] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const streamCtrlRef = useRef<AbortController | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
 
   /* ---------------------------------------------------------------- */
   /* Session management                                               */
@@ -139,6 +144,18 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const handleScroll = useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    // Show button when scrolled more than 150px from bottom
+    const fromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    setShowScrollBtn(fromBottom > 150);
+  }, []);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   /* ---------------------------------------------------------------- */
   /* Send message                                                     */
@@ -269,6 +286,60 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
     setStreaming(false);
   };
 
+  /* ---- voice recording ---- */
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      mediaRecorderRef.current = recorder;
+      chunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        // Stop all tracks
+        stream.getTracks().forEach((t) => t.stop());
+
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        if (blob.size < 100) return; // too small — skip
+
+        setRecording(false);
+        setInput((prev) => prev + " "); // placeholder for visual feedback
+
+        try {
+          const form = new FormData();
+          form.append("file", blob, "recording.webm");
+
+          const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8400";
+          const token = localStorage.getItem("vision_token");
+          const res = await fetch(`${API_BASE}/api/chat/transcribe`, {
+            method: "POST",
+            body: form,
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+
+          if (!res.ok) throw new Error("Transcription failed");
+          const data = await res.json();
+          setInput((prev) => (prev.endsWith(" ") ? prev + data.text : prev + " " + data.text));
+        } catch {
+          // silently fail — user can still type
+        }
+      };
+
+      recorder.start();
+      setRecording(true);
+    } catch {
+      // mic permission denied or unavailable
+    }
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+  };
+
   /* ---------------------------------------------------------------- */
   /* Toggle tool expansion                                             */
   /* ---------------------------------------------------------------- */
@@ -291,7 +362,7 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0">
       {/* Grounding warning */}
       {!grounded && (
         <div className="shrink-0 bg-warning-bg border-b border-warning/20 px-4 py-2 flex items-center gap-2 text-xs text-warning">
@@ -348,7 +419,11 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-3 md:px-4 py-3 space-y-3">
+      <div
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto px-3 md:px-4 py-3 space-y-3"
+      >
         {messagesLoading ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="animate-spin text-text-disabled" size={24} />
@@ -373,7 +448,7 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
         ) : (
           messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[85%] md:max-w-[75%] rounded-lg px-3 py-2 text-sm ${
+              <div className={`rounded-lg px-3 py-2 text-sm ${
                 msg.role === "user"
                   ? "bg-brand text-white"
                   : msg.role === "error"
@@ -436,14 +511,31 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
           ))
         )}
         <div ref={messagesEndRef} />
+
+        {/* Scroll-to-bottom — sticky floats above content at bottom of viewport */}
+        {showScrollBtn && (
+          <div className="sticky bottom-2 flex justify-end pr-2 pointer-events-none">
+            <button
+              onClick={scrollToBottom}
+              className="pointer-events-auto
+                         bg-surface-1 border border-border rounded-full
+                         size-9 flex items-center justify-center
+                         shadow-md hover:bg-surface-2 active:bg-surface-3
+                         transition-colors"
+              aria-label="Scroll to bottom"
+            >
+              <ChevronDown size={18} className="text-text-secondary" />
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Input */}
+      {/* Input — sticky so it never scrolls away */}
       <form
         onSubmit={handleSend}
-        className="shrink-0 border-t border-border p-3 md:p-4 bg-surface-0"
+        className="sticky bottom-0 shrink-0 border-t border-border p-3 md:p-4 bg-surface-0"
       >
-        <div className="max-w-2xl mx-auto flex gap-2">
+        <div className="flex gap-2">
           <input
             ref={inputRef}
             type="text"
@@ -471,17 +563,31 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
               Stop
             </button>
           ) : (
-            <button
-              type="submit"
-              disabled={!input.trim()}
-              className="bg-brand hover:bg-brand-hover active:bg-brand-active text-white
-                         px-4 py-2.5 rounded-lg text-sm font-medium shrink-0
-                         transition-colors disabled:opacity-50 disabled:cursor-not-allowed
-                         min-h-[44px] flex items-center gap-1.5"
-            >
+            <>
+              <button
+                type="button"
+                onClick={recording ? stopRecording : startRecording}
+                className={`shrink-0 size-11 flex items-center justify-center rounded-lg transition-colors ${
+                  recording
+                    ? "bg-danger text-white animate-pulse"
+                    : "bg-surface-2 text-text-secondary hover:bg-surface-3 hover:text-text-primary"
+                }`}
+                aria-label={recording ? "Stop recording" : "Start recording"}
+              >
+                {recording ? <MicOff size={18} /> : <Mic size={18} />}
+              </button>
+              <button
+                type="submit"
+                disabled={!input.trim()}
+                className="bg-brand hover:bg-brand-hover active:bg-brand-active text-white
+                           px-4 py-2.5 rounded-lg text-sm font-medium shrink-0
+                           transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+                           min-h-[44px] flex items-center gap-1.5"
+              >
               <Send size={16} />
               <span className="hidden sm:inline">Send</span>
             </button>
+            </>
           )}
         </div>
       </form>

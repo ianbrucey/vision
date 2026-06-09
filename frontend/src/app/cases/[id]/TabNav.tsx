@@ -58,8 +58,9 @@ export default function TabNav({ activeTab, onTabChange }: TabNavProps) {
       {/* ================================================================ */}
       {/* Mobile Bottom Tab Bar                                            */}
       {/* ================================================================ */}
-      <nav className="md:hidden shrink-0 bg-surface-1 border-t border-border flex items-stretch justify-around
-                      h-14 pb-[env(safe-area-inset-bottom,0px)]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-1 border-t border-border
+                      flex items-stretch justify-around
+                      h-14 pb-[env(safe-area-inset-bottom,0px)] z-30">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           return (

@@ -7,13 +7,15 @@ import {
   Upload,
   MessageCircle,
   ChevronRight,
+  ChevronDown,
   Pencil,
   Loader2,
   Sparkles,
   User,
   Scale,
+  X,
 } from "lucide-react";
-import { synthesizeCase, getJob, getCase } from "@/lib/api";
+import { synthesizeCase, getJob, getCase, listJobs } from "@/lib/api";
 import type { TabId } from "../TabNav";
 
 /* ------------------------------------------------------------------ */
@@ -22,17 +24,21 @@ import type { TabId } from "../TabNav";
 
 type NarrativeState = "unsaved" | "clean" | "editing" | "saving";
 
+interface Party {
+  id: number; name: string; party_kind: string; roles: string[];
+}
+interface Allegation {
+  id: number; allegation_id: string; text: string; category: string | null;
+}
+
 interface OverviewTabProps {
   caseId: number;
-  /** The last narrative persisted to the backend (empty string if never saved). */
   savedNarrative: string;
-  /** ISO timestamp from the server (null if never saved). */
   lastSavedAt: string | null;
-  /** Whether the case has at least one ingested document. */
   hasDocuments: boolean;
-  /** Called when the user clicks Save. Parent persists via API and returns updated timestamp. */
+  existingParties: Party[];
+  existingAllegations: Allegation[];
   onSave: (narrative: string) => Promise<string>;
-  /** Navigate to another tab. */
   onNavigate: (tab: TabId) => void;
 }
 
@@ -43,6 +49,8 @@ export default function OverviewTab({
   savedNarrative,
   lastSavedAt,
   hasDocuments,
+  existingParties,
+  existingAllegations,
   onSave,
   onNavigate,
 }: OverviewTabProps) {
@@ -53,14 +61,19 @@ export default function OverviewTab({
   const [savedAt, setSavedAt] = useState<string | null>(lastSavedAt);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Synthesis state
+  // Synthesis state — seed from existing data so it survives refresh
+  const hasExisting = existingParties.length > 0 || existingAllegations.length > 0;
   const [synthLoading, setSynthLoading] = useState(false);
-  const [synthJobId, setSynthJobId] = useState<number | null>(null);
   const [synthError, setSynthError] = useState<string | null>(null);
   const [synthResult, setSynthResult] = useState<{
-    parties: Array<{ id: number; name: string; party_kind: string; roles: string[] }>;
-    allegations: Array<{ id: number; allegation_id: string; text: string; category: string | null }>;
-  } | null>(null);
+    parties: Party[];
+    allegations: Allegation[];
+  } | null>(hasExisting ? { parties: existingParties, allegations: existingAllegations } : null);
+
+  // Collapse toggles
+  const [partiesOpen, setPartiesOpen] = useState(true);
+  const [issuesOpen, setIssuesOpen] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
 
   // Sync when parent reloads (e.g. after navigating back)
   useEffect(() => {
@@ -70,6 +83,55 @@ export default function OverviewTab({
     setState(savedNarrative ? "clean" : "unsaved");
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [savedNarrative, lastSavedAt]);
+
+  // Resume in-progress analysis on mount (survives refresh)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const jobs = await listJobs({ case_id: caseId }) as any[];
+        const active = jobs?.find(
+          (j: any) => j.job_type === "synthesize" && (j.status === "queued" || j.status === "processing")
+        );
+        if (!active) return;
+        if (cancelled) return;
+
+        setSynthLoading(true);
+        let attempts = 0;
+        while (attempts < 60) {
+          await new Promise((r) => setTimeout(r, 2000));
+          if (cancelled) return;
+          const job = await getJob(active.id);
+          if (job.status === "complete") {
+            const updated = await getCase(caseId);
+            if (!cancelled) {
+              setSynthResult({
+                parties: (updated as any).parties || [],
+                allegations: (updated as any).allegations || [],
+              });
+              setSynthLoading(false);
+            }
+            return;
+          }
+          if (job.status === "failed") {
+            if (!cancelled) {
+              setSynthError(job.error_message || "Analysis failed");
+              setSynthLoading(false);
+            }
+            return;
+          }
+          attempts++;
+        }
+        if (!cancelled) {
+          setSynthError("Analysis timed out");
+          setSynthLoading(false);
+        }
+      } catch {
+        // job endpoint unavailable — ignore
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [caseId]);
 
   /* ---- handlers ---- */
 
@@ -105,7 +167,6 @@ export default function OverviewTab({
     setSynthResult(null);
     try {
       const { job_id } = await synthesizeCase(caseId);
-      setSynthJobId(job_id);
 
       // Poll for completion
       let attempts = 0;
@@ -122,19 +183,18 @@ export default function OverviewTab({
           break;
         }
         if (job.status === "failed") {
-          setSynthError(job.error_message || "Extraction failed");
+          setSynthError(job.error_message || "Analysis failed");
           break;
         }
         attempts++;
       }
       if (attempts >= 60) {
-        setSynthError("Extraction timed out — try again");
+        setSynthError("Analysis timed out — try again");
       }
     } catch (err: unknown) {
-      setSynthError(err instanceof Error ? err.message : "Extraction failed");
+      setSynthError(err instanceof Error ? err.message : "Analysis failed");
     } finally {
       setSynthLoading(false);
-      setSynthJobId(null);
     }
   }, [caseId]);
 
@@ -174,7 +234,7 @@ export default function OverviewTab({
               <p className="text-sm font-medium text-warning">Case not grounded</p>
               <p className="text-xs md:text-sm text-text-secondary mt-0.5">
                 A case narrative is required before the agent can analyze documents,
-                answer questions, or identify parties.
+                answer questions, or analyze evidence.
               </p>
             </div>
           </div>
@@ -291,7 +351,7 @@ export default function OverviewTab({
         </div>
 
         {/* ================================================================ */}
-        {/* Synthesis — extract parties & allegations                         */}
+        {/* Synthesis — analyze narrative                                      */}
         {/* ================================================================ */}
         {grounded && (
           <div>
@@ -307,10 +367,10 @@ export default function OverviewTab({
                   <Sparkles size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">Extract Parties &amp; Allegations</p>
+                  <p className="text-sm font-medium">Analyze Narrative</p>
                   <p className="text-xs text-text-secondary">
-                    The agent will read your narrative and identify every person,
-                    organization, and legal claim.
+                    The agent will read your narrative and identify parties, key
+                    issues, and what to look for in the evidence.
                   </p>
                 </div>
               </button>
@@ -321,9 +381,9 @@ export default function OverviewTab({
                               flex items-center gap-3">
                 <Loader2 size={18} className="text-brand animate-spin shrink-0" />
                 <div>
-                  <p className="text-sm font-medium">Extracting parties &amp; allegations...</p>
+                  <p className="text-sm font-medium">Analyzing narrative...</p>
                   <p className="text-xs text-text-secondary">
-                    The agent is analyzing your narrative. This takes about 30 seconds.
+                    Reading your narrative and identifying what matters. About 30 seconds.
                   </p>
                 </div>
               </div>
@@ -334,7 +394,7 @@ export default function OverviewTab({
                               flex items-center gap-3">
                 <AlertCircle className="text-danger shrink-0 mt-0.5" size={18} />
                 <div>
-                  <p className="text-sm font-medium text-danger">Extraction failed</p>
+                  <p className="text-sm font-medium text-danger">Analysis failed</p>
                   <p className="text-xs text-text-secondary mt-0.5">{synthError}</p>
                   <button
                     onClick={handleSynthesize}
@@ -347,79 +407,37 @@ export default function OverviewTab({
             )}
 
             {synthResult && (
-              <div className="space-y-3">
-                {/* Parties */}
-                <div className="bg-surface-1 border border-border rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <User size={16} className="text-brand" />
-                    <h3 className="text-sm font-medium">
-                      Parties ({synthResult.parties.length})
-                    </h3>
+              <div className="bg-surface-1 border border-border rounded-lg p-4
+                              flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <User size={14} className="text-brand shrink-0" />
+                    <span className="font-medium">{synthResult.parties.length}</span>
+                    <span className="text-text-secondary hidden sm:inline">parties</span>
                   </div>
-                  {synthResult.parties.length === 0 ? (
-                    <p className="text-xs text-text-disabled">No parties extracted.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {synthResult.parties.slice(0, 8).map((p) => (
-                        <div key={p.id} className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{p.name}</span>
-                          <span className="text-xs px-1.5 py-0.5 rounded-sm bg-surface-2 text-text-secondary">
-                            {p.party_kind}
-                          </span>
-                          {p.roles?.slice(0, 3).map((r: string) => (
-                            <span key={r} className="text-xs px-1.5 py-0.5 rounded-sm bg-info-bg text-info">
-                              {r.replace(/_/g, " ")}
-                            </span>
-                          ))}
-                        </div>
-                      ))}
-                      {synthResult.parties.length > 8 && (
-                        <p className="text-xs text-text-disabled">
-                          +{synthResult.parties.length - 8} more
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Allegations */}
-                <div className="bg-surface-1 border border-border rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Scale size={16} className="text-brand" />
-                    <h3 className="text-sm font-medium">
-                      Allegations ({synthResult.allegations.length})
-                    </h3>
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <Scale size={14} className="text-brand shrink-0" />
+                    <span className="font-medium">{synthResult.allegations.length}</span>
+                    <span className="text-text-secondary hidden sm:inline">issues</span>
                   </div>
-                  {synthResult.allegations.length === 0 ? (
-                    <p className="text-xs text-text-disabled">No allegations extracted.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {synthResult.allegations.map((a) => (
-                        <div key={a.id} className="flex items-start gap-2">
-                          <span className="text-xs font-mono font-medium text-brand shrink-0 mt-0.5">
-                            {a.allegation_id}
-                          </span>
-                          <div className="min-w-0">
-                            <p className="text-sm">{a.text}</p>
-                            {a.category && (
-                              <span className="text-xs px-1.5 py-0.5 rounded-sm bg-surface-2 text-text-secondary">
-                                {a.category.replace(/_/g, " ")}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
-
-                <button
-                  onClick={handleSynthesize}
-                  className="text-xs text-info hover:text-brand transition-colors flex items-center gap-1"
-                >
-                  <Sparkles size={12} />
-                  Re-process
-                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={handleSynthesize}
+                    className="text-xs text-info hover:text-brand transition-colors
+                               min-h-[36px] px-2 flex items-center gap-1"
+                  >
+                    <Sparkles size={13} />
+                    Re-analyze
+                  </button>
+                  <button
+                    onClick={() => setModalOpen(true)}
+                    className="text-xs text-text-secondary hover:text-text-primary
+                               transition-colors min-h-[36px] px-2"
+                  >
+                    View
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -495,6 +513,132 @@ export default function OverviewTab({
         </div>
 
       </div>
+
+      {/* ================================================================ */}
+      {/* Results Modal                                                     */}
+      {/* ================================================================ */}
+      {modalOpen && synthResult && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setModalOpen(false)}
+          />
+          {/* Panel */}
+          <div className="relative bg-surface-1 rounded-t-2xl md:rounded-2xl
+                          w-full md:max-w-lg md:mx-4 max-h-[85dvh] overflow-y-auto
+                          shadow-xl">
+            {/* Header */}
+            <div className="sticky top-0 bg-surface-1 border-b border-border
+                            flex items-center justify-between px-4 py-3
+                            rounded-t-2xl z-10">
+              <h2 className="text-sm font-semibold">Analysis Results</h2>
+              <button
+                onClick={() => setModalOpen(false)}
+                className="text-text-disabled hover:text-text-primary
+                           transition-colors min-h-[36px] min-w-[36px]
+                           flex items-center justify-center"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Body — same collapsible sections */}
+            <div className="p-4 space-y-3">
+              {/* Parties */}
+              <div className="bg-surface-2 border border-border rounded-lg">
+                <button
+                  onClick={() => setPartiesOpen(!partiesOpen)}
+                  className="w-full flex items-center gap-2 p-3 text-left"
+                >
+                  <User size={16} className="text-brand shrink-0" />
+                  <span className="text-sm font-medium flex-1">
+                    Parties ({synthResult.parties.length})
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`text-text-disabled shrink-0 transition-transform ${partiesOpen ? "" : "-rotate-90"}`}
+                  />
+                </button>
+                {partiesOpen && (
+                  <div className="px-3 pb-3">
+                    {synthResult.parties.length === 0 ? (
+                      <p className="text-xs text-text-disabled">No parties identified.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {synthResult.parties.map((p) => (
+                          <div key={p.id} className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-medium">{p.name}</span>
+                            <span className="text-xs px-1.5 py-0.5 rounded-sm bg-surface-3 text-text-secondary">
+                              {p.party_kind}
+                            </span>
+                            {p.roles?.map((r: string) => (
+                              <span key={r} className="text-xs px-1.5 py-0.5 rounded-sm bg-info-bg text-info">
+                                {r.replace(/_/g, " ")}
+                              </span>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Issues */}
+              <div className="bg-surface-2 border border-border rounded-lg">
+                <button
+                  onClick={() => setIssuesOpen(!issuesOpen)}
+                  className="w-full flex items-center gap-2 p-3 text-left"
+                >
+                  <Scale size={16} className="text-brand shrink-0" />
+                  <span className="text-sm font-medium flex-1">
+                    Issues ({synthResult.allegations.length})
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`text-text-disabled shrink-0 transition-transform ${issuesOpen ? "" : "-rotate-90"}`}
+                  />
+                </button>
+                {issuesOpen && (
+                  <div className="px-3 pb-3">
+                    {synthResult.allegations.length === 0 ? (
+                      <p className="text-xs text-text-disabled">No issues identified.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {synthResult.allegations.map((a) => (
+                          <div key={a.id} className="flex items-start gap-2">
+                            <span className="text-xs font-mono font-medium text-brand shrink-0 mt-0.5">
+                              {a.allegation_id}
+                            </span>
+                            <div className="min-w-0">
+                              <p className="text-sm">{a.text}</p>
+                              {a.category && (
+                                <span className="text-xs px-1.5 py-0.5 rounded-sm bg-surface-3 text-text-secondary">
+                                  {a.category.replace(/_/g, " ")}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={handleSynthesize}
+                className="text-xs text-info hover:text-brand transition-colors
+                           flex items-center gap-1"
+              >
+                <Sparkles size={12} />
+                Re-analyze
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

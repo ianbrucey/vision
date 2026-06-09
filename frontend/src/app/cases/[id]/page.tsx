@@ -105,7 +105,7 @@ function CaseDashboardInner() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh bg-surface-0 text-text-primary flex flex-col">
+      <div className="h-dvh bg-surface-0 text-text-primary flex flex-col">
         <header className="shrink-0 bg-surface-1 border-b border-border">
           <div className="flex items-center h-14 px-4 max-w-5xl mx-auto">
             <div className="h-5 bg-surface-3 rounded w-32 animate-pulse" />
@@ -150,9 +150,9 @@ function CaseDashboardInner() {
   /* ---- render ---- */
 
   return (
-    <div className="min-h-dvh bg-surface-0 text-text-primary flex flex-col">
-      {/* Header */}
-      <header className="shrink-0 bg-surface-1 border-b border-border z-30">
+    <div className="h-dvh bg-surface-0 text-text-primary flex flex-col">
+      {/* Header — sticky on mobile so it stays visible when scrolling */}
+      <header className="sticky top-0 shrink-0 bg-surface-1 border-b border-border z-30">
         <div className="flex items-center h-14 px-4 gap-3 max-w-5xl mx-auto">
           <button
             onClick={() => router.push("/")}
@@ -187,8 +187,8 @@ function CaseDashboardInner() {
         </div>
       </header>
 
-      {/* Tab Content */}
-      <div className="flex-1 flex flex-col overflow-hidden md:ml-[220px]">
+      {/* Tab Content — pb-14 on mobile clears the fixed bottom nav */}
+      <div className="flex-1 flex flex-col overflow-hidden pb-14 md:pb-0 md:ml-[220px]">
         {activeTab === "overview" && (
           <OverviewTab
             key={`${case_.id}-${case_.updated_at}`}
@@ -196,6 +196,8 @@ function CaseDashboardInner() {
             savedNarrative={savedNarrative}
             lastSavedAt={lastSavedAt}
             hasDocuments={(case_ as any).documents?.length > 0}
+            existingParties={(case_ as any).parties || []}
+            existingAllegations={(case_ as any).allegations || []}
             onSave={handleSaveNarrative}
             onNavigate={setActiveTab}
           />
@@ -221,7 +223,7 @@ export default function CaseDashboardPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-dvh bg-surface-0 text-text-primary flex flex-col">
+        <div className="h-dvh bg-surface-0 text-text-primary flex flex-col">
           <header className="shrink-0 bg-surface-1 border-b border-border">
             <div className="flex items-center h-14 px-4 max-w-5xl mx-auto">
               <div className="h-5 bg-surface-3 rounded w-32 animate-pulse" />

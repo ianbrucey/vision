@@ -12,9 +12,12 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
+import tempfile
+from pathlib import Path
 from typing import AsyncIterator
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -154,3 +157,83 @@ async def send_message(
             "X-Accel-Buffering": "no",  # disable nginx buffering
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# Voice-to-text transcription
+# ---------------------------------------------------------------------------
+
+@router.post("/transcribe")
+async def transcribe_audio(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+):
+    """Transcribe an audio file via Mistral speech-to-text.
+
+    Accepts a short audio recording (webm, m4a, mp3, wav) and returns the
+    transcribed text. For use with the mic button in the chat input.
+    """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+
+    suffix = Path(file.filename).suffix or ".webm"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
+
+    try:
+        from mistralai.client import Mistral
+
+        # Load API key (same pattern as dispatcher.py)
+        mistral_key = os.environ.get("MISTRAL_API_KEY")
+        if not mistral_key:
+            for env_path in [
+                Path(__file__).resolve().parents[3] / ".env",
+                Path(__file__).resolve().parents[3] / "mcp-server" / ".env",
+            ]:
+                if env_path.exists():
+                    for line in env_path.read_text().splitlines():
+                        if line.startswith("MISTRAL_API_KEY="):
+                            mistral_key = line.split("=", 1)[1].strip().strip('"').strip("'")
+                            break
+        if not mistral_key:
+            raise HTTPException(status_code=500, detail="MISTRAL_API_KEY not configured")
+
+        client = Mistral(api_key=mistral_key)
+        file_id = None
+
+        try:
+            # Upload audio file
+            with open(tmp_path, "rb") as f:
+                uploaded = client.files.upload(
+                    file={"file_name": file.filename or "recording.webm", "content": f},
+                    purpose="audio",
+                )
+            file_id = uploaded.id
+
+            # Get signed URL
+            signed = client.files.get_signed_url(file_id=file_id)
+
+            # Transcribe
+            transcription = client.audio.transcriptions.complete(
+                model="voxtral-mini-latest",
+                file_url=signed.url,
+            )
+
+            return {"text": transcription.text}
+
+        finally:
+            if file_id:
+                try:
+                    client.files.delete(file_id=file_id)
+                except Exception:
+                    pass
+
+    except Exception as exc:
+        logger.exception("Transcription failed")
+        raise HTTPException(status_code=500, detail=str(exc))
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
