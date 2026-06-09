@@ -223,16 +223,22 @@ class ChatManager:
             conn.close()
 
     async def list_sessions(self, case_id: int) -> list[dict]:
-        """List active sessions for a case."""
+        """List active sessions for a case, with message counts."""
         conn = self._conn_factory()
         try:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
-                    """SELECT id, case_id, sdk_session_id, title, status,
-                              context_summary, created_at, updated_at
-                       FROM chat_sessions
-                       WHERE case_id = %s AND status = 'active'
-                       ORDER BY updated_at DESC""",
+                    """SELECT s.id, s.case_id, s.sdk_session_id, s.title, s.status,
+                              s.context_summary, s.created_at, s.updated_at,
+                              COALESCE(m.msg_count, 0) AS message_count
+                       FROM chat_sessions s
+                       LEFT JOIN (
+                           SELECT session_id, COUNT(*) AS msg_count
+                           FROM chat_messages
+                           GROUP BY session_id
+                       ) m ON m.session_id = s.id
+                       WHERE s.case_id = %s AND s.status = 'active'
+                       ORDER BY s.updated_at DESC""",
                     (case_id,),
                 )
                 return [dict(row) for row in cur.fetchall()]
@@ -257,6 +263,45 @@ class ChatManager:
                 )
             conn.commit()
             return cur.rowcount > 0
+        finally:
+            conn.close()
+
+    async def update_session(
+        self, session_id: int, title: str | None = None,
+        context_summary: str | None = None,
+    ) -> dict | None:
+        """Update session metadata fields. Returns updated session or None."""
+        updates = []
+        params: list = []
+        if title is not None:
+            updates.append("title = %s")
+            params.append(title)
+        if context_summary is not None:
+            updates.append("context_summary = %s")
+            params.append(context_summary)
+
+        if not updates:
+            # Nothing to update — return current session
+            return await self.get_session(session_id)
+
+        updates.append("updated_at = now()")
+        params.append(session_id)
+
+        conn = self._conn_factory()
+        try:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    f"""UPDATE chat_sessions
+                        SET {', '.join(updates)}
+                        WHERE id = %s
+                        RETURNING *""",
+                    params,
+                )
+                row = cur.fetchone()
+                if row:
+                    conn.commit()
+                    return dict(row)
+                return None
         finally:
             conn.close()
 

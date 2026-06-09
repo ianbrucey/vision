@@ -52,6 +52,11 @@ class SendMessageRequest(BaseModel):
     message: str
 
 
+class UpdateSessionRequest(BaseModel):
+    title: str | None = None
+    context_summary: str | None = None
+
+
 # ---------------------------------------------------------------------------
 # Session endpoints
 # ---------------------------------------------------------------------------
@@ -104,6 +109,24 @@ async def archive_session(
     if not ok:
         raise HTTPException(status_code=404, detail="Session not found")
     return {"archived": True}
+
+
+@router.patch("/sessions/{session_id}")
+async def update_session(
+    session_id: int,
+    body: UpdateSessionRequest,
+    user: dict = Depends(get_current_user),
+):
+    """Update session metadata (title, context_summary)."""
+    mgr = _get_manager()
+    session = await mgr.update_session(
+        session_id,
+        title=body.title,
+        context_summary=body.context_summary,
+    )
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return session
 
 
 # ---------------------------------------------------------------------------

@@ -101,6 +101,7 @@ export interface ChatSession {
   title: string | null;
   status: string;
   context_summary: string | null;
+  message_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -125,6 +126,9 @@ export const listChatSessions = (caseId: number): Promise<ChatSession[]> =>
 
 export const archiveChatSession = (sessionId: number): Promise<{ archived: boolean }> =>
   fetchAPI(`/api/chat/sessions/${sessionId}`, { method: "DELETE" });
+
+export const updateChatSession = (sessionId: number, data: { title?: string }): Promise<ChatSession> =>
+  fetchAPI(`/api/chat/sessions/${sessionId}`, { method: "PATCH", body: JSON.stringify(data) });
 
 export const getChatMessages = (sessionId: number): Promise<ChatMessage[]> =>
   fetchAPI(`/api/chat/sessions/${sessionId}/messages`);
