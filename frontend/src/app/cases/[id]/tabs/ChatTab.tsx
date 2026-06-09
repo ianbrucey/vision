@@ -31,10 +31,18 @@ interface ChatTabProps {
 
 const COLLAPSED_KEY = "vision_chat_sidebar_collapsed";
 
+function sessionStorageKey(caseId: number) {
+  return `vision_chat_active_session_${caseId}`;
+}
+
 export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) {
   /* ---- sessions ---- */
   const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
+  const [activeSessionId, setActiveSessionId] = useState<number | null>(() => {
+    if (typeof window === "undefined") return null;
+    const raw = localStorage.getItem(sessionStorageKey(caseId));
+    return raw ? Number(raw) : null;
+  });
   const [sessionsLoading, setSessionsLoading] = useState(true);
 
   /* ---- messages ---- */
@@ -62,6 +70,15 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
     localStorage.setItem(COLLAPSED_KEY, String(collapsed));
   }, [collapsed]);
 
+  /* Persist active session */
+  useEffect(() => {
+    if (activeSessionId !== null) {
+      localStorage.setItem(sessionStorageKey(caseId), String(activeSessionId));
+    } else {
+      localStorage.removeItem(sessionStorageKey(caseId));
+    }
+  }, [activeSessionId, caseId]);
+
   /* ================================================================ */
   /* Session management                                               */
   /* ================================================================ */
@@ -70,8 +87,16 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
     try {
       const s = await listChatSessions(caseId);
       setSessions(s);
-      if (s.length > 0 && !activeSessionId) {
-        setActiveSessionId(s[0].id);
+      if (s.length > 0) {
+        // Prefer the persisted session if it still exists
+        const persisted = localStorage.getItem(sessionStorageKey(caseId));
+        const persistedId = persisted ? Number(persisted) : null;
+        const stillExists = persistedId && s.some((x) => x.id === persistedId);
+        if (stillExists) {
+          setActiveSessionId(persistedId);
+        } else if (!activeSessionId) {
+          setActiveSessionId(s[0].id);
+        }
       }
     } catch {
       // sessions not yet available
