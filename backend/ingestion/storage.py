@@ -96,6 +96,10 @@ def delete_file(bucket: str, object_key: str) -> bool:
 
 
 def get_public_url(bucket: str, object_key: str, expires_seconds: int = 3600) -> str:
-    """Generate a presigned download URL. Valid for expires_seconds (default 1 hour)."""
+    """Generate a presigned URL for viewing. Valid for expires_seconds (default 1 hour)."""
     client = _get_client()
-    return client.presigned_get_object(bucket, object_key, expires=timedelta(seconds=expires_seconds))
+    return client.presigned_get_object(
+        bucket, object_key,
+        expires=timedelta(seconds=expires_seconds),
+        response_headers={"response-content-disposition": "inline"},
+    )

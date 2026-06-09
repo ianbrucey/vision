@@ -326,7 +326,7 @@ export default function DocumentsTab({ caseId }: DocumentsTabProps) {
             ref={fileInputRef}
             type="file"
             multiple
-            accept=".pdf,.docx,.txt,.csv,.xlsx,.jpg,.jpeg,.png"
+            accept=".pdf,.docx,.txt,.csv,.xlsx,.jpg,.jpeg,.png,.m4a,.mp3,.wav,.ogg,.flac,.webm,.mp4"
             className="hidden"
             onChange={(e) => {
               if (e.target.files) handleFiles(e.target.files);
@@ -349,7 +349,7 @@ export default function DocumentsTab({ caseId }: DocumentsTabProps) {
               <span className="hidden sm:inline">or drag and drop</span>
             </p>
             <p className="text-xs text-text-disabled mt-1">
-              PDF, DOCX, TXT, CSV, XLSX, images — up to 50MB each
+              PDF, DOCX, TXT, CSV, XLSX, images, audio — up to 50MB each
             </p>
           </button>
           {uploadError && (
