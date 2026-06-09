@@ -19,6 +19,7 @@ import psycopg2.extras
 
 from chat.prompt import WAR_ROOM_SYSTEM_PROMPT
 from chat.session_store import PostgresSessionStore
+from chat.tools import set_current_case_id, vision_server
 from core.db import connect, ensure_chat_schema
 
 logger = logging.getLogger("vision.chat.manager")
@@ -58,7 +59,9 @@ class AgentSession:
 
         options = ClaudeAgentOptions(
             system_prompt=self.system_prompt,
-            allowed_tools=["Bash", "Read", "Glob", "Grep", "Write", "Edit",
+            mcp_servers={"vision": vision_server},
+            allowed_tools=["mcp__vision__*",
+                           "Read", "Grep", "Write", "Edit",
                            "WebSearch", "WebFetch"],
             session_store=store,
             setting_sources=["project"],
@@ -77,6 +80,9 @@ class AgentSession:
     async def send_message(self, content: str):
         """Send a user message to the agent. Must be connected first."""
         await self._ensure_connected()
+        # Inject case_id into tool call context — all vision tools
+        # receive this via contextvars. The agent never sees it.
+        set_current_case_id(self.case_id)
         await self._client.query(content)
 
     async def receive(self) -> AsyncIterator[dict]:
