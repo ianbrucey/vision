@@ -438,7 +438,8 @@ CREATE TABLE IF NOT EXISTS jobs (
     case_id         INTEGER NOT NULL,
     job_type        TEXT NOT NULL CHECK (job_type IN (
                         'ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
-                        'analyze', 'export', 'ocr', 'embed', 'enrich', 'other'
+                        'analyze', 'export', 'ocr', 'embed', 'enrich',
+                        'synthesize', 'other'
                     )),
     status          TEXT NOT NULL DEFAULT 'queued' CHECK (
                         status IN ('queued', 'processing', 'complete', 'failed')
@@ -494,8 +495,22 @@ BEGIN
     ALTER TABLE jobs DROP CONSTRAINT IF EXISTS jobs_job_type_check;
     ALTER TABLE jobs ADD CONSTRAINT jobs_job_type_check
         CHECK (job_type IN ('ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
-                             'analyze', 'export', 'ocr', 'embed', 'enrich', 'other'));
+                             'analyze', 'export', 'ocr', 'embed', 'enrich',
+                             'synthesize', 'other'));
 END $$;
 
 INSERT INTO schema_migrations (version, name) VALUES (2, 'add_enrich_job_type')
+ON CONFLICT (version) DO NOTHING;
+
+-- Add synthesize job type (migration v3).
+DO $$
+BEGIN
+    ALTER TABLE jobs DROP CONSTRAINT IF EXISTS jobs_job_type_check;
+    ALTER TABLE jobs ADD CONSTRAINT jobs_job_type_check
+        CHECK (job_type IN ('ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
+                             'analyze', 'export', 'ocr', 'embed', 'enrich',
+                             'synthesize', 'other'));
+END $$;
+
+INSERT INTO schema_migrations (version, name) VALUES (3, 'add_synthesize_job_type')
 ON CONFLICT (version) DO NOTHING;

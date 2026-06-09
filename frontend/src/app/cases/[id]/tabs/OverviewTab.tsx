@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   AlertCircle,
   CheckCircle2,
@@ -9,7 +9,11 @@ import {
   ChevronRight,
   Pencil,
   Loader2,
+  Sparkles,
+  User,
+  Scale,
 } from "lucide-react";
+import { synthesizeCase, getJob, getCase } from "@/lib/api";
 import type { TabId } from "../TabNav";
 
 /* ------------------------------------------------------------------ */
@@ -19,10 +23,13 @@ import type { TabId } from "../TabNav";
 type NarrativeState = "unsaved" | "clean" | "editing" | "saving";
 
 interface OverviewTabProps {
+  caseId: number;
   /** The last narrative persisted to the backend (empty string if never saved). */
   savedNarrative: string;
   /** ISO timestamp from the server (null if never saved). */
   lastSavedAt: string | null;
+  /** Whether the case has at least one ingested document. */
+  hasDocuments: boolean;
   /** Called when the user clicks Save. Parent persists via API and returns updated timestamp. */
   onSave: (narrative: string) => Promise<string>;
   /** Navigate to another tab. */
@@ -32,8 +39,10 @@ interface OverviewTabProps {
 /* ------------------------------------------------------------------ */
 
 export default function OverviewTab({
+  caseId,
   savedNarrative,
   lastSavedAt,
+  hasDocuments,
   onSave,
   onNavigate,
 }: OverviewTabProps) {
@@ -43,6 +52,15 @@ export default function OverviewTab({
   );
   const [savedAt, setSavedAt] = useState<string | null>(lastSavedAt);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Synthesis state
+  const [synthLoading, setSynthLoading] = useState(false);
+  const [synthJobId, setSynthJobId] = useState<number | null>(null);
+  const [synthError, setSynthError] = useState<string | null>(null);
+  const [synthResult, setSynthResult] = useState<{
+    parties: Array<{ id: number; name: string; party_kind: string; roles: string[] }>;
+    allegations: Array<{ id: number; allegation_id: string; text: string; category: string | null }>;
+  } | null>(null);
 
   // Sync when parent reloads (e.g. after navigating back)
   useEffect(() => {
@@ -76,9 +94,53 @@ export default function OverviewTab({
     if (state === "clean") setState("editing");
   };
 
-  const isExpanded = state === "unsaved" || state === "editing" || state === "saving";
   const isSaving = state === "saving";
   const grounded = savedAt !== null;
+
+  /* ---- synthesis ---- */
+
+  const handleSynthesize = useCallback(async () => {
+    setSynthLoading(true);
+    setSynthError(null);
+    setSynthResult(null);
+    try {
+      const { job_id } = await synthesizeCase(caseId);
+      setSynthJobId(job_id);
+
+      // Poll for completion
+      let attempts = 0;
+      while (attempts < 60) {
+        await new Promise((r) => setTimeout(r, 2000));
+        const job = await getJob(job_id);
+        if (job.status === "complete") {
+          // Reload case to get extracted parties + allegations
+          const updated = await getCase(caseId);
+          setSynthResult({
+            parties: (updated as any).parties || [],
+            allegations: (updated as any).allegations || [],
+          });
+          break;
+        }
+        if (job.status === "failed") {
+          setSynthError(job.error_message || "Extraction failed");
+          break;
+        }
+        attempts++;
+      }
+      if (attempts >= 60) {
+        setSynthError("Extraction timed out — try again");
+      }
+    } catch (err: unknown) {
+      setSynthError(err instanceof Error ? err.message : "Extraction failed");
+    } finally {
+      setSynthLoading(false);
+      setSynthJobId(null);
+    }
+  }, [caseId]);
+
+  const showExtract = grounded && hasDocuments && !synthLoading;
+
+  const isExpanded = state === "unsaved" || state === "editing" || state === "saving";
 
   /* ---- formatting ---- */
 
@@ -227,6 +289,141 @@ export default function OverviewTab({
             </div>
           )}
         </div>
+
+        {/* ================================================================ */}
+        {/* Synthesis — extract parties & allegations                         */}
+        {/* ================================================================ */}
+        {grounded && (
+          <div>
+            {showExtract && !synthResult && (
+              <button
+                onClick={handleSynthesize}
+                className="w-full bg-surface-1 border border-border rounded-lg p-4
+                           flex items-center gap-3 text-left
+                           hover:border-brand active:border-brand
+                           transition-colors min-h-[52px]"
+              >
+                <div className="size-9 rounded-lg bg-brand-bg flex items-center justify-center text-brand shrink-0">
+                  <Sparkles size={18} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">Extract Parties &amp; Allegations</p>
+                  <p className="text-xs text-text-secondary">
+                    The agent will read your narrative and identify every person,
+                    organization, and legal claim.
+                  </p>
+                </div>
+              </button>
+            )}
+
+            {synthLoading && (
+              <div className="bg-surface-1 border border-border rounded-lg p-4
+                              flex items-center gap-3">
+                <Loader2 size={18} className="text-brand animate-spin shrink-0" />
+                <div>
+                  <p className="text-sm font-medium">Extracting parties &amp; allegations...</p>
+                  <p className="text-xs text-text-secondary">
+                    The agent is analyzing your narrative. This takes about 30 seconds.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {synthError && (
+              <div className="bg-danger-bg border border-danger/20 rounded-lg p-4
+                              flex items-center gap-3">
+                <AlertCircle className="text-danger shrink-0 mt-0.5" size={18} />
+                <div>
+                  <p className="text-sm font-medium text-danger">Extraction failed</p>
+                  <p className="text-xs text-text-secondary mt-0.5">{synthError}</p>
+                  <button
+                    onClick={handleSynthesize}
+                    className="text-xs text-info hover:text-brand mt-1 transition-colors"
+                  >
+                    Try again
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {synthResult && (
+              <div className="space-y-3">
+                {/* Parties */}
+                <div className="bg-surface-1 border border-border rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <User size={16} className="text-brand" />
+                    <h3 className="text-sm font-medium">
+                      Parties ({synthResult.parties.length})
+                    </h3>
+                  </div>
+                  {synthResult.parties.length === 0 ? (
+                    <p className="text-xs text-text-disabled">No parties extracted.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {synthResult.parties.slice(0, 8).map((p) => (
+                        <div key={p.id} className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{p.name}</span>
+                          <span className="text-xs px-1.5 py-0.5 rounded-sm bg-surface-2 text-text-secondary">
+                            {p.party_kind}
+                          </span>
+                          {p.roles?.slice(0, 3).map((r: string) => (
+                            <span key={r} className="text-xs px-1.5 py-0.5 rounded-sm bg-info-bg text-info">
+                              {r.replace(/_/g, " ")}
+                            </span>
+                          ))}
+                        </div>
+                      ))}
+                      {synthResult.parties.length > 8 && (
+                        <p className="text-xs text-text-disabled">
+                          +{synthResult.parties.length - 8} more
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Allegations */}
+                <div className="bg-surface-1 border border-border rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Scale size={16} className="text-brand" />
+                    <h3 className="text-sm font-medium">
+                      Allegations ({synthResult.allegations.length})
+                    </h3>
+                  </div>
+                  {synthResult.allegations.length === 0 ? (
+                    <p className="text-xs text-text-disabled">No allegations extracted.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {synthResult.allegations.map((a) => (
+                        <div key={a.id} className="flex items-start gap-2">
+                          <span className="text-xs font-mono font-medium text-brand shrink-0 mt-0.5">
+                            {a.allegation_id}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-sm">{a.text}</p>
+                            {a.category && (
+                              <span className="text-xs px-1.5 py-0.5 rounded-sm bg-surface-2 text-text-secondary">
+                                {a.category.replace(/_/g, " ")}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleSynthesize}
+                  className="text-xs text-info hover:text-brand transition-colors flex items-center gap-1"
+                >
+                  <Sparkles size={12} />
+                  Re-process
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ================================================================ */}
         {/* Quick actions                                                    */}

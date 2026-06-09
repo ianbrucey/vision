@@ -83,6 +83,10 @@ export const listJobs = (params?: { case_id?: number; status?: string }) => {
   return fetchAPI(`/api/jobs${qs ? `?${qs}` : ""}`);
 };
 
+// Synthesis
+export const synthesizeCase = (caseId: number): Promise<{ job_id: number; status: string }> =>
+  fetchAPI(`/api/cases/${caseId}/synthesize`, { method: "POST" });
+
 // Health
 export const healthCheck = () => fetchAPI("/api/health");
 

@@ -35,6 +35,7 @@ from ingestion.jobs import claim_next, mark_complete, mark_failed, update_progre
 from ingestion.storage import download_file
 from ingestion.dispatcher import ingest_file
 from ingestion.enricher import enrich_document
+from ingestion.synthesizer import synthesize_case
 
 WORKER_ID = os.environ.get("VISION_WORKER_ID", f"worker-{os.getpid()}")
 POLL_INTERVAL = 2  # seconds between polls when idle
@@ -163,6 +164,32 @@ def process_enrich_job(job: dict) -> None:
         mark_failed(job_id, str(e))
 
 
+def process_synthesize_job(job: dict) -> None:
+    """Extract parties and allegations from the case narrative."""
+    job_id = job["id"]
+    case_id = job["case_id"]
+
+    try:
+        print(f"[{WORKER_ID}] Job {job_id}: synthesizing case {case_id}...")
+        update_progress(job_id, 10)
+
+        result = synthesize_case(case_id=case_id)
+
+        print(
+            f"[{WORKER_ID}] Job {job_id}: synthesized — "
+            f"parties={result.get('parties_extracted', 0)}, "
+            f"allegations={result.get('allegations_extracted', 0)}"
+        )
+
+        update_progress(job_id, 100)
+        mark_complete(job_id)
+
+    except Exception as e:
+        print(f"[{WORKER_ID}] Job {job_id}: synthesis FAILED — {e}")
+        traceback.print_exc()
+        mark_failed(job_id, str(e))
+
+
 def main():
     """Main loop — poll for jobs, process, repeat."""
     print(f"[{WORKER_ID}] Worker started. Polling every {POLL_INTERVAL}s...")
@@ -181,6 +208,8 @@ def main():
                 process_ingest_job(job)
             elif job["job_type"] == "enrich":
                 process_enrich_job(job)
+            elif job["job_type"] == "synthesize":
+                process_synthesize_job(job)
             else:
                 mark_failed(job["id"], f"Unknown job type: {job['job_type']}")
 

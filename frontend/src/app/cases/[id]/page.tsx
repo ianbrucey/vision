@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, Suspense } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams, usePathname } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getCase, updateCase } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
@@ -34,6 +34,7 @@ function CaseDashboardInner() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { user, logout } = useAuth();
 
   // Tab state lives in the URL — survives refresh
@@ -51,7 +52,7 @@ function CaseDashboardInner() {
       params.set("tab", tab);
     }
     const qs = params.toString();
-    router.replace(qs ? `?${qs}` : "", { scroll: false });
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   };
 
   const [case_, setCase] = useState<Case | null>(null);
@@ -191,8 +192,10 @@ function CaseDashboardInner() {
         {activeTab === "overview" && (
           <OverviewTab
             key={`${case_.id}-${case_.updated_at}`}
+            caseId={Number(id)}
             savedNarrative={savedNarrative}
             lastSavedAt={lastSavedAt}
+            hasDocuments={(case_ as any).documents?.length > 0}
             onSave={handleSaveNarrative}
             onNavigate={setActiveTab}
           />

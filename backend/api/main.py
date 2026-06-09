@@ -435,6 +435,35 @@ def list_jobs_endpoint(case_id: int | None = None, status: str | None = None, li
 
 
 # ---------------------------------------------------------------------------
+# Synthesis
+# ---------------------------------------------------------------------------
+
+@app.post("/api/cases/{case_id}/synthesize")
+def synthesize_case(case_id: int, user: dict = Depends(get_current_user)):
+    """Trigger narrative synthesis — extract parties and allegations.
+
+    Enqueues a background job. Poll GET /api/jobs/{job_id} for completion.
+    Only fires if the case has a narrative AND at least one document.
+    """
+    case = mgr.get_case(case_id)
+    if case is None:
+        raise HTTPException(status_code=404, detail="Case not found")
+    if not case.get("narrative"):
+        raise HTTPException(status_code=400, detail="Save a narrative first")
+    if not case.get("documents"):
+        raise HTTPException(status_code=400, detail="Ingest at least one document first")
+
+    job = _enqueue_job(
+        case_id=case_id,
+        job_type="synthesize",
+    )
+    return {
+        "job_id": job["id"],
+        "status": job["status"],
+    }
+
+
+# ---------------------------------------------------------------------------
 # Chat
 # ---------------------------------------------------------------------------
 
