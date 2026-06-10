@@ -482,15 +482,17 @@ def insert_draft(
     content: list | None = None,
     created_by: str = "agent",
     status: str = "draft",
+    file_type: str = "structured_draft",
+    folder: str = "artifacts",
 ) -> int:
     with conn.cursor() as cur:
         cur.execute(
             """INSERT INTO drafts (case_id, name, document_type, content,
-               created_by, status)
-               VALUES (%s, %s, %s, %s::jsonb, %s, %s)
+               created_by, status, file_type, folder)
+               VALUES (%s, %s, %s, %s::jsonb, %s, %s, %s, %s)
                RETURNING id""",
             (case_id, name, document_type,
-             json.dumps(content or []), created_by, status),
+             json.dumps(content or []), created_by, status, file_type, folder),
         )
         return cur.fetchone()[0]
 
@@ -502,6 +504,8 @@ def update_draft(
     document_type: str | None = None,
     status: str | None = None,
     content: list | None = None,
+    file_type: str | None = None,
+    folder: str | None = None,
 ) -> dict | None:
     sets = []
     params: list[Any] = []
@@ -513,6 +517,10 @@ def update_draft(
         sets.append("status = %s"); params.append(status)
     if content is not None:
         sets.append("content = %s::jsonb"); params.append(json.dumps(content))
+    if file_type is not None:
+        sets.append("file_type = %s"); params.append(file_type)
+    if folder is not None:
+        sets.append("folder = %s"); params.append(folder)
     if not sets:
         return None
     sets.append("updated_at = now()")
@@ -533,16 +541,28 @@ def get_draft(conn: connection, draft_id: int) -> dict | None:
         return dict(row) if row else None
 
 
-def list_drafts(conn: connection, case_id: int) -> list[dict]:
+def list_drafts(conn: connection, case_id: int, folder: str | None = None) -> list[dict]:
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        cur.execute(
-            """SELECT id, case_id, name, document_type, status, created_by,
-                      jsonb_array_length(content) AS block_count,
-                      created_at, updated_at
-               FROM drafts WHERE case_id = %s
-               ORDER BY updated_at DESC""",
-            (case_id,),
-        )
+        if folder is not None:
+            cur.execute(
+                """SELECT id, case_id, name, document_type, file_type, folder,
+                          status, created_by,
+                          jsonb_array_length(content) AS block_count,
+                          created_at, updated_at
+                   FROM drafts WHERE case_id = %s AND folder = %s
+                   ORDER BY updated_at DESC""",
+                (case_id, folder),
+            )
+        else:
+            cur.execute(
+                """SELECT id, case_id, name, document_type, file_type, folder,
+                          status, created_by,
+                          jsonb_array_length(content) AS block_count,
+                          created_at, updated_at
+                   FROM drafts WHERE case_id = %s
+                   ORDER BY updated_at DESC""",
+                (case_id,),
+            )
         return [dict(row) for row in cur.fetchall()]
 
 

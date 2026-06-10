@@ -144,6 +144,71 @@ export const updateBlock = (
 export const deleteDraft = (draftId: number): Promise<{ deleted: boolean }> =>
   fetchAPI(`/api/drafts/${draftId}`, { method: "DELETE" });
 
+// Workspace
+export type FileType = "markdown" | "structured_draft" | "html" | "json_view";
+
+export interface WorkspaceItemSummary {
+  id: number;
+  case_id: number;
+  name: string;
+  file_type: FileType;
+  document_type: string;
+  folder: string;
+  status: string;
+  created_by: string;
+  block_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkspaceItemFull extends WorkspaceItemSummary {
+  content: unknown;
+  metadata: Record<string, unknown> | null;
+}
+
+export const listWorkspaceItems = (
+  caseId: number,
+  params?: { folder?: string; file_type?: string },
+): Promise<{ items: WorkspaceItemSummary[] }> => {
+  const qs = new URLSearchParams();
+  if (params?.folder) qs.set("folder", params.folder);
+  if (params?.file_type) qs.set("file_type", params.file_type);
+  const q = qs.toString();
+  return fetchAPI(`/api/cases/${caseId}/workspace${q ? `?${q}` : ""}`);
+};
+
+export const getWorkspaceItem = (itemId: number): Promise<{ item: WorkspaceItemFull }> =>
+  fetchAPI(`/api/workspace/${itemId}`);
+
+export const createWorkspaceItem = (data: {
+  case_id: number;
+  name: string;
+  file_type?: string;
+  document_type?: string;
+  folder?: string;
+  content?: unknown;
+}): Promise<{ item: WorkspaceItemFull }> =>
+  fetchAPI("/api/workspace", { method: "POST", body: JSON.stringify(data) });
+
+export const updateWorkspaceItem = (
+  itemId: number,
+  data: { name?: string; content?: unknown; folder?: string; status?: string; file_type?: string; document_type?: string },
+): Promise<{ item: WorkspaceItemFull }> =>
+  fetchAPI(`/api/workspace/${itemId}`, { method: "PATCH", body: JSON.stringify(data) });
+
+export const updateWorkspaceBlock = (
+  itemId: number,
+  blockId: string,
+  content: string,
+): Promise<{ item: WorkspaceItemFull }> =>
+  fetchAPI(`/api/workspace/${itemId}/blocks/${blockId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ content }),
+  });
+
+export const deleteWorkspaceItem = (itemId: number): Promise<{ deleted: boolean }> =>
+  fetchAPI(`/api/workspace/${itemId}`, { method: "DELETE" });
+
 // Tasks
 export interface TaskDocument {
   id: number;

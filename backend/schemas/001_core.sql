@@ -648,3 +648,14 @@ ALTER TABLE company_profiles ADD COLUMN IF NOT EXISTS description TEXT;
 
 INSERT INTO schema_migrations (version, name) VALUES (10, 'add_company_profiles_description')
 ON CONFLICT (version) DO NOTHING;
+
+-- ============================================================================
+-- WORKSPACE FILE TYPE + FOLDER — Migration v11
+-- ============================================================================
+ALTER TABLE drafts ADD COLUMN IF NOT EXISTS file_type TEXT NOT NULL DEFAULT 'structured_draft'
+    CHECK (file_type IN ('markdown', 'structured_draft', 'html', 'json_view'));
+
+ALTER TABLE drafts ADD COLUMN IF NOT EXISTS folder TEXT NOT NULL DEFAULT 'artifacts';
+
+INSERT INTO schema_migrations (version, name) VALUES (11, 'add_workspace_file_type_and_folder')
+ON CONFLICT (version) DO NOTHING;

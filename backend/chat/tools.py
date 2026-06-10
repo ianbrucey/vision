@@ -1095,6 +1095,251 @@ def create_vision_server(case_id: int):
         except Exception as exc:
             return _error(f"update_draft failed: {exc}")
 
+    # -- Layer 6.5: Workspace ------------------------------------------------
+
+    @tool(
+        "list_workspace_items",
+        "List workspace items for the current case. Optionally filter by "
+        "folder (freestyle, research, artifacts) or file_type. Returns id, "
+        "name, file_type, folder, document_type, status, block count, and "
+        "timestamps. Does not return full content — use get_workspace_item "
+        "for that.",
+        {
+            "type": "object",
+            "properties": {
+                "folder": {
+                    "type": "string",
+                    "description": "Filter by folder: freestyle, research, artifacts.",
+                },
+                "file_type": {
+                    "type": "string",
+                    "enum": ["markdown", "structured_draft", "html", "json_view"],
+                    "description": "Filter by file type.",
+                },
+            },
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def list_workspace_items(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import list_drafts as _list_drafts
+                folder = args.get("folder")
+                rows = _list_drafts(conn, case_id, folder=folder)
+            finally:
+                conn.close()
+            file_type = args.get("file_type")
+            if file_type is not None:
+                rows = [r for r in rows if r.get("file_type") == file_type]
+            return _result({"count": len(rows), "items": rows})
+        except Exception as exc:
+            return _error(f"list_workspace_items failed: {exc}")
+
+    @tool(
+        "get_workspace_item",
+        "Read a workspace item's full content. The content structure depends "
+        "on file_type:\n"
+        "  markdown         — {\"markdown\": \"# Title...\"}\n"
+        "  structured_draft — [{id, type, content}, ...]\n"
+        "  html             — {\"html\": \"<html>...\"}\n"
+        "  json_view        — {\"data\": {...}}\n"
+        "Use this before editing so you can see the current state.",
+        {
+            "type": "object",
+            "properties": {
+                "item_id": {
+                    "type": "integer",
+                    "description": "Workspace item ID from list_workspace_items.",
+                },
+            },
+            "required": ["item_id"],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def get_workspace_item(args: dict[str, Any]) -> dict[str, Any]:
+        item_id = args["item_id"]
+        try:
+            conn = _conn()
+            try:
+                from core.db import get_draft as _get_draft
+                item = _get_draft(conn, item_id)
+            finally:
+                conn.close()
+            if not item:
+                return _error(f"Workspace item {item_id} not found.")
+            if item["case_id"] != case_id:
+                return _error(f"Workspace item {item_id} not in case {case_id}.")
+            return _result({"item": item})
+        except Exception as exc:
+            return _error(f"get_workspace_item failed: {exc}")
+
+    @tool(
+        "create_workspace_item",
+        "Create a new workspace item. Content structure depends on file_type:\n"
+        "  markdown         — {\"markdown\": \"# Title\\n\\nContent...\"}\n"
+        "  structured_draft — [{\"id\":\"b1\",\"type\":\"section_heading\","
+        "\"content\":\"TITLE\"}, ...]\n"
+        "  html             — {\"html\": \"<html>...</html>\"}\n"
+        "  json_view        — {\"data\": {...}}\n\n"
+        "For markdown, wrap the full markdown string in an object with a "
+        "'markdown' key. For structured_draft, use the block array format "
+        "with section_heading, numbered_paragraph, list_item, and signature "
+        "block types.",
+        {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Display name for the item.",
+                },
+                "file_type": {
+                    "type": "string",
+                    "enum": ["markdown", "structured_draft", "html", "json_view"],
+                    "description": "Type of content this item holds.",
+                },
+                "folder": {
+                    "type": "string",
+                    "enum": ["freestyle", "research", "artifacts"],
+                    "description": "Which folder to place the item in.",
+                },
+                "document_type": {
+                    "type": "string",
+                    "enum": ["letter", "pleading", "contract", "memo",
+                             "capability_statement", "other"],
+                    "description": "Legal document type (optional, defaults to other).",
+                },
+                "content": {
+                    "type": "object",
+                    "description": "Content envelope matching file_type.",
+                },
+            },
+            "required": ["name", "file_type", "folder", "content"],
+        },
+    )
+    async def create_workspace_item(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            content_raw = args.get("content", {})
+            if isinstance(content_raw, list):
+                content_list = content_raw
+            elif isinstance(content_raw, dict):
+                content_list = [content_raw]
+            else:
+                content_list = [{"raw": str(content_raw)}]
+
+            conn = _conn()
+            try:
+                from core.db import insert_draft as _insert_draft
+                item_id = _insert_draft(
+                    conn,
+                    case_id=case_id,
+                    name=args["name"],
+                    document_type=args.get("document_type", "other"),
+                    content=content_list,
+                    created_by="agent",
+                    file_type=args["file_type"],
+                    folder=args["folder"],
+                )
+            finally:
+                conn.close()
+            return _result({
+                "item_id": item_id,
+                "name": args["name"],
+                "file_type": args["file_type"],
+                "folder": args["folder"],
+                "block_count": len(content_list),
+            })
+        except Exception as exc:
+            return _error(f"create_workspace_item failed: {exc}")
+
+    @tool(
+        "update_workspace_item",
+        "Modify a workspace item — update its name, content, folder, or "
+        "status. For targeted edits, provide only what changed. To replace "
+        "the entire content, provide a full content envelope matching the "
+        "item's file_type. Use get_workspace_item first to see current state.",
+        {
+            "type": "object",
+            "properties": {
+                "item_id": {
+                    "type": "integer",
+                    "description": "Workspace item ID to update.",
+                },
+                "name": {
+                    "type": "string",
+                    "description": "New display name (optional).",
+                },
+                "content": {
+                    "type": "object",
+                    "description": "Full replacement content envelope (optional).",
+                },
+                "folder": {
+                    "type": "string",
+                    "enum": ["freestyle", "research", "artifacts"],
+                    "description": "Move to a different folder (optional).",
+                },
+                "status": {
+                    "type": "string",
+                    "enum": ["draft", "review", "final"],
+                    "description": "New status (optional).",
+                },
+            },
+            "required": ["item_id"],
+        },
+    )
+    async def update_workspace_item(args: dict[str, Any]) -> dict[str, Any]:
+        item_id = args["item_id"]
+        try:
+            # Verify case scope
+            conn = _conn()
+            try:
+                from core.db import get_draft as _get_draft
+                item = _get_draft(conn, item_id)
+            finally:
+                conn.close()
+            if not item:
+                return _error(f"Workspace item {item_id} not found.")
+            if item["case_id"] != case_id:
+                return _error(f"Workspace item {item_id} not in case {case_id}.")
+
+            kwargs = {}
+            if "name" in args:
+                kwargs["name"] = args["name"]
+            if "status" in args:
+                kwargs["status"] = args["status"]
+            if "folder" in args:
+                kwargs["folder"] = args["folder"]
+            if "content" in args:
+                content_raw = args["content"]
+                if isinstance(content_raw, list):
+                    kwargs["content"] = content_raw
+                elif isinstance(content_raw, dict):
+                    kwargs["content"] = [content_raw]
+                else:
+                    kwargs["content"] = [{"raw": str(content_raw)}]
+
+            if not kwargs:
+                return _error("No fields to update.")
+
+            conn = _conn()
+            try:
+                from core.db import update_draft as _update_draft
+                updated = _update_draft(conn, item_id, **kwargs)
+            finally:
+                conn.close()
+
+            return _result({
+                "item_id": item_id,
+                "name": updated["name"],
+                "file_type": updated.get("file_type", ""),
+                "folder": updated.get("folder", ""),
+                "block_count": len(updated.get("content", [])),
+                "updated_at": str(updated.get("updated_at", "")),
+            })
+        except Exception as exc:
+            return _error(f"update_workspace_item failed: {exc}")
+
     # -- Layer 7: Tasks ------------------------------------------------------
 
     @tool(
@@ -1707,6 +1952,10 @@ def create_vision_server(case_id: int):
             get_draft,
             create_draft,
             update_draft,
+            list_workspace_items,
+            get_workspace_item,
+            create_workspace_item,
+            update_workspace_item,
             list_tasks,
             create_task,
             update_task,
