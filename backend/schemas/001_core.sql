@@ -542,3 +542,41 @@ CREATE INDEX IF NOT EXISTS idx_drafts_updated ON drafts (case_id, updated_at DES
 
 INSERT INTO schema_migrations (version, name) VALUES (4, 'add_drafts_table')
 ON CONFLICT (version) DO NOTHING;
+
+-- ============================================================================
+-- TASKS — Case task tracker
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS tasks (
+    id              SERIAL PRIMARY KEY,
+    case_id         INTEGER REFERENCES cases(id) ON DELETE CASCADE NOT NULL,
+    title           TEXT NOT NULL,
+    notes           TEXT,
+    status          TEXT NOT NULL DEFAULT 'open'
+                    CHECK (status IN ('open', 'in_progress', 'blocked', 'complete')),
+    priority        TEXT NOT NULL DEFAULT 'medium'
+                    CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
+    assignee_id     UUID REFERENCES users(id) ON DELETE SET NULL,
+    deadline        DATE,
+    completed_at    TIMESTAMPTZ,
+    created_by      UUID REFERENCES users(id) ON DELETE SET NULL,
+    metadata        JSONB DEFAULT '{}',
+    created_at      TIMESTAMPTZ DEFAULT now(),
+    updated_at      TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_tasks_case ON tasks (case_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks (case_id, status);
+CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks (assignee_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_deadline ON tasks (case_id, deadline);
+
+CREATE TABLE IF NOT EXISTS task_documents (
+    task_id         INTEGER REFERENCES tasks(id) ON DELETE CASCADE NOT NULL,
+    document_id     INTEGER REFERENCES documents(id) ON DELETE CASCADE NOT NULL,
+    attached_at     TIMESTAMPTZ DEFAULT now(),
+    PRIMARY KEY (task_id, document_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_documents_task ON task_documents (task_id);
+
+INSERT INTO schema_migrations (version, name) VALUES (5, 'add_tasks_table')
+ON CONFLICT (version) DO NOTHING;

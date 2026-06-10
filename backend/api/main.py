@@ -21,7 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from core.case import CaseManager
-from core.db import ensure_schema, ensure_strategy_schema, ensure_chat_schema
+from core.db import ensure_schema, ensure_strategy_schema, ensure_chat_schema, ensure_correspondence_schema
 from ingestion.storage import upload_file as _upload_to_minio
 from ingestion.jobs import enqueue as _enqueue_job, get_job, list_jobs
 from auth import create_user, authenticate_user, create_token, get_current_user
@@ -52,9 +52,10 @@ def _apply_schemas():
     Ensures all three schema files are applied before the first request.
     Uses IF NOT EXISTS internally — safe to run on every restart.
     """
-    ensure_schema()            # 001 — cases, parties, evidence store, users
-    ensure_strategy_schema()   # 002 — strategies, propositions, gauntlet
-    ensure_chat_schema()       # 003 — chat sessions, messages, session store
+    ensure_schema()                 # 001 — cases, parties, evidence store, users
+    ensure_strategy_schema()        # 002 — strategies, propositions, gauntlet
+    ensure_chat_schema()            # 003 — chat sessions, messages, session store
+    ensure_correspondence_schema()  # 004 — correspondence threads, items, attachments
 
 
 mgr = CaseManager()
@@ -469,8 +470,12 @@ def synthesize_case(case_id: int, user: dict = Depends(get_current_user)):
 
 from api.routes.chat import router as chat_router
 from api.routes.drafts import router as drafts_router
+from api.routes.correspondence import router as correspondence_router
+from api.routes.tasks import router as tasks_router
 app.include_router(chat_router)
 app.include_router(drafts_router)
+app.include_router(correspondence_router)
+app.include_router(tasks_router)
 
 # ---------------------------------------------------------------------------
 # Health check

@@ -55,6 +55,13 @@ DRAFTING — create and iterate on structured documents.
   update_draft        Modify an existing draft — rename, change status, or
                       replace the full block content.
 
+TASKS — track action items and follow-ups.
+  list_tasks          List tasks ordered by urgency. Filter by status.
+  create_task         Create a new task. Attach documents by ID if relevant.
+                      Use after analysis to create follow-up items.
+  update_task         Change task status, notes, priority, or deadline.
+                      Mark complete when done.
+
 PROTOCOLS (future) — composable workflows for complex legal analysis. Adversarial
 walk, gate walk, gauntlet screening, and others will appear here as tools.
 

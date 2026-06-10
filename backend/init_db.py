@@ -23,6 +23,7 @@ from core.db import (
     ensure_schema,
     ensure_strategy_schema,
     ensure_chat_schema,
+    ensure_correspondence_schema,
 )
 
 # ---------------------------------------------------------------------------
@@ -119,6 +120,10 @@ def main() -> int:
         chat = ensure_chat_schema()
         for path in chat:
             print(f"  Chat:     {path}")
+
+        corr = ensure_correspondence_schema()
+        for path in corr:
+            print(f"  Corr:     {path}")
     except Exception as e:
         print(f"  ERROR applying schemas: {e}", file=sys.stderr)
         return 1

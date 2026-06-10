@@ -1,8 +1,8 @@
 "use client";
 
-import { Eye, MessageCircle, FolderOpen, PenLine } from "lucide-react";
+import { Eye, MessageCircle, FolderOpen, PenLine, Mail, CheckSquare } from "lucide-react";
 
-export type TabId = "overview" | "chat" | "documents" | "drafts";
+export type TabId = "overview" | "chat" | "documents" | "drafts" | "correspondence" | "tasks";
 
 interface TabNavProps {
   activeTab: TabId;
@@ -14,6 +14,8 @@ const TABS: { id: TabId; label: string; shortLabel: string; icon: typeof Eye }[]
   { id: "chat", label: "Chat", shortLabel: "Chat", icon: MessageCircle },
   { id: "documents", label: "Documents", shortLabel: "Docs", icon: FolderOpen },
   { id: "drafts", label: "Drafts", shortLabel: "Drafts", icon: PenLine },
+  { id: "correspondence", label: "Correspondence", shortLabel: "Corr.", icon: Mail },
+  { id: "tasks", label: "Tasks", shortLabel: "Tasks", icon: CheckSquare },
 ];
 
 export default function TabNav({ activeTab, onTabChange }: TabNavProps) {

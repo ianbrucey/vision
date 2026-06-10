@@ -144,8 +144,204 @@ export const updateBlock = (
 export const deleteDraft = (draftId: number): Promise<{ deleted: boolean }> =>
   fetchAPI(`/api/drafts/${draftId}`, { method: "DELETE" });
 
+// Tasks
+export interface TaskDocument {
+  id: number;
+  name: string;
+  page_count: number | null;
+  document_type: string | null;
+}
+
+export interface Task {
+  id: number;
+  case_id: number;
+  title: string;
+  notes: string | null;
+  status: "open" | "in_progress" | "blocked" | "complete";
+  priority: "low" | "medium" | "high" | "urgent";
+  assignee_id: string | null;
+  deadline: string | null;
+  completed_at: string | null;
+  created_by: string | null;
+  document_count: number;
+  documents?: TaskDocument[];
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export const listTasks = (
+  caseId: number,
+  params?: { status?: string; assignee_id?: string; limit?: number },
+): Promise<{ tasks: Task[] }> => {
+  const qs = new URLSearchParams();
+  if (params?.status) qs.set("status", params.status);
+  if (params?.assignee_id) qs.set("assignee_id", params.assignee_id);
+  if (params?.limit) qs.set("limit", String(params.limit));
+  const s = qs.toString();
+  return fetchAPI(`/api/cases/${caseId}/tasks${s ? `?${s}` : ""}`);
+};
+
+export const getTask = (taskId: number): Promise<{ task: Task }> =>
+  fetchAPI(`/api/tasks/${taskId}`);
+
+export const createTask = (
+  caseId: number,
+  data: { title: string; notes?: string; assignee_id?: string; deadline?: string; priority?: string; document_ids?: number[] },
+): Promise<{ task: Task }> =>
+  fetchAPI(`/api/cases/${caseId}/tasks`, { method: "POST", body: JSON.stringify(data) });
+
+export const updateTask = (
+  taskId: number,
+  data: { title?: string; notes?: string; status?: string; priority?: string; assignee_id?: string; deadline?: string },
+): Promise<{ task: Task }> =>
+  fetchAPI(`/api/tasks/${taskId}`, { method: "PATCH", body: JSON.stringify(data) });
+
+export const attachTaskDocuments = (
+  taskId: number,
+  document_ids: number[],
+): Promise<{ task: Task; attached: number }> =>
+  fetchAPI(`/api/tasks/${taskId}/documents`, { method: "POST", body: JSON.stringify({ document_ids }) });
+
+export const detachTaskDocument = (
+  taskId: number,
+  documentId: number,
+): Promise<{ deleted: boolean }> =>
+  fetchAPI(`/api/tasks/${taskId}/documents/${documentId}`, { method: "DELETE" });
+
+export const deleteTask = (taskId: number): Promise<{ deleted: boolean }> =>
+  fetchAPI(`/api/tasks/${taskId}`, { method: "DELETE" });
+
 // Health
 export const healthCheck = () => fetchAPI("/api/health");
+
+// ---------------------------------------------------------------------------
+// Correspondence
+// ---------------------------------------------------------------------------
+
+export interface CorrespondenceThread {
+  id: number;
+  case_id: number;
+  title: string;
+  status: "active" | "archived";
+  item_count: number;
+  last_activity: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CorrespondenceAttachment {
+  id: number;
+  document_id: number;
+  document_name: string;
+}
+
+export interface CorrespondenceItem {
+  id: number;
+  thread_id: number;
+  sender_party_id: number | null;
+  sender_name: string | null;
+  receiver_party_id: number | null;
+  receiver_name: string | null;
+  direction: "sent" | "received";
+  notes: string | null;
+  date_sent: string | null;
+  date_received: string | null;
+  attachments: CorrespondenceAttachment[];
+  created_at: string;
+  updated_at: string;
+}
+
+export const listCorrespondenceThreads = (
+  caseId: number,
+  status?: string,
+): Promise<{ threads: CorrespondenceThread[] }> => {
+  const qs = status ? `?status=${status}` : "";
+  return fetchAPI(`/api/cases/${caseId}/correspondence/threads${qs}`);
+};
+
+export const createCorrespondenceThread = (
+  caseId: number,
+  data: { title: string },
+): Promise<{ thread: CorrespondenceThread }> =>
+  fetchAPI(`/api/cases/${caseId}/correspondence/threads`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+export const updateCorrespondenceThread = (
+  threadId: number,
+  data: { title?: string; status?: string },
+): Promise<{ thread: CorrespondenceThread }> =>
+  fetchAPI(`/api/correspondence/threads/${threadId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+
+export const deleteCorrespondenceThread = (
+  threadId: number,
+): Promise<{ deleted: boolean }> =>
+  fetchAPI(`/api/correspondence/threads/${threadId}`, { method: "DELETE" });
+
+export const listCorrespondenceItems = (
+  threadId: number,
+): Promise<{ items: CorrespondenceItem[] }> =>
+  fetchAPI(`/api/correspondence/threads/${threadId}/items`);
+
+export const createCorrespondenceItem = (
+  threadId: number,
+  data: {
+    sender_party_id?: number | null;
+    receiver_party_id?: number | null;
+    direction: string;
+    notes?: string | null;
+    date_sent?: string | null;
+    date_received?: string | null;
+    document_ids?: number[];
+  },
+): Promise<{ item: CorrespondenceItem }> =>
+  fetchAPI(`/api/correspondence/threads/${threadId}/items`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+export const updateCorrespondenceItem = (
+  itemId: number,
+  data: {
+    sender_party_id?: number | null;
+    receiver_party_id?: number | null;
+    direction?: string;
+    notes?: string | null;
+    date_sent?: string | null;
+    date_received?: string | null;
+  },
+): Promise<{ item: CorrespondenceItem }> =>
+  fetchAPI(`/api/correspondence/items/${itemId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+
+export const deleteCorrespondenceItem = (
+  itemId: number,
+): Promise<{ deleted: boolean }> =>
+  fetchAPI(`/api/correspondence/items/${itemId}`, { method: "DELETE" });
+
+export const attachCorrespondenceDocument = (
+  itemId: number,
+  documentId: number,
+): Promise<{ attachment: CorrespondenceAttachment }> =>
+  fetchAPI(`/api/correspondence/items/${itemId}/attachments`, {
+    method: "POST",
+    body: JSON.stringify({ document_id: documentId }),
+  });
+
+export const detachCorrespondenceDocument = (
+  itemId: number,
+  documentId: number,
+): Promise<{ deleted: boolean }> =>
+  fetchAPI(`/api/correspondence/items/${itemId}/attachments/${documentId}`, {
+    method: "DELETE",
+  });
 
 // ---------------------------------------------------------------------------
 // Chat

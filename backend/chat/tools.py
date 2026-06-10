@@ -1095,6 +1095,171 @@ def create_vision_server(case_id: int):
         except Exception as exc:
             return _error(f"update_draft failed: {exc}")
 
+    # -- Layer 7: Tasks ------------------------------------------------------
+
+    @tool(
+        "list_tasks",
+        "List all tasks for the current case, ordered by urgency. "
+        "Overdue tasks first, then nearest deadline, then priority. "
+        "Use this to check what needs to be done, what's pending, "
+        "or what follow-ups were created from previous analysis.",
+        {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": ["open", "in_progress", "blocked", "complete"],
+                    "description": "Filter by status (optional).",
+                },
+                "assignee_id": {
+                    "type": "string",
+                    "description": "Filter by assignee user ID (optional).",
+                },
+            },
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def list_tasks(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import list_tasks as _list_tasks
+                rows = _list_tasks(
+                    conn, case_id,
+                    status=args.get("status"),
+                    assignee_id=args.get("assignee_id"),
+                )
+            finally:
+                conn.close()
+            return _result({"count": len(rows), "tasks": rows})
+        except Exception as exc:
+            return _error(f"list_tasks failed: {exc}")
+
+    @tool(
+        "create_task",
+        "Create a new task in the case tracker. Use this to create "
+        "follow-up items after analysis, reminders for missing evidence, "
+        "or action items the user needs to handle.",
+        {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "description": "Task title. Be specific about what needs to happen.",
+                },
+                "notes": {
+                    "type": "string",
+                    "description": "Detailed notes or context (optional).",
+                },
+                "deadline": {
+                    "type": "string",
+                    "description": "Deadline date in YYYY-MM-DD format (optional).",
+                },
+                "priority": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high", "urgent"],
+                    "description": "Priority level. Default medium.",
+                },
+                "document_ids": {
+                    "type": "array",
+                    "items": {"type": "integer"},
+                    "description": "Document IDs to attach (optional). "
+                    "Use document IDs from get_case or list_documents.",
+                },
+            },
+            "required": ["title"],
+        },
+    )
+    async def create_task(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import insert_task as _insert_task
+                task_id = _insert_task(
+                    conn,
+                    case_id=case_id,
+                    title=args["title"],
+                    notes=args.get("notes"),
+                    deadline=args.get("deadline"),
+                    priority=args.get("priority", "medium"),
+                    created_by="agent",
+                )
+                doc_ids = args.get("document_ids", [])
+                if doc_ids:
+                    from core.db import attach_task_documents as _attach
+                    _attach(conn, task_id, doc_ids)
+            finally:
+                conn.close()
+            return _result({
+                "task_id": task_id,
+                "title": args["title"],
+                "priority": args.get("priority", "medium"),
+                "deadline": args.get("deadline"),
+                "documents_attached": len(doc_ids) if doc_ids else 0,
+            })
+        except Exception as exc:
+            return _error(f"create_task failed: {exc}")
+
+    @tool(
+        "update_task",
+        "Update a task's status, notes, or assignment. Use this to "
+        "mark tasks complete when follow-up is done, or update notes "
+        "with findings.",
+        {
+            "type": "object",
+            "properties": {
+                "task_id": {
+                    "type": "integer",
+                    "description": "Task ID from list_tasks.",
+                },
+                "status": {
+                    "type": "string",
+                    "enum": ["open", "in_progress", "blocked", "complete"],
+                    "description": "New status (optional).",
+                },
+                "notes": {
+                    "type": "string",
+                    "description": "Updated notes (optional).",
+                },
+                "priority": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high", "urgent"],
+                    "description": "Updated priority (optional).",
+                },
+                "deadline": {
+                    "type": "string",
+                    "description": "Updated deadline YYYY-MM-DD (optional).",
+                },
+            },
+            "required": ["task_id"],
+        },
+    )
+    async def update_task(args: dict[str, Any]) -> dict[str, Any]:
+        task_id = args["task_id"]
+        try:
+            kwargs = {}
+            for f in ("status", "notes", "priority", "deadline"):
+                if f in args:
+                    kwargs[f] = args[f]
+            if not kwargs:
+                return _error("No fields to update.")
+            conn = _conn()
+            try:
+                from core.db import update_task as _update_task
+                updated = _update_task(conn, task_id, **kwargs)
+            finally:
+                conn.close()
+            if not updated:
+                return _error(f"Task {task_id} not found.")
+            return _result({
+                "task_id": task_id,
+                "status": updated.get("status"),
+                "updated_at": str(updated.get("updated_at", "")),
+            })
+        except Exception as exc:
+            return _error(f"update_task failed: {exc}")
+
     # -- Build server --------------------------------------------------------
 
     return create_sdk_mcp_server(
@@ -1116,5 +1281,8 @@ def create_vision_server(case_id: int):
             get_draft,
             create_draft,
             update_draft,
+            list_tasks,
+            create_task,
+            update_task,
         ],
     )

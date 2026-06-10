@@ -14,8 +14,9 @@ import {
   User,
   Scale,
   X,
+  Mail,
 } from "lucide-react";
-import { synthesizeCase, getJob, getCase, listJobs } from "@/lib/api";
+import { synthesizeCase, getJob, getCase, listJobs, listCorrespondenceThreads, listTasks, type CorrespondenceThread, type Task } from "@/lib/api";
 import FloatingChat, { FloatingChatButton } from "@/components/FloatingChat";
 import type { TabId } from "../TabNav";
 
@@ -76,6 +77,28 @@ export default function OverviewTab({
   const [issuesOpen, setIssuesOpen] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+
+  // Correspondence preview
+  const [corrThreads, setCorrThreads] = useState<CorrespondenceThread[]>([]);
+
+  useEffect(() => {
+    listCorrespondenceThreads(caseId)
+      .then((res) => setCorrThreads(res.threads.slice(0, 3)))
+      .catch(() => {});
+  }, [caseId]);
+
+  // Task preview
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  useEffect(() => {
+    listTasks(caseId, { status: "complete", limit: 99 })
+      .then((res) => {
+        // Get non-complete tasks (open, in_progress, blocked)
+        return listTasks(caseId);
+      })
+      .then((res) => setTasks(res.tasks.filter((t) => t.status !== "complete").slice(0, 4)))
+      .catch(() => {});
+  }, [caseId]);
 
   // Sync when parent reloads (e.g. after navigating back)
   useEffect(() => {
@@ -484,6 +507,113 @@ export default function OverviewTab({
               <ChevronRight size={16} className="text-text-disabled shrink-0" />
             </button>
           </div>
+        </div>
+
+        {/* ================================================================ */}
+        {/* Correspondence preview                                            */}
+        {/* ================================================================ */}
+        {corrThreads.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-semibold text-text-disabled uppercase tracking-wider">
+                Correspondence
+              </h3>
+              <button
+                onClick={() => onNavigate("correspondence")}
+                className="text-xs text-info hover:text-brand transition-colors"
+              >
+                View all
+              </button>
+            </div>
+            <div className="bg-surface-1 border border-border rounded-lg divide-y divide-border">
+              {corrThreads.map((t) => (
+                <div
+                  key={t.id}
+                  onClick={() => onNavigate("correspondence")}
+                  className="p-3 flex items-center gap-3 hover:bg-surface-2 cursor-pointer
+                             transition-colors"
+                >
+                  <Mail size={16} className="text-text-disabled shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{t.title}</p>
+                    <p className="text-xs text-text-disabled">
+                      {t.item_count} item{t.item_count !== 1 ? "s" : ""}
+                      {t.last_activity && (
+                        <> · last activity {formatDate(t.last_activity)}</>
+                      )}
+                    </p>
+                  </div>
+                  <ChevronRight size={14} className="text-text-disabled shrink-0" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================ */}
+        {/* Tasks preview                                                     */}
+        {/* ================================================================ */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xs font-semibold text-text-disabled uppercase tracking-wider">
+              Tasks
+            </h3>
+            <button
+              onClick={() => onNavigate("tasks")}
+              className="text-xs text-info hover:text-brand transition-colors"
+            >
+              View all
+            </button>
+          </div>
+          {tasks.length === 0 ? (
+            <div
+              onClick={() => onNavigate("tasks")}
+              className="bg-surface-1 border border-border rounded-lg p-4
+                         cursor-pointer hover:bg-surface-2 transition-colors text-center"
+            >
+              <p className="text-xs text-text-secondary">No open tasks</p>
+              <p className="text-[10px] text-text-disabled mt-0.5">
+                Tap to create one
+              </p>
+            </div>
+          ) : (
+            <div className="bg-surface-1 border border-border rounded-lg divide-y divide-border">
+              {tasks.map((t) => {
+                const isOverdue = t.deadline && new Date(t.deadline + "T12:00:00") < new Date();
+                const dl = t.deadline
+                  ? new Date(t.deadline + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" })
+                  : null;
+                return (
+                  <div
+                    key={t.id}
+                    onClick={() => onNavigate("tasks")}
+                    className="p-3 flex items-center gap-2 hover:bg-surface-2 cursor-pointer transition-colors"
+                  >
+                    <div className={`size-2 rounded-full shrink-0 ${
+                      t.status === "in_progress" ? "bg-warning"
+                        : t.status === "blocked" ? "bg-danger"
+                        : "bg-text-disabled"
+                    }`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm truncate">{t.title}</p>
+                      <p className="text-xs text-text-disabled">
+                        {isOverdue && <span className="text-danger">Overdue</span>}
+                        {dl && !isOverdue && <span>{dl}</span>}
+                        {(dl || isOverdue) && " · "}
+                        {t.priority !== "medium" && (
+                          <span className={`px-1 rounded-sm text-[10px] ${
+                            t.priority === "urgent" ? "bg-danger-bg text-danger"
+                              : t.priority === "high" ? "bg-warning-bg text-warning"
+                              : "bg-surface-2 text-text-disabled"
+                          }`}>{t.priority}</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* ================================================================ */}

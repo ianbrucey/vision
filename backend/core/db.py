@@ -160,6 +160,23 @@ def ensure_chat_schema() -> list[str]:
     return [str(sql_path)]
 
 
+def ensure_correspondence_schema() -> list[str]:
+    """Apply the correspondence tracker schema.
+
+    Creates correspondence_threads, correspondence_items, and
+    correspondence_attachments tables. Idempotent — uses IF NOT EXISTS.
+    """
+    sql_path = _SCHEMA_DIR / "004_correspondence.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Correspondence schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
 def drop_schema() -> None:
     """Drop all vision tables. DESTRUCTIVE — for development only."""
     with tx() as conn:
@@ -563,14 +580,162 @@ def update_block(
         return dict(row) if row else None
 
 
+# -- tasks -------------------------------------------------------------------
+
+def insert_task(
+    conn: connection,
+    case_id: int,
+    title: str,
+    notes: str | None = None,
+    assignee_id: str | None = None,
+    deadline: str | None = None,
+    priority: str = "medium",
+    created_by: str | None = None,
+) -> int:
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO tasks (case_id, title, notes, assignee_id,
+               deadline, priority, created_by)
+               VALUES (%s, %s, %s, %s, %s, %s, %s)
+               RETURNING id""",
+            (case_id, title, notes, assignee_id, deadline, priority,
+             created_by),
+        )
+        return cur.fetchone()[0]
+
+
+def update_task(
+    conn: connection,
+    task_id: int,
+    title: str | None = None,
+    notes: str | None = None,
+    status: str | None = None,
+    priority: str | None = None,
+    assignee_id: str | None = None,
+    deadline: str | None = None,
+) -> dict | None:
+    sets = []
+    params: list[Any] = []
+    for col, val in [("title", title), ("notes", notes), ("status", status),
+                      ("priority", priority), ("assignee_id", assignee_id),
+                      ("deadline", deadline)]:
+        if val is not None:
+            sets.append(f"{col} = %s"); params.append(val)
+    if status == "complete":
+        sets.append("completed_at = now()")
+    if not sets:
+        return None
+    sets.append("updated_at = now()")
+    params.append(task_id)
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            f"UPDATE tasks SET {', '.join(sets)} WHERE id = %s RETURNING *",
+            tuple(params),
+        )
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def get_task(conn: connection, task_id: int) -> dict | None:
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("SELECT * FROM tasks WHERE id = %s", (task_id,))
+        row = cur.fetchone()
+        if not row:
+            return None
+        task = dict(row)
+        cur.execute(
+            """SELECT d.id, d.name, d.page_count, d.document_type
+               FROM task_documents td
+               JOIN documents d ON td.document_id = d.id
+               WHERE td.task_id = %s
+               ORDER BY td.attached_at""",
+            (task_id,),
+        )
+        task["documents"] = [dict(r) for r in cur.fetchall()]
+        return task
+
+
+def list_tasks(
+    conn: connection,
+    case_id: int,
+    status: str | None = None,
+    assignee_id: str | None = None,
+    limit: int = 50,
+) -> list[dict]:
+    clauses = ["case_id = %s"]
+    params: list[Any] = [case_id]
+    if status:
+        clauses.append("status = %s"); params.append(status)
+    if assignee_id:
+        clauses.append("assignee_id = %s"); params.append(assignee_id)
+    params.append(limit)
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            f"""SELECT t.*,
+                       (SELECT count(*) FROM task_documents
+                        WHERE task_id = t.id) AS document_count
+                FROM tasks t
+                WHERE {' AND '.join(clauses)}
+                ORDER BY
+                  CASE WHEN t.deadline IS NULL THEN 1 ELSE 0 END,
+                  t.deadline ASC NULLS LAST,
+                  t.priority = 'urgent' DESC,
+                  t.priority = 'high' DESC,
+                  t.created_at DESC
+                LIMIT %s""",
+            tuple(params),
+        )
+        return [dict(row) for row in cur.fetchall()]
+
+
+def delete_task(conn: connection, task_id: int) -> bool:
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM tasks WHERE id = %s", (task_id,))
+        return cur.rowcount > 0
+
+
+def attach_task_documents(
+    conn: connection,
+    task_id: int,
+    document_ids: list[int],
+) -> int:
+    count = 0
+    with conn.cursor() as cur:
+        for did in document_ids:
+            cur.execute(
+                """INSERT INTO task_documents (task_id, document_id)
+                   VALUES (%s, %s)
+                   ON CONFLICT (task_id, document_id) DO NOTHING""",
+                (task_id, did),
+            )
+            count += cur.rowcount
+    return count
+
+
+def detach_task_document(
+    conn: connection,
+    task_id: int,
+    document_id: int,
+) -> bool:
+    with conn.cursor() as cur:
+        cur.execute(
+            "DELETE FROM task_documents WHERE task_id = %s AND document_id = %s",
+            (task_id, document_id),
+        )
+        return cur.rowcount > 0
+
+
 __all__ = [
     "connect", "tx",
     "ensure_schema", "ensure_strategy_schema", "ensure_chat_schema",
+    "ensure_correspondence_schema",
     "drop_schema", "reset_schema",
     "insert_document", "insert_section", "insert_block", "insert_block_heading",
     "insert_case", "insert_party", "insert_allegation", "insert_event",
     "insert_citation",
     "insert_draft", "update_draft", "get_draft", "list_drafts",
     "delete_draft", "update_block",
+    "insert_task", "update_task", "get_task", "list_tasks", "delete_task",
+    "attach_task_documents", "detach_task_document",
     "get_document_structure", "get_block_context",
 ]
