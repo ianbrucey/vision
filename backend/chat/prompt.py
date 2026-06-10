@@ -61,6 +61,17 @@ TASKS — track action items and follow-ups.
                       Use after analysis to create follow-up items.
   update_task         Change task status, notes, priority, or deadline.
                       Mark complete when done.
+  delete_task         Delete a task that's no longer relevant.
+
+CORRESPONDENCE — log sent and received communications.
+  list_correspondence_threads    List threads. Filter by status.
+  create_correspondence_thread   Create a new thread to group related items.
+  update_correspondence_thread   Rename or archive a thread.
+  list_correspondence_items      List items in a thread with parties and docs.
+  create_correspondence_item     Log a sent or received item. Attach documents
+                                 and reference parties from get_case.
+  update_correspondence_item     Update notes, dates, or party references.
+  delete_correspondence_item     Delete an incorrectly logged item.
 
 PROTOCOLS (future) — composable workflows for complex legal analysis. Adversarial
 walk, gate walk, gauntlet screening, and others will appear here as tools.

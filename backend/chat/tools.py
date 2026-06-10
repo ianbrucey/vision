@@ -1260,6 +1260,432 @@ def create_vision_server(case_id: int):
         except Exception as exc:
             return _error(f"update_task failed: {exc}")
 
+    @tool(
+        "delete_task",
+        "Delete a task. Use when a task is no longer relevant or was created "
+        "in error.",
+        {
+            "type": "object",
+            "properties": {
+                "task_id": {
+                    "type": "integer",
+                    "description": "Task ID from list_tasks.",
+                },
+            },
+            "required": ["task_id"],
+        },
+    )
+    async def delete_task(args: dict[str, Any]) -> dict[str, Any]:
+        task_id = args["task_id"]
+        try:
+            conn = _conn()
+            try:
+                from core.db import delete_task as _delete_task
+                ok = _delete_task(conn, task_id)
+            finally:
+                conn.close()
+            if not ok:
+                return _error(f"Task {task_id} not found.")
+            return _result({"deleted": True, "task_id": task_id})
+        except Exception as exc:
+            return _error(f"delete_task failed: {exc}")
+
+    # -- Layer 8: Correspondence ---------------------------------------------
+
+    @tool(
+        "list_correspondence_threads",
+        "List all correspondence threads for the current case. Returns id, "
+        "title, status, item count, and last activity. Use to see existing "
+        "threads before adding items.",
+        {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": ["active", "archived"],
+                    "description": "Filter by status (optional). Defaults to all.",
+                },
+            },
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def list_correspondence_threads(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                clauses = ["ct.case_id = %s"]
+                params: list[Any] = [case_id]
+                if args.get("status"):
+                    clauses.append("ct.status = %s")
+                    params.append(args["status"])
+                where = " AND ".join(clauses)
+                sql = f"""SELECT ct.*,
+                                 (SELECT count(*) FROM correspondence_items
+                                  WHERE thread_id = ct.id) AS item_count,
+                                 (SELECT max(updated_at) FROM correspondence_items
+                                  WHERE thread_id = ct.id) AS last_activity
+                          FROM correspondence_threads ct
+                          WHERE {where}
+                          ORDER BY ct.updated_at DESC"""
+                import psycopg2.extras
+                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                    cur.execute(sql, tuple(params))
+                    rows = [dict(r) for r in cur.fetchall()]
+            finally:
+                conn.close()
+            return _result({"count": len(rows), "threads": rows})
+        except Exception as exc:
+            return _error(f"list_correspondence_threads failed: {exc}")
+
+    @tool(
+        "create_correspondence_thread",
+        "Create a new correspondence thread. A thread groups related "
+        "correspondence items (e.g., 'Discovery letters to opposing counsel'). "
+        "Use this before logging individual items.",
+        {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "description": "Thread title. Be descriptive.",
+                },
+            },
+            "required": ["title"],
+        },
+    )
+    async def create_correspondence_thread(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                import psycopg2.extras
+                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                    cur.execute(
+                        """INSERT INTO correspondence_threads (case_id, title)
+                           VALUES (%s, %s) RETURNING *""",
+                        (case_id, args["title"]),
+                    )
+                    thread = dict(cur.fetchone())
+                conn.commit()
+            finally:
+                conn.close()
+            return _result({"thread": thread})
+        except Exception as exc:
+            return _error(f"create_correspondence_thread failed: {exc}")
+
+    @tool(
+        "update_correspondence_thread",
+        "Update a correspondence thread's title or status. Archive threads "
+        "when they're no longer active.",
+        {
+            "type": "object",
+            "properties": {
+                "thread_id": {
+                    "type": "integer",
+                    "description": "Thread ID from list_correspondence_threads.",
+                },
+                "title": {
+                    "type": "string",
+                    "description": "New title (optional).",
+                },
+                "status": {
+                    "type": "string",
+                    "enum": ["active", "archived"],
+                    "description": "New status (optional).",
+                },
+            },
+            "required": ["thread_id"],
+        },
+    )
+    async def update_correspondence_thread(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            sets = []
+            params: list[Any] = []
+            if "title" in args:
+                sets.append("title = %s"); params.append(args["title"])
+            if "status" in args:
+                sets.append("status = %s"); params.append(args["status"])
+            if not sets:
+                return _error("No fields to update.")
+            sets.append("updated_at = now()")
+            params.append(args["thread_id"])
+            conn = _conn()
+            try:
+                import psycopg2.extras
+                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                    cur.execute(
+                        f"UPDATE correspondence_threads SET {', '.join(sets)} "
+                        f"WHERE id = %s AND case_id = %s RETURNING *",
+                        tuple(params + [case_id]),
+                    )
+                    row = cur.fetchone()
+                conn.commit()
+            finally:
+                conn.close()
+            if not row:
+                return _error("Thread not found in this case.")
+            return _result({"thread": dict(row)})
+        except Exception as exc:
+            return _error(f"update_correspondence_thread failed: {exc}")
+
+    @tool(
+        "list_correspondence_items",
+        "List all items in a correspondence thread. Returns sender, receiver, "
+        "direction, notes, dates, and attached documents.",
+        {
+            "type": "object",
+            "properties": {
+                "thread_id": {
+                    "type": "integer",
+                    "description": "Thread ID from list_correspondence_threads.",
+                },
+            },
+            "required": ["thread_id"],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def list_correspondence_items(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                import psycopg2.extras
+                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                    # Verify thread belongs to case
+                    cur.execute(
+                        "SELECT id FROM correspondence_threads WHERE id = %s AND case_id = %s",
+                        (args["thread_id"], case_id),
+                    )
+                    if not cur.fetchone():
+                        return _error("Thread not found in this case.")
+                    cur.execute(
+                        """SELECT ci.*,
+                                  sp.name AS sender_name,
+                                  rp.name AS receiver_name,
+                                  (SELECT jsonb_agg(
+                                      jsonb_build_object(
+                                          'id', ca.id,
+                                          'document_id', ca.document_id,
+                                          'document_name', d.name
+                                      )
+                                   )
+                                   FROM correspondence_attachments ca
+                                   JOIN documents d ON ca.document_id = d.id
+                                   WHERE ca.item_id = ci.id
+                                  ) AS attachments
+                           FROM correspondence_items ci
+                           LEFT JOIN parties sp ON ci.sender_party_id = sp.id
+                           LEFT JOIN parties rp ON ci.receiver_party_id = rp.id
+                           WHERE ci.thread_id = %s
+                           ORDER BY ci.date_sent DESC, ci.date_received DESC,
+                                    ci.created_at DESC""",
+                        (args["thread_id"],),
+                    )
+                    rows = [dict(r) for r in cur.fetchall()]
+            finally:
+                conn.close()
+            return _result({"count": len(rows), "items": rows})
+        except Exception as exc:
+            return _error(f"list_correspondence_items failed: {exc}")
+
+    @tool(
+        "create_correspondence_item",
+        "Log a new correspondence item in a thread. Records who sent/received "
+        "it, the direction, dates, notes, and optionally attaches documents. "
+        "Use party IDs from get_case (parties array).",
+        {
+            "type": "object",
+            "properties": {
+                "thread_id": {
+                    "type": "integer",
+                    "description": "Thread ID from list_correspondence_threads.",
+                },
+                "direction": {
+                    "type": "string",
+                    "enum": ["sent", "received"],
+                    "description": "Whether this was sent by us or received.",
+                },
+                "sender_party_id": {
+                    "type": "integer",
+                    "description": "Party ID of the sender (optional).",
+                },
+                "receiver_party_id": {
+                    "type": "integer",
+                    "description": "Party ID of the receiver (optional).",
+                },
+                "notes": {
+                    "type": "string",
+                    "description": "Notes or summary of the correspondence (optional).",
+                },
+                "date_sent": {
+                    "type": "string",
+                    "description": "Date sent in YYYY-MM-DD format (optional).",
+                },
+                "date_received": {
+                    "type": "string",
+                    "description": "Date received in YYYY-MM-DD format (optional).",
+                },
+                "document_ids": {
+                    "type": "array",
+                    "items": {"type": "integer"},
+                    "description": "Document IDs to attach (optional).",
+                },
+            },
+            "required": ["thread_id", "direction"],
+        },
+    )
+    async def create_correspondence_item(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                import psycopg2.extras
+                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                    # Verify thread belongs to case
+                    cur.execute(
+                        "SELECT id FROM correspondence_threads WHERE id = %s AND case_id = %s",
+                        (args["thread_id"], case_id),
+                    )
+                    if not cur.fetchone():
+                        return _error("Thread not found in this case.")
+                    cur.execute(
+                        """INSERT INTO correspondence_items
+                           (thread_id, sender_party_id, receiver_party_id,
+                            direction, notes, date_sent, date_received)
+                           VALUES (%s, %s, %s, %s, %s, %s, %s)
+                           RETURNING *""",
+                        (args["thread_id"], args.get("sender_party_id"),
+                         args.get("receiver_party_id"), args["direction"],
+                         args.get("notes"), args.get("date_sent"),
+                         args.get("date_received")),
+                    )
+                    item = dict(cur.fetchone())
+                    doc_ids = args.get("document_ids", [])
+                    for did in doc_ids:
+                        cur.execute(
+                            """INSERT INTO correspondence_attachments
+                               (item_id, document_id) VALUES (%s, %s)
+                               ON CONFLICT DO NOTHING""",
+                            (item["id"], did),
+                        )
+                conn.commit()
+            finally:
+                conn.close()
+            return _result({
+                "item": item,
+                "documents_attached": len(doc_ids) if doc_ids else 0,
+            })
+        except Exception as exc:
+            return _error(f"create_correspondence_item failed: {exc}")
+
+    @tool(
+        "update_correspondence_item",
+        "Update a correspondence item's fields. Use to correct dates, add "
+        "notes, or change the direction.",
+        {
+            "type": "object",
+            "properties": {
+                "item_id": {
+                    "type": "integer",
+                    "description": "Item ID from list_correspondence_items.",
+                },
+                "notes": {"type": "string", "description": "Updated notes."},
+                "direction": {
+                    "type": "string",
+                    "enum": ["sent", "received"],
+                    "description": "Updated direction.",
+                },
+                "date_sent": {
+                    "type": "string",
+                    "description": "Updated date sent YYYY-MM-DD.",
+                },
+                "date_received": {
+                    "type": "string",
+                    "description": "Updated date received YYYY-MM-DD.",
+                },
+                "sender_party_id": {
+                    "type": "integer",
+                    "description": "Updated sender party ID.",
+                },
+                "receiver_party_id": {
+                    "type": "integer",
+                    "description": "Updated receiver party ID.",
+                },
+            },
+            "required": ["item_id"],
+        },
+    )
+    async def update_correspondence_item(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            sets = []
+            params: list[Any] = []
+            for f in ("notes", "direction", "date_sent", "date_received",
+                       "sender_party_id", "receiver_party_id"):
+                if f in args and args[f] is not None:
+                    sets.append(f"{f} = %s"); params.append(args[f])
+            if not sets:
+                return _error("No fields to update.")
+            sets.append("updated_at = now()")
+            params.append(args["item_id"])
+            params.append(case_id)
+            conn = _conn()
+            try:
+                import psycopg2.extras
+                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                    cur.execute(
+                        f"""UPDATE correspondence_items ci SET {', '.join(sets)}
+                            FROM correspondence_threads ct
+                            WHERE ci.thread_id = ct.id
+                              AND ci.id = %s AND ct.case_id = %s
+                            RETURNING ci.*""",
+                        tuple(params),
+                    )
+                    row = cur.fetchone()
+                conn.commit()
+            finally:
+                conn.close()
+            if not row:
+                return _error("Item not found in this case.")
+            return _result({"item": dict(row)})
+        except Exception as exc:
+            return _error(f"update_correspondence_item failed: {exc}")
+
+    @tool(
+        "delete_correspondence_item",
+        "Delete a correspondence item. Use if an entry was logged in error.",
+        {
+            "type": "object",
+            "properties": {
+                "item_id": {
+                    "type": "integer",
+                    "description": "Item ID from list_correspondence_items.",
+                },
+            },
+            "required": ["item_id"],
+        },
+    )
+    async def delete_correspondence_item(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                import psycopg2.extras
+                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                    cur.execute(
+                        """DELETE FROM correspondence_items ci
+                           USING correspondence_threads ct
+                           WHERE ci.thread_id = ct.id
+                             AND ci.id = %s AND ct.case_id = %s
+                           RETURNING ci.id""",
+                        (args["item_id"], case_id),
+                    )
+                    row = cur.fetchone()
+                conn.commit()
+            finally:
+                conn.close()
+            if not row:
+                return _error("Item not found in this case.")
+            return _result({"deleted": True, "item_id": args["item_id"]})
+        except Exception as exc:
+            return _error(f"delete_correspondence_item failed: {exc}")
+
     # -- Build server --------------------------------------------------------
 
     return create_sdk_mcp_server(
@@ -1284,5 +1710,13 @@ def create_vision_server(case_id: int):
             list_tasks,
             create_task,
             update_task,
+            delete_task,
+            list_correspondence_threads,
+            create_correspondence_thread,
+            update_correspondence_thread,
+            list_correspondence_items,
+            create_correspondence_item,
+            update_correspondence_item,
+            delete_correspondence_item,
         ],
     )
