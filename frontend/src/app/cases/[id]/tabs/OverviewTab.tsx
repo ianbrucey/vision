@@ -17,7 +17,6 @@ import {
   Mail,
 } from "lucide-react";
 import { synthesizeCase, getJob, getCase, listJobs, listCorrespondenceThreads, listTasks, type CorrespondenceThread, type Task } from "@/lib/api";
-import FloatingChat, { FloatingChatButton } from "@/components/FloatingChat";
 import type { TabId } from "../TabNav";
 
 /* ------------------------------------------------------------------ */
@@ -76,7 +75,6 @@ export default function OverviewTab({
   const [partiesOpen, setPartiesOpen] = useState(true);
   const [issuesOpen, setIssuesOpen] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
 
   // Correspondence preview
   const [corrThreads, setCorrThreads] = useState<CorrespondenceThread[]>([]);
@@ -772,14 +770,6 @@ export default function OverviewTab({
         </div>
       )}
 
-      {/* Floating chat */}
-      <FloatingChatButton onClick={() => setChatOpen(true)} />
-      <FloatingChat
-        caseId={caseId}
-        context="overview"
-        open={chatOpen}
-        onClose={() => setChatOpen(false)}
-      />
     </div>
   );
 }

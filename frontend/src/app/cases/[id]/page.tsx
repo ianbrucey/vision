@@ -12,6 +12,7 @@ import DocumentsTab from "./tabs/DocumentsTab";
 import DraftsTab from "./tabs/DraftsTab";
 import CorrespondenceTab from "./tabs/CorrespondenceTab";
 import TasksTab from "./tabs/TasksTab";
+import FloatingChat, { FloatingChatButton } from "@/components/FloatingChat";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -60,6 +61,7 @@ function CaseDashboardInner() {
   const [case_, setCase] = useState<Case | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
 
   /* ---- data ---- */
 
@@ -215,6 +217,16 @@ function CaseDashboardInner() {
 
       {/* Tab Navigation */}
       <TabNav activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {/* Floating chat — accessible from any tab except Chat */}
+      {activeTab !== "chat" && (
+        <FloatingChatButton onClick={() => setChatOpen(true)} />
+      )}
+      <FloatingChat
+        caseId={Number(id)}
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+      />
     </div>
   );
 }

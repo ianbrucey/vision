@@ -32,7 +32,7 @@ if str(_BACKEND) not in sys.path:
 
 from core.db import connect
 from ingestion.jobs import claim_next, mark_complete, mark_failed, update_progress, enqueue
-from ingestion.storage import download_file
+from ingestion.storage import download_file, upload_file as _upload_to_minio
 from ingestion.dispatcher import ingest_file
 from ingestion.enricher import enrich_document
 from ingestion.synthesizer import synthesize_case
@@ -164,6 +164,159 @@ def process_enrich_job(job: dict) -> None:
         mark_failed(job_id, str(e))
 
 
+def process_ingest_zip_job(job: dict, worker_id: str = WORKER_ID) -> None:
+    """Extract a ZIP archive and enqueue individual ingest jobs for its contents.
+
+    Walks the full directory tree within the ZIP (including nested folders).
+    Also handles ZIPs nested within the tree (depth limit 3).
+    """
+    import zipfile
+
+    job_id = job["id"]
+    case_id = job["case_id"]
+    storage_ref = job.get("storage_ref") or {}
+
+    bucket = storage_ref.get("bucket")
+    object_key = storage_ref.get("object_key")
+    original_name = storage_ref.get("original_name", "unknown.zip")
+
+    if not bucket or not object_key:
+        mark_failed(job_id, "Missing storage reference")
+        return
+
+    TEMP_DIR.mkdir(parents=True, exist_ok=True)
+    zip_local = TEMP_DIR / f"{job_id}_{original_name}"
+    extract_dir = TEMP_DIR / f"{job_id}_extracted"
+
+    try:
+        print(f"[{worker_id}] Job {job_id}: downloading ZIP {original_name}...")
+        update_progress(job_id, 5)
+        download_file(bucket, object_key, zip_local)
+
+        print(f"[{worker_id}] Job {job_id}: extracting {original_name}...")
+        update_progress(job_id, 15)
+        extract_dir.mkdir(parents=True, exist_ok=True)
+
+        # Collect all files from the ZIP (walking folders, skipping dirs)
+        SUPPORTED = {".pdf", ".docx", ".txt", ".csv", ".xlsx", ".jpg", ".jpeg", ".png", ".m4a", ".mp3", ".wav", ".zip"}
+        extracted_files: list[Path] = []
+        nested_zips: list[Path] = []
+
+        with zipfile.ZipFile(zip_local, "r") as zf:
+            for entry in zf.infolist():
+                # Skip directories
+                if entry.is_dir():
+                    continue
+
+                # Extract the file
+                member_path = extract_dir / entry.filename
+                member_path.parent.mkdir(parents=True, exist_ok=True)
+                zf.extract(entry, extract_dir)
+
+                suffix = member_path.suffix.lower()
+                if suffix in SUPPORTED:
+                    if suffix == ".zip":
+                        nested_zips.append(member_path)
+                    else:
+                        extracted_files.append(member_path)
+                        print(f"  [{worker_id}]   → {entry.filename}")
+
+        # Handle nested ZIPs (depth 2)
+        for nzip in nested_zips:
+            try:
+                nz_extract = extract_dir / f"__nested__{nzip.stem}"
+                nz_extract.mkdir(parents=True, exist_ok=True)
+                with zipfile.ZipFile(nzip, "r") as zf2:
+                    for entry in zf2.infolist():
+                        if entry.is_dir():
+                            continue
+                        member_path = nz_extract / entry.filename
+                        member_path.parent.mkdir(parents=True, exist_ok=True)
+                        zf2.extract(entry, nz_extract)
+                        suffix = member_path.suffix.lower()
+                        if suffix in SUPPORTED and suffix != ".zip":
+                            extracted_files.append(member_path)
+                            print(f"  [{worker_id}]   → [nested] {entry.filename}")
+            except zipfile.BadZipFile:
+                print(f"  [{worker_id}]   ⚠ Skipping corrupt nested ZIP: {nzip.name}")
+
+        total = len(extracted_files)
+        print(f"[{worker_id}] Job {job_id}: {total} files extracted from ZIP")
+
+        if total == 0:
+            mark_complete(job_id)
+            print(f"[{worker_id}] Job {job_id}: no supported files found in ZIP")
+            return
+
+        update_progress(job_id, 30)
+
+        # Upload each file to MinIO and enqueue individual ingest jobs
+        child_job_ids = []
+        for i, fpath in enumerate(extracted_files):
+            pct = 30 + int((i / total) * 60)  # 30-90%
+            update_progress(job_id, pct)
+
+            fname = fpath.name
+            # Prepend ZIP path context to avoid name collisions
+            rel = fpath.relative_to(extract_dir)
+            display_name = str(rel)
+
+            try:
+                print(f"  [{worker_id}]   [{i+1}/{total}] uploading {display_name}...")
+                f_storage_ref = _upload_to_minio(str(fpath), display_name)
+                child_job = enqueue(
+                    case_id=case_id,
+                    job_type="ingest",
+                    storage_ref=f_storage_ref,
+                    metadata={"zip_source_job_id": job_id},
+                )
+                child_job_ids.append(child_job["id"])
+            except Exception as e:
+                print(f"  [{worker_id}]   ⚠ Failed to enqueue {display_name}: {e}")
+
+        # Mark ZIP job complete with child references
+        update_progress(job_id, 95)
+        mark_complete(job_id)
+        # Update metadata with child job IDs for frontend polling
+        try:
+            import json
+            from core.db import tx
+            with tx() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "UPDATE jobs SET metadata = metadata || %s::jsonb WHERE id = %s",
+                        (json.dumps({"child_job_ids": child_job_ids, "total_files": total}), job_id),
+                    )
+        except Exception:
+            pass
+
+        print(
+            f"[{worker_id}] Job {job_id}: ZIP extraction complete — "
+            f"{len(child_job_ids)}/{total} files enqueued"
+        )
+
+    except zipfile.BadZipFile:
+        print(f"[{worker_id}] Job {job_id}: corrupted ZIP file")
+        mark_failed(job_id, "Corrupted or password-protected ZIP file")
+    except Exception as e:
+        print(f"[{worker_id}] Job {job_id}: ZIP extraction FAILED — {e}")
+        traceback.print_exc()
+        mark_failed(job_id, str(e))
+    finally:
+        # Cleanup
+        try:
+            if zip_local.exists():
+                zip_local.unlink()
+        except OSError:
+            pass
+        try:
+            import shutil
+            if extract_dir.exists():
+                shutil.rmtree(extract_dir)
+        except OSError:
+            pass
+
+
 def process_synthesize_job(job: dict) -> None:
     """Extract parties and allegations from the case narrative."""
     job_id = job["id"]
@@ -206,6 +359,8 @@ def main():
 
             if job["job_type"] == "ingest":
                 process_ingest_job(job)
+            elif job["job_type"] == "ingest_zip":
+                process_ingest_zip_job(job)
             elif job["job_type"] == "enrich":
                 process_enrich_job(job)
             elif job["job_type"] == "synthesize":

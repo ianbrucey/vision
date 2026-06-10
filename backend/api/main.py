@@ -288,7 +288,9 @@ async def ingest_document(case_id: int, file: UploadFile = File(...), user: dict
 
     Poll GET /api/jobs/{job_id} for status.
 
-    Supports: PDF, DOCX, JPG, PNG, CSV, XLSX, M4A, MP3, WAV, and more.
+    Supports: PDF, DOCX, JPG, PNG, CSV, XLSX, M4A, MP3, WAV, ZIP, and more.
+    ZIP files are extracted server-side — each contained file gets its own
+    ingest job. Check job.metadata.child_job_ids after completion.
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename required")
@@ -305,18 +307,24 @@ async def ingest_document(case_id: int, file: UploadFile = File(...), user: dict
         # Upload to MinIO
         storage_ref = _upload_to_minio(tmp_path, file.filename)
 
+        # Detect ZIP — use a different job type so the worker extracts it
+        is_zip = suffix.lower() == ".zip"
+
         # Enqueue the job
         job = _enqueue_job(
             case_id=case_id,
-            job_type="ingest",
+            job_type="ingest_zip" if is_zip else "ingest",
             storage_ref=storage_ref,
         )
 
-        return {
+        result = {
             "job_id": job["id"],
             "status": job["status"],
             "storage_ref": storage_ref,
         }
+        if is_zip:
+            result["is_zip"] = True
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:

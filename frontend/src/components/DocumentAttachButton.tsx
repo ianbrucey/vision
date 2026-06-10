@@ -22,9 +22,12 @@ interface DocRef {
 interface UploadState {
   fileName: string;
   jobId: number;
-  status: "processing" | "complete" | "failed";
+  status: "processing" | "complete" | "failed" | "extracting";
   documentId: number | null;
   error: string | null;
+  isZip?: boolean;
+  totalFiles?: number;
+  childJobIds?: number[];
 }
 
 interface DocumentAttachButtonProps {
@@ -82,7 +85,25 @@ export default function DocumentAttachButton({
     try {
       const job = await getJob(upload.jobId) as any;
       if (job.status === "complete") {
-        // Re-fetch docs to find the new document
+        // ZIP extraction completed — check for child jobs
+        if (upload.isZip) {
+          const meta = job.metadata || {};
+          const childJobIds: number[] = meta.child_job_ids || [];
+          const totalFiles: number = meta.total_files || childJobIds.length;
+          if (childJobIds.length > 0) {
+            // Re-fetch docs now, and again after a delay for child jobs
+            setTimeout(() => refreshDocs(), 5000);
+            return {
+              ...upload,
+              status: "complete",
+              documentId: null,
+              totalFiles,
+              childJobIds,
+            };
+          }
+          return { ...upload, status: "complete", documentId: null, totalFiles };
+        }
+        // Regular file — re-fetch docs to find the new document
         const freshDocs = (await listDocuments(caseId)) as DocRef[];
         const found = freshDocs.find((d) => d.name === upload.fileName);
         if (found) {
@@ -104,7 +125,7 @@ export default function DocumentAttachButton({
     } catch {
       return upload;
     }
-  }, [caseId]);
+  }, [caseId, refreshDocs]);
 
   /* Start polling when uploads are added */
   useEffect(() => {
@@ -157,13 +178,22 @@ export default function DocumentAttachButton({
       }
     }
     if (changed) {
-      // Clean completed/failed after 3s
+      // Clean single-file completes after 3s
       const timer = setTimeout(() => {
-        setUploads((prev) => prev.filter((u) => u.status === "processing"));
+        setUploads((prev) => prev.filter((u) => u.status === "processing" || u.status === "extracting"));
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [uploads, attachedIds, onAttach]);
+    // Clean ZIP completes after 8s (give child jobs time)
+    const zipComplete = uploads.filter((u) => u.status === "complete" && u.isZip);
+    if (zipComplete.length > 0) {
+      const timer = setTimeout(() => {
+        setUploads((prev) => prev.filter((u) => !(u.status === "complete" && u.isZip)));
+        refreshDocs();
+      }, 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [uploads, attachedIds, onAttach, refreshDocs]);
 
   /* Handle file upload */
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -172,15 +202,17 @@ export default function DocumentAttachButton({
     e.target.value = "";
 
     try {
-      const result = await uploadFile(caseId, file);
+      const result: any = await uploadFile(caseId, file);
+      const isZip = result.is_zip === true;
       setUploads((prev) => [
         ...prev,
         {
           fileName: file.name,
           jobId: result.job_id,
-          status: "processing" as const,
+          status: isZip ? "extracting" : "processing",
           documentId: null,
           error: null,
+          isZip,
         },
       ]);
       // Keep dropdown open so user sees progress
@@ -234,14 +266,28 @@ export default function DocumentAttachButton({
       </button>
 
       {/* Upload progress chips */}
-      {uploads.filter((u) => u.status === "processing").map((u) => (
+      {uploads.filter((u) => u.status === "processing" || u.status === "extracting").map((u) => (
         <span
           key={u.jobId}
           className="inline-flex items-center gap-1 text-[10px]
                      bg-surface-2 border border-border rounded px-1.5 py-0.5"
         >
           <Loader2 size={10} className="animate-spin text-text-disabled" />
-          <span className="text-text-disabled truncate max-w-[100px]">{u.fileName}</span>
+          <span className="text-text-disabled truncate max-w-[100px]">
+            {u.isZip ? `Extracting ${u.fileName}...` : u.fileName}
+          </span>
+        </span>
+      ))}
+      {uploads.filter((u) => u.status === "complete" && u.isZip).map((u) => (
+        <span
+          key={u.jobId}
+          className="inline-flex items-center gap-1 text-[10px]
+                     bg-success-bg text-success border border-success/20 rounded px-1.5 py-0.5"
+        >
+          <Check size={10} />
+          <span className="truncate max-w-[150px]">
+            {u.fileName} · {u.totalFiles || "?"} files
+          </span>
         </span>
       ))}
       {uploads.filter((u) => u.status === "complete").map((u) => (
