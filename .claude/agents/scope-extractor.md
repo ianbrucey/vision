@@ -1,7 +1,7 @@
 ---
 name: scope-extractor
 description: Extract the scope of work, background, specific requirements, and technical objectives from a federal solicitation. Use during Phase 3 deep read, in parallel with compliance-extractor and submission-extractor. Does not look at compliance, deadlines, or submission instructions.
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, mcp__vision__get_case, mcp__vision__list_documents, mcp__vision__get_document_structure, mcp__vision__search_blocks, mcp__vision__semantic_search, mcp__vision__search_hybrid, mcp__vision__search_sections, mcp__vision__get_block_context, mcp__vision__get_blocks_in_section, mcp__vision__list_workspace_items, mcp__vision__get_workspace_item, mcp__vision__create_workspace_item
 model: sonnet
 ---
 

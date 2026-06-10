@@ -1,7 +1,7 @@
 ---
 name: opportunity-brief-writer
 description: Synthesize the outputs of scope-extractor, compliance-extractor, and submission-extractor into a single standardized Opportunity Brief (BRIEF.md). Use AFTER all three Phase 3 parallel agents have completed. This is the synthesis step that produces the one-page summary for the Go/No-Go decision.
-tools: Read, Write
+tools: Read, Write, mcp__vision__list_workspace_items, mcp__vision__get_workspace_item, mcp__vision__create_workspace_item
 model: sonnet
 ---
 

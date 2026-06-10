@@ -1,7 +1,7 @@
 ---
 name: solicitation-triage
 description: Classify a federal solicitation (RFI/RFP/RFQ/Sources Sought), extract the header block, and run the quick-kill checklist. Use FIRST on any new solicitation before any deep reading. Use proactively when a new solicitation case is opened.
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, mcp__vision__get_case, mcp__vision__list_documents, mcp__vision__get_document_structure, mcp__vision__search_blocks, mcp__vision__semantic_search, mcp__vision__search_hybrid, mcp__vision__search_sections, mcp__vision__get_block_context, mcp__vision__get_blocks_in_section, mcp__vision__list_workspace_items, mcp__vision__get_workspace_item, mcp__vision__create_workspace_item
 model: haiku
 ---
 

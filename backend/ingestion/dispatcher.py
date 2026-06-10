@@ -731,6 +731,326 @@ def _normalize_docx(conn, docx_path: Path, document_id: int) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Markdown Normalization
+# ---------------------------------------------------------------------------
+
+_MD_EXTENSIONS = {".md", ".markdown"}
+
+# Regex patterns for markdown parsing
+_RE_HEADING = re.compile(r"^(#{1,6})\s+(.+)$")
+_RE_LIST_ITEM = re.compile(r"^(\s*)([-*+]|\d+[.)])\s+(.+)$")
+_RE_HR = re.compile(r"^(\s*[-*_]\s*){3,}$")
+_RE_FRONTMATTER_DELIM = re.compile(r"^---\s*$")
+
+# Block types used in markdown ingestion
+_MD_BLOCK_TYPES = {
+    "heading": "SectionHeader",
+    "paragraph": "Text",
+    "list_item": "List",
+    "code_block": "Code",
+    "blockquote": "Text",
+    "divider": "Divider",
+}
+
+
+def _try_parse_frontmatter(lines: list[str]) -> tuple[dict | None, int]:
+    """If ``lines`` starts with YAML frontmatter (--- delimited), parse it
+    and return the dict + index of the first line after the closing ``---``.
+    Otherwise return (None, 0)."""
+    if not lines or not _RE_FRONTMATTER_DELIM.match(lines[0]):
+        return None, 0
+    try:
+        import yaml
+    except ImportError:
+        # No PyYAML — collect raw key-value pairs between --- delimiters
+        meta: dict[str, str] = {}
+        for i in range(1, len(lines)):
+            if _RE_FRONTMATTER_DELIM.match(lines[i]):
+                return meta, i + 1
+            line = lines[i].strip()
+            if ":" in line:
+                k, _, v = line.partition(":")
+                meta[k.strip()] = v.strip()
+        return meta, 0  # never closed — treat whole file as content
+    else:
+        buf: list[str] = []
+        for i in range(1, len(lines)):
+            if _RE_FRONTMATTER_DELIM.match(lines[i]):
+                try:
+                    meta = yaml.safe_load("\n".join(buf))
+                    return (meta if isinstance(meta, dict) else None), i + 1
+                except Exception:
+                    return None, i + 1
+            buf.append(lines[i])
+        return None, 0
+
+
+def _heading_level_and_text(line: str) -> tuple[int, str] | None:
+    """Return (level, title) if *line* is an ATX heading, else None."""
+    m = _RE_HEADING.match(line)
+    if not m:
+        return None
+    return len(m.group(1)), m.group(2).strip()
+
+
+def _list_item_info(line: str) -> tuple[int, str, str] | None:
+    """Return (indent_level, marker, content) if *line* is a list item, else None."""
+    m = _RE_LIST_ITEM.match(line)
+    if not m:
+        return None
+    indent = len(m.group(1))
+    marker = m.group(2).rstrip(".")
+    # Normalize numbered markers to "1.", "2.", etc.
+    if marker.isdigit():
+        marker = f"{marker}."
+    return indent, marker, m.group(3).strip()
+
+
+def _is_hr(line: str) -> bool:
+    """Return True if *line* is a horizontal rule."""
+    return bool(_RE_HR.match(line))
+
+
+def _normalize_markdown(conn, md_path: Path, document_id: int) -> None:
+    """Ingest a Markdown file into the evidence store.
+
+    Parses headings into **sections** (with parent-child hierarchy) and
+    body content into **blocks**.  Each block is linked to the nearest
+    ancestor section via ``block_headings``.
+    """
+    with open(md_path, encoding="utf-8") as fh:
+        raw_lines = fh.readlines()
+
+    lines = [l.rstrip("\n") for l in raw_lines]
+
+    # -- frontmatter ----------------------------------------------------------
+    content_start = 0
+    frontmatter, content_start = _try_parse_frontmatter(lines)
+    if frontmatter:
+        # Convert any non-JSON-serializable types (dates, datetimes from YAML)
+        def _serialize(v: Any) -> Any:
+            if hasattr(v, "isoformat"):
+                return v.isoformat()
+            if isinstance(v, (set, frozenset)):
+                return list(v)
+            return v
+        safe = {k: _serialize(v) for k, v in frontmatter.items()}
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE documents SET metadata = metadata || %s::jsonb WHERE id = %s",
+                (json.dumps({"frontmatter": safe}), document_id),
+            )
+
+    # -- state ----------------------------------------------------------------
+    sections: list[dict] = []       # {id, heading_level, title}
+    heading_registers: dict[int, int] = {}  # level → section_id
+    blocks_out: list[dict] = []     # collected for batch insert
+
+    def _current_section_id() -> int | None:
+        """Return the most recently added section ID, or None."""
+        return sections[-1]["id"] if sections else None
+
+    # helpers
+    def _add_section(level: int, title: str) -> int:
+        # Parent = most recent section with strictly lower heading level
+        parent_id = None
+        for s in reversed(sections):
+            if s["heading_level"] is not None and s["heading_level"] < level:
+                parent_id = s["id"]
+                break
+
+        heading_chain = [s["title"] for s in sections if s["heading_level"] and s["heading_level"] <= level]
+        heading_chain.append(title)
+
+        sid = insert_section(
+            conn, document_id=document_id,
+            heading_level=level, title=title,
+            page_start=1, page_end=1, block_count=0,
+            search_text=title, heading_chain=heading_chain,
+        )
+        # Update parent link
+        if parent_id and parent_id != sid:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE sections SET parent_id = %s WHERE id = %s",
+                    (parent_id, sid),
+                )
+
+        sections.append({"id": sid, "heading_level": level, "title": title})
+        heading_registers[level] = sid
+        # Clear any deeper heading registers
+        for lvl in list(heading_registers.keys()):
+            if lvl > level:
+                del heading_registers[lvl]
+
+        return sid
+
+    def _add_block(section_id: int, block_type: str, text: str, html: str | None = None, meta: dict | None = None) -> int:
+        if html is None:
+            html = f"<p>{text}</p>"
+        bid = insert_block(
+            conn, document_id=document_id, section_id=section_id,
+            block_type=block_type, page=1,
+            html_content=html, text_content=text,
+            metadata=meta,
+        )
+        # Link to all ancestor sections
+        for s in sections:
+            if s["heading_level"] is not None:
+                depth = heading_registers.get(s["heading_level"])
+                if depth:
+                    insert_block_heading(
+                        conn, block_id=bid, section_id=s["id"],
+                        heading_level=s["heading_level"], depth=1,
+                    )
+        blocks_out.append({"id": bid, "section_id": section_id})
+        return bid
+
+    # -- parsing state machine -------------------------------------------------
+    i = content_start
+    pending_text: list[str] = []     # accumulated paragraph lines
+    in_code_block = False
+    code_lang: str | None = None
+    code_lines: list[str] = []
+
+    def _flush_text():
+        nonlocal pending_text
+        if not pending_text:
+            return
+        text = "\n".join(pending_text).strip()
+        pending_text.clear()
+        if not text:
+            return
+        # Determine current section
+        sid = _current_section_id()
+        if sid is None:
+            sid = _add_section(1, "Untitled")
+        html = f"<p>{text}</p>"
+        _add_block(sid, _MD_BLOCK_TYPES["paragraph"], text, html)
+
+    def _flush_code():
+        nonlocal in_code_block, code_lang, code_lines
+        if not code_lines:
+            in_code_block = False
+            code_lang = None
+            return
+        text = "\n".join(code_lines)
+        lang_tag = f' class="language-{code_lang}"' if code_lang else ""
+        html = f"<pre><code{lang_tag}>{text}</code></pre>"
+        meta = {"code_language": code_lang} if code_lang else None
+        sid = _current_section_id()
+        if sid is None:
+            sid = _add_section(1, "Untitled")
+        _add_block(sid, _MD_BLOCK_TYPES["code_block"], text, html, meta)
+        code_lines.clear()
+        code_lang = None
+        in_code_block = False
+
+    # -- main loop ------------------------------------------------------------
+    while i < len(lines):
+        line = lines[i]
+
+        # Code fences
+        if line.strip().startswith("```"):
+            if not in_code_block:
+                _flush_text()
+                in_code_block = True
+                code_lang = line.strip()[3:].strip() or None
+            else:
+                _flush_code()
+            i += 1
+            continue
+
+        if in_code_block:
+            code_lines.append(line)
+            i += 1
+            continue
+
+        # Blank line → paragraph boundary
+        if not line.strip():
+            _flush_text()
+            i += 1
+            continue
+
+        # Horizontal rule
+        if _is_hr(line):
+            _flush_text()
+            sid = _current_section_id() or _add_section(1, "Untitled")
+            _add_block(sid, _MD_BLOCK_TYPES["divider"], "---", "<hr/>")
+            i += 1
+            continue
+
+        # Heading
+        heading_info = _heading_level_and_text(line)
+        if heading_info:
+            _flush_text()
+            level, title = heading_info
+            sid = _add_section(level, title)
+            _add_block(sid, _MD_BLOCK_TYPES["heading"], title, f"<h{level}>{title}</h{level}>")
+            i += 1
+            continue
+
+        # List item
+        list_info = _list_item_info(line)
+        if list_info:
+            _flush_text()
+            indent, marker, content = list_info
+            sid = _current_section_id() or _add_section(1, "Untitled")
+            html = f"<li>{content}</li>"
+            _add_block(
+                sid, _MD_BLOCK_TYPES["list_item"], content, html,
+                {"list_marker": marker, "list_level": indent // 2 + 1},
+            )
+            i += 1
+            # Check for continuation lines (indented text without list marker)
+            while i < len(lines) and lines[i].startswith("  ") and not _RE_LIST_ITEM.match(lines[i]) and not lines[i].strip().startswith("```"):
+                # Continuation text — append to previous list item
+                extra = lines[i].strip()
+                if extra:
+                    # Update the last inserted block's text
+                    prev = blocks_out[-1]
+                    new_text = prev.get("_text", content) + " " + extra
+                    prev["_text"] = new_text
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "UPDATE blocks SET text_content = %s, html_content = %s WHERE id = %s",
+                            (new_text, f"<li>{new_text}</li>", prev["id"]),
+                        )
+                i += 1
+            continue
+
+        # Blockquote
+        if line.lstrip().startswith("> "):
+            _flush_text()
+            quote_text = line.lstrip()[2:]
+            sid = _current_section_id() or _add_section(1, "Untitled")
+            html = f"<blockquote><p>{quote_text}</p></blockquote>"
+            _add_block(sid, _MD_BLOCK_TYPES["blockquote"], quote_text, html, {"block_type": "blockquote"})
+            i += 1
+            continue
+
+        # Regular paragraph text
+        pending_text.append(line)
+        i += 1
+
+    # -- flush remaining buffers ----------------------------------------------
+    if in_code_block:
+        _flush_code()
+    _flush_text()
+
+    # -- update section block counts ------------------------------------------
+    for s in sections:
+        bc = sum(1 for b in blocks_out if b["section_id"] == s["id"])
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE sections SET block_count = %s WHERE id = %s",
+                (bc, s["id"]),
+            )
+
+    print(f"  sections: {len(sections)} | blocks: {len(blocks_out)}")
+
+
+# ---------------------------------------------------------------------------
 # CSV Normalization
 # ---------------------------------------------------------------------------
 
@@ -832,6 +1152,29 @@ def ingest_file(
         print(f"  Done: doc_id={doc_id}, {bc} blocks")
         return result
 
+    # Markdown path
+    if suffix in _MD_EXTENSIONS:
+        print(f"Ingest (Markdown): {document_name}")
+        with tx() as conn:
+            doc_id = insert_document(conn, case_id=case_id, name=document_name,
+                                     page_count=1, source="user_upload")
+            with conn.cursor() as cur:
+                cur.execute("UPDATE documents SET ocr_status='complete', ocr_provider='markdown-splitter' WHERE id=%s", (doc_id,))
+        t0 = time.time()
+        with tx() as conn:
+            _normalize_markdown(conn, file_path, doc_id)
+        print(f"  ← Extracted in {time.time() - t0:.1f}s")
+        conn = connect()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT count(*) FROM sections WHERE document_id=%s", (doc_id,)); sc = cur.fetchone()[0]
+                cur.execute("SELECT count(*) FROM blocks WHERE document_id=%s", (doc_id,)); bc = cur.fetchone()[0]
+        finally:
+            conn.close()
+        result = {"document_id": doc_id, "document_name": document_name, "page_count": 1, "section_count": sc, "block_count": bc}
+        print(f"  Done: doc_id={doc_id}, {sc} sections, {bc} blocks")
+        return result
+
     # XLSX path
     if suffix in _XLSX_EXTENSIONS:
         print(f"Ingest (XLSX): {document_name}")
@@ -874,7 +1217,7 @@ def ingest_file(
 
     raise ValueError(
         f"Unsupported file type: {suffix}. "
-        f"Supported: {sorted(_DATALAB_EXTENSIONS | _DOCX_EXTENSIONS | _CSV_EXTENSIONS | _XLSX_EXTENSIONS | _AUDIO_EXTENSIONS)}"
+        f"Supported: {sorted(_DATALAB_EXTENSIONS | _DOCX_EXTENSIONS | _CSV_EXTENSIONS | _XLSX_EXTENSIONS | _MD_EXTENSIONS | _AUDIO_EXTENSIONS)}"
     )
 
 

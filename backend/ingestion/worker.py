@@ -196,12 +196,13 @@ def _extract_zip_and_enqueue(
 
     Walks the full directory tree within the ZIP (including nested folders).
     Filters out macOS metadata (__MACOSX/, ._* resource forks, .DS_Store).
-    Handles nested ZIPs (depth 2).
+    Handles nested ZIPs recursively — zip inside zip inside zip, etc.
     """
     import zipfile, json, shutil
 
     extract_dir = TEMP_DIR / f"{job_id}_extracted"
     SUPPORTED = {".pdf", ".docx", ".txt", ".csv", ".xlsx", ".jpg", ".jpeg", ".png", ".m4a", ".mp3", ".wav", ".zip"}
+    MAX_DEPTH = 5  # zip-bomb guard — stop recursing after this many nested layers
 
     try:
         print(f"[{WORKER_ID}] Job {job_id}: extracting ZIP {zip_name}...")
@@ -209,55 +210,51 @@ def _extract_zip_and_enqueue(
         extract_dir.mkdir(parents=True, exist_ok=True)
 
         extracted_files: list[Path] = []
-        nested_zips: list[Path] = []
         skipped = 0
+        depth = 0
 
-        with zipfile.ZipFile(zip_path, "r") as zf:
-            for entry in zf.infolist():
-                if entry.is_dir():
-                    continue
+        # Process zips recursively — queue starts with the outer zip,
+        # any .zip entries found inside go back onto the queue.
+        zip_queue: list[tuple[Path, Path]] = [(zip_path, extract_dir)]
 
-                # Filter macOS junk
-                if _should_skip_zip_entry(entry.filename):
-                    skipped += 1
-                    continue
+        while zip_queue:
+            depth += 1
+            if depth > MAX_DEPTH:
+                remaining = len(zip_queue)
+                print(f"  [{WORKER_ID}]   ⚠ Max depth {MAX_DEPTH} reached — "
+                      f"skipping {remaining} remaining nested zip(s)")
+                break
 
-                member_path = extract_dir / entry.filename
-                member_path.parent.mkdir(parents=True, exist_ok=True)
-                zf.extract(entry, extract_dir)
+            current_zip, dest_dir = zip_queue.pop(0)
+            depth_tag = "" if depth == 1 else f"[depth {depth}] "
 
-                suffix = member_path.suffix.lower()
-                if suffix in SUPPORTED:
-                    if suffix == ".zip":
-                        nested_zips.append(member_path)
-                    else:
-                        extracted_files.append(member_path)
-                        print(f"  [{WORKER_ID}]   → {entry.filename}")
-
-        if skipped:
-            print(f"  [{WORKER_ID}]   ⚠ Skipped {skipped} macOS/junk entries")
-
-        # Handle nested ZIPs (depth 2)
-        for nzip in nested_zips:
             try:
-                nz_extract = extract_dir / f"__nested__{nzip.stem}"
-                nz_extract.mkdir(parents=True, exist_ok=True)
-                with zipfile.ZipFile(nzip, "r") as zf2:
-                    for entry in zf2.infolist():
+                with zipfile.ZipFile(current_zip, "r") as zf:
+                    for entry in zf.infolist():
                         if entry.is_dir():
                             continue
+
                         if _should_skip_zip_entry(entry.filename):
                             skipped += 1
                             continue
-                        member_path = nz_extract / entry.filename
+
+                        member_path = dest_dir / entry.filename
                         member_path.parent.mkdir(parents=True, exist_ok=True)
-                        zf2.extract(entry, nz_extract)
+                        zf.extract(entry, dest_dir)
+
                         suffix = member_path.suffix.lower()
-                        if suffix in SUPPORTED and suffix != ".zip":
+                        if suffix not in SUPPORTED:
+                            continue
+
+                        if suffix == ".zip":
+                            nested_dir = dest_dir / f"__nested__{member_path.stem}"
+                            nested_dir.mkdir(parents=True, exist_ok=True)
+                            zip_queue.append((member_path, nested_dir))
+                        else:
                             extracted_files.append(member_path)
-                            print(f"  [{WORKER_ID}]   → [nested] {entry.filename}")
+                            print(f"  [{WORKER_ID}]   → {depth_tag}{entry.filename}")
             except zipfile.BadZipFile:
-                print(f"  [{WORKER_ID}]   ⚠ Skipping corrupt nested ZIP: {nzip.name}")
+                print(f"  [{WORKER_ID}]   ⚠ Skipping corrupt ZIP: {current_zip.name}")
 
         total = len(extracted_files)
         print(f"[{WORKER_ID}] Job {job_id}: {total} files extracted from ZIP")

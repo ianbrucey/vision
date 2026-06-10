@@ -1,7 +1,7 @@
 ---
 name: quality-gate-checker
 description: Run the final quality checklist against a completed response (RESPONSE.md) before it goes out. Verify every question is answered, page limits are respected, no marketing language slipped through, and all logistics are correct. Use AFTER the response draft is complete and the human has reviewed it. This is the last gate before submission.
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, mcp__vision__list_workspace_items, mcp__vision__get_workspace_item, mcp__vision__create_workspace_item, mcp__vision__get_case, mcp__vision__list_documents, mcp__vision__get_document_structure, mcp__vision__search_blocks, mcp__vision__get_block_context
 model: sonnet
 ---
 

@@ -27,8 +27,18 @@ from core.db import connect, ensure_schema
 # ---------------------------------------------------------------------------
 
 def _conn():
+    """Return a connection in autocommit mode.
+
+    Autocommit ensures write operations (INSERT, UPDATE, DELETE) are
+    immediately persisted — no explicit COMMIT needed. The connection
+    commits its implicit transaction (started by SET search_path) before
+    enabling autocommit, since psycopg2 starts with autocommit=False.
+    """
     ensure_schema()
-    return connect()
+    conn = connect()
+    conn.commit()  # commit the implicit txn from SET search_path
+    conn.autocommit = True
+    return conn
 
 
 def _query(sql: str, params: tuple | None = None) -> list[dict]:
@@ -1931,6 +1941,118 @@ def create_vision_server(case_id: int):
         except Exception as exc:
             return _error(f"delete_correspondence_item failed: {exc}")
 
+    # -- Layer 9: Company Profile --------------------------------------------
+
+    @tool(
+        "list_company_profiles",
+        "List all company profiles. Returns id, name, description, status, "
+        "and timestamps for each profile. Does not return full content — use "
+        "get_company_profile for the detailed profile data including CAGE/UEI, "
+        "NAICS codes, certifications, past performance, and key personnel.",
+        {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def list_company_profiles(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import list_company_profiles as _list_cp
+                profiles = _list_cp(conn)
+            finally:
+                conn.close()
+            # Strip full content — return metadata only
+            summaries = [
+                {k: v for k, v in p.items() if k != "content"}
+                for p in profiles
+            ]
+            return _result({"count": len(summaries), "profiles": summaries})
+        except Exception as exc:
+            return _error(f"list_company_profiles failed: {exc}")
+
+    @tool(
+        "get_company_profile",
+        "Get a company profile's full data including the structured content "
+        "JSONB. The content field contains: company_name, legal_name, dba, "
+        "tax_id, cage_code, uei, psc_codes, naics_codes (array), "
+        "certifications (array with expirations), past_performance (array of "
+        "{client, contract_value, description, period_of_performance}), "
+        "key_personnel (array of {name, title, years_experience, clearance}), "
+        "contact ({address_line1, city, state, zip, phone, email}), and "
+        "field_status indicating confidence for each filled field. "
+        "Use this to get company details for capability statements, past "
+        "performance references, and proposal responses.",
+        {
+            "type": "object",
+            "properties": {
+                "profile_id": {
+                    "type": "integer",
+                    "description": "Company profile ID from list_company_profiles.",
+                },
+            },
+            "required": ["profile_id"],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def get_company_profile(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import get_company_profile as _get_cp
+                profile = _get_cp(conn, args["profile_id"])
+            finally:
+                conn.close()
+            if not profile:
+                return _error(f"Company profile {args['profile_id']} not found.")
+            return _result({"profile": profile})
+        except Exception as exc:
+            return _error(f"get_company_profile failed: {exc}")
+
+    @tool(
+        "get_case_profile",
+        "Get the company profile attached to the current case. Cases have a "
+        "profile_id column that links to a company_profiles row. This is the "
+        "profile to use for any solicitation response, capability statement, "
+        "or proposal. Returns the full profile content including CAGE/UEI, "
+        "NAICS codes, certifications, past performance, and key personnel. "
+        "Use this FIRST before drafting any response — never invent company "
+        "information.",
+        {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def get_case_profile(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            case_row = _query_one(
+                "SELECT profile_id FROM cases WHERE id = %s", (case_id,)
+            )
+            if not case_row or not case_row.get("profile_id"):
+                return _error(
+                    "No company profile attached to this case. "
+                    "Create a company profile first at /api/profiles and "
+                    "attach it to the case."
+                )
+            conn = _conn()
+            try:
+                from core.db import get_company_profile as _get_cp
+                profile = _get_cp(conn, case_row["profile_id"])
+            finally:
+                conn.close()
+            if not profile:
+                return _error(
+                    f"Attached profile {case_row['profile_id']} not found — "
+                    "it may have been deleted."
+                )
+            return _result({"profile": profile})
+        except Exception as exc:
+            return _error(f"get_case_profile failed: {exc}")
+
     # -- Build server --------------------------------------------------------
 
     return create_sdk_mcp_server(
@@ -1967,5 +2089,8 @@ def create_vision_server(case_id: int):
             create_correspondence_item,
             update_correspondence_item,
             delete_correspondence_item,
+            list_company_profiles,
+            get_company_profile,
+            get_case_profile,
         ],
     )

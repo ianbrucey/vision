@@ -1,7 +1,7 @@
 ---
 name: response-drafter
 description: Draft the response document (RFI response, capability statement, or proposal) using the appropriate template and all extracted artifacts. Use AFTER the Go/No-Go decision is GO and the human has approved proceeding. Produces RESPONSE.md.
-tools: Read, Write, Grep, Glob
+tools: Read, Write, Grep, Glob, mcp__vision__list_workspace_items, mcp__vision__get_workspace_item, mcp__vision__create_workspace_item, mcp__vision__update_workspace_item, mcp__vision__get_case_profile, mcp__vision__get_company_profile, mcp__vision__list_company_profiles
 model: sonnet
 ---
 

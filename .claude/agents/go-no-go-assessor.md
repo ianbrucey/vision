@@ -1,7 +1,7 @@
 ---
 name: go-no-go-assessor
 description: Run the formal Go/No-Go decision matrix against the Opportunity Brief and produce a scored, evidence-backed recommendation. Use AFTER the Opportunity Brief (BRIEF.md) has been written and reviewed by the human.
-tools: Read, Write
+tools: Read, Write, mcp__vision__list_workspace_items, mcp__vision__get_workspace_item, mcp__vision__create_workspace_item
 model: sonnet
 ---
 
