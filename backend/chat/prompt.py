@@ -47,6 +47,14 @@ STRATEGY — analyze legal claims.
   get_strategies      List strategy trees built for the case.
   get_strategy_tree   Full recursive proposition tree for a strategy.
 
+DRAFTING — create and iterate on structured documents.
+  list_drafts         List all drafts for the case.
+  get_draft           Read a draft's full content including all blocks.
+  create_draft        Create a new draft with structured blocks. Use block types:
+                      section_heading, numbered_paragraph, list_item, signature.
+  update_draft        Modify an existing draft — rename, change status, or
+                      replace the full block content.
+
 PROTOCOLS (future) — composable workflows for complex legal analysis. Adversarial
 walk, gate walk, gauntlet screening, and others will appear here as tools.
 

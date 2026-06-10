@@ -1,0 +1,166 @@
+{
+  "info": {
+    "title": "Vision Drafting API",
+    "version": "0.1.0",
+    "description": "CRUD for drafts + agent tools for draft orchestration."
+  },
+
+  "endpoints": {
+
+    "GET /api/cases/{case_id}/drafts": {
+      "description": "List all drafts for a case",
+      "auth": "Bearer JWT",
+      "response": {
+        "drafts": [
+          {
+            "id": 1,
+            "name": "Response to Sources Sought",
+            "document_type": "letter",
+            "status": "draft",
+            "created_by": "agent",
+            "block_count": 9,
+            "created_at": "2026-06-09T14:22:00Z",
+            "updated_at": "2026-06-09T14:22:00Z"
+          }
+        ]
+      },
+      "notes": "Omits content column — use GET /drafts/{id} for full content"
+    },
+
+    "GET /api/drafts/{draft_id}": {
+      "description": "Get a single draft with full block content",
+      "auth": "Bearer JWT",
+      "response": {
+        "draft": {
+          "id": 1,
+          "case_id": 4,
+          "name": "Response to Sources Sought",
+          "document_type": "letter",
+          "status": "draft",
+          "created_by": "agent",
+          "content": [
+            {
+              "id": "b1",
+              "type": "section_heading",
+              "content": "COMPANY PROFILE & PAST PERFORMANCE"
+            },
+            {
+              "id": "b2",
+              "type": "numbered_paragraph",
+              "content": "Vision Technologies, LLC is a Maryland-based..."
+            },
+            {
+              "id": "b3",
+              "type": "signature",
+              "content": "Ian Bruce\nPrincipal, Vision Technologies, LLC"
+            }
+          ],
+          "metadata": {},
+          "created_at": "2026-06-09T14:22:00Z",
+          "updated_at": "2026-06-09T14:22:00Z"
+        }
+      }
+    },
+
+    "POST /api/drafts": {
+      "description": "Create a new draft (user-initiated)",
+      "auth": "Bearer JWT",
+      "body": {
+        "case_id": 4,
+        "name": "Response to Sources Sought",
+        "document_type": "letter",
+        "content": []
+      },
+      "response": {
+        "draft": {
+          "id": 1,
+          "name": "Response to Sources Sought",
+          "document_type": "letter",
+          "status": "draft",
+          "created_by": "user",
+          "content": [],
+          "created_at": "2026-06-09T14:22:00Z",
+          "updated_at": "2026-06-09T14:22:00Z"
+        }
+      }
+    },
+
+    "PATCH /api/drafts/{draft_id}": {
+      "description": "Update draft metadata or content (user edits)",
+      "auth": "Bearer JWT",
+      "body": {
+        "name": "Updated Title",
+        "status": "review",
+        "content": ["... updated block array ..."]
+      },
+      "notes": "All fields optional. Only provided fields are updated. If content is provided, it replaces the full block array. For single-block updates, use PATCH /api/drafts/{id}/blocks/{block_id}."
+    },
+
+    "PATCH /api/drafts/{draft_id}/blocks/{block_id}": {
+      "description": "Update a single block within a draft",
+      "auth": "Bearer JWT",
+      "body": {
+        "content": "Updated paragraph text."
+      },
+      "response": {
+        "block": {
+          "id": "b2",
+          "type": "numbered_paragraph",
+          "content": "Updated paragraph text."
+        }
+      }
+    },
+
+    "DELETE /api/drafts/{draft_id}": {
+      "description": "Delete a draft",
+      "auth": "Bearer JWT",
+      "response": { "deleted": true }
+    }
+  },
+
+  "agent_tools": {
+    "description": "Registered on the vision MCP server via create_vision_server() factory. Closure-scoped to case_id.",
+
+    "create_draft": {
+      "description": "Create a new draft with structured blocks",
+      "parameters": {
+        "name": "string (required) — Display title",
+        "document_type": "string (required) — letter | pleading | contract | memo | other",
+        "content": "array of blocks (required) — each with {id, type, content}"
+      },
+      "returns": "{ draft_id, name, document_type, block_count }"
+    },
+
+    "update_draft": {
+      "description": "Modify specific blocks or metadata in an existing draft",
+      "parameters": {
+        "draft_id": "integer (required)",
+        "name": "string (optional)",
+        "status": "string (optional) — draft | review | final",
+        "content": "array of blocks (optional) — replaces entire content"
+      },
+      "returns": "{ draft_id, name, block_count, updated_at }"
+    },
+
+    "replace_draft": {
+      "description": "Replace entire draft content — use when rewriting a draft from scratch",
+      "parameters": {
+        "draft_id": "integer (required)",
+        "content": "array of blocks (required) — the new full block array"
+      },
+      "returns": "{ draft_id, block_count, updated_at }"
+    },
+
+    "list_drafts": {
+      "description": "List existing drafts for the current case",
+      "parameters": {},
+      "returns": "{ count, drafts: [{ id, name, document_type, status, block_count, updated_at }] }"
+    },
+
+    "get_draft": {
+      "description": "Read a draft's full content — use before editing",
+      "parameters": { "draft_id": "integer (required)" },
+      "returns": "{ draft: { id, name, document_type, status, content, ... } }"
+    }
+  }
+}

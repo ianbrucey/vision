@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { uploadFile, listDocuments, listJobs, deleteDocument } from "@/lib/api";
 import DocumentPreviewModal from "@/components/DocumentPreviewModal";
+import FloatingChat, { FloatingChatButton } from "@/components/FloatingChat";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -111,6 +112,7 @@ export default function DocumentsTab({ caseId }: DocumentsTabProps) {
     name: string;
   } | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -597,6 +599,15 @@ export default function DocumentsTab({ caseId }: DocumentsTabProps) {
           onClose={() => setPreviewDoc(null)}
         />
       )}
+
+      {/* Floating chat */}
+      <FloatingChatButton onClick={() => setChatOpen(true)} />
+      <FloatingChat
+        caseId={caseId}
+        context="documents"
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+      />
     </div>
   );
 }

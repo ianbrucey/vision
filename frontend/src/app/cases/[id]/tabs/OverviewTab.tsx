@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { synthesizeCase, getJob, getCase, listJobs } from "@/lib/api";
+import FloatingChat, { FloatingChatButton } from "@/components/FloatingChat";
 import type { TabId } from "../TabNav";
 
 /* ------------------------------------------------------------------ */
@@ -74,6 +75,7 @@ export default function OverviewTab({
   const [partiesOpen, setPartiesOpen] = useState(true);
   const [issuesOpen, setIssuesOpen] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   // Sync when parent reloads (e.g. after navigating back)
   useEffect(() => {
@@ -639,6 +641,15 @@ export default function OverviewTab({
           </div>
         </div>
       )}
+
+      {/* Floating chat */}
+      <FloatingChatButton onClick={() => setChatOpen(true)} />
+      <FloatingChat
+        caseId={caseId}
+        context="overview"
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+      />
     </div>
   );
 }

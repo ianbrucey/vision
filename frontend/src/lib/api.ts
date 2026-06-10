@@ -87,6 +87,63 @@ export const listJobs = (params?: { case_id?: number; status?: string }) => {
 export const synthesizeCase = (caseId: number): Promise<{ job_id: number; status: string }> =>
   fetchAPI(`/api/cases/${caseId}/synthesize`, { method: "POST" });
 
+// Drafts
+export interface Block {
+  id: string;
+  type: "section_heading" | "numbered_paragraph" | "list_item" | "signature";
+  content: string;
+}
+
+export interface DraftSummary {
+  id: number;
+  case_id: number;
+  name: string;
+  document_type: string;
+  status: string;
+  created_by: string;
+  block_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Draft extends DraftSummary {
+  content: Block[];
+  metadata: Record<string, unknown> | null;
+}
+
+export const listDrafts = (caseId: number): Promise<{ drafts: DraftSummary[] }> =>
+  fetchAPI(`/api/cases/${caseId}/drafts`);
+
+export const getDraft = (draftId: number): Promise<{ draft: Draft }> =>
+  fetchAPI(`/api/drafts/${draftId}`);
+
+export const createDraft = (data: {
+  case_id: number;
+  name: string;
+  document_type?: string;
+  content?: Block[];
+}): Promise<{ draft: Draft }> =>
+  fetchAPI("/api/drafts", { method: "POST", body: JSON.stringify(data) });
+
+export const updateDraft = (
+  draftId: number,
+  data: { name?: string; document_type?: string; status?: string; content?: Block[] },
+): Promise<{ draft: Draft }> =>
+  fetchAPI(`/api/drafts/${draftId}`, { method: "PATCH", body: JSON.stringify(data) });
+
+export const updateBlock = (
+  draftId: number,
+  blockId: string,
+  content: string,
+): Promise<{ draft: Draft }> =>
+  fetchAPI(`/api/drafts/${draftId}/blocks/${blockId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ content }),
+  });
+
+export const deleteDraft = (draftId: number): Promise<{ deleted: boolean }> =>
+  fetchAPI(`/api/drafts/${draftId}`, { method: "DELETE" });
+
 // Health
 export const healthCheck = () => fetchAPI("/api/health");
 

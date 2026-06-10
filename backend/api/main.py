@@ -468,7 +468,9 @@ def synthesize_case(case_id: int, user: dict = Depends(get_current_user)):
 # ---------------------------------------------------------------------------
 
 from api.routes.chat import router as chat_router
+from api.routes.drafts import router as drafts_router
 app.include_router(chat_router)
+app.include_router(drafts_router)
 
 # ---------------------------------------------------------------------------
 # Health check

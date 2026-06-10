@@ -455,6 +455,114 @@ def get_block_context(
         return cur.fetchall()
 
 
+# -- drafts ------------------------------------------------------------------
+
+def insert_draft(
+    conn: connection,
+    case_id: int,
+    name: str,
+    document_type: str = "letter",
+    content: list | None = None,
+    created_by: str = "agent",
+    status: str = "draft",
+) -> int:
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO drafts (case_id, name, document_type, content,
+               created_by, status)
+               VALUES (%s, %s, %s, %s::jsonb, %s, %s)
+               RETURNING id""",
+            (case_id, name, document_type,
+             json.dumps(content or []), created_by, status),
+        )
+        return cur.fetchone()[0]
+
+
+def update_draft(
+    conn: connection,
+    draft_id: int,
+    name: str | None = None,
+    document_type: str | None = None,
+    status: str | None = None,
+    content: list | None = None,
+) -> dict | None:
+    sets = []
+    params: list[Any] = []
+    if name is not None:
+        sets.append("name = %s"); params.append(name)
+    if document_type is not None:
+        sets.append("document_type = %s"); params.append(document_type)
+    if status is not None:
+        sets.append("status = %s"); params.append(status)
+    if content is not None:
+        sets.append("content = %s::jsonb"); params.append(json.dumps(content))
+    if not sets:
+        return None
+    sets.append("updated_at = now()")
+    params.append(draft_id)
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            f"UPDATE drafts SET {', '.join(sets)} WHERE id = %s RETURNING *",
+            tuple(params),
+        )
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def get_draft(conn: connection, draft_id: int) -> dict | None:
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("SELECT * FROM drafts WHERE id = %s", (draft_id,))
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def list_drafts(conn: connection, case_id: int) -> list[dict]:
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            """SELECT id, case_id, name, document_type, status, created_by,
+                      jsonb_array_length(content) AS block_count,
+                      created_at, updated_at
+               FROM drafts WHERE case_id = %s
+               ORDER BY updated_at DESC""",
+            (case_id,),
+        )
+        return [dict(row) for row in cur.fetchall()]
+
+
+def delete_draft(conn: connection, draft_id: int) -> bool:
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM drafts WHERE id = %s", (draft_id,))
+        return cur.rowcount > 0
+
+
+def update_block(
+    conn: connection,
+    draft_id: int,
+    block_id: str,
+    content: str,
+) -> dict | None:
+    """Update a single block's content within a draft's content array."""
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            """UPDATE drafts
+               SET content = (
+                   SELECT jsonb_agg(
+                       CASE WHEN elem->>'id' = %s
+                            THEN jsonb_set(elem, '{content}', to_jsonb(%s::text))
+                            ELSE elem
+                       END
+                   )
+                   FROM jsonb_array_elements(content) AS elem
+               ),
+               updated_at = now()
+               WHERE id = %s
+               RETURNING *""",
+            (block_id, content, draft_id),
+        )
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
 __all__ = [
     "connect", "tx",
     "ensure_schema", "ensure_strategy_schema", "ensure_chat_schema",
@@ -462,5 +570,7 @@ __all__ = [
     "insert_document", "insert_section", "insert_block", "insert_block_heading",
     "insert_case", "insert_party", "insert_allegation", "insert_event",
     "insert_citation",
+    "insert_draft", "update_draft", "get_draft", "list_drafts",
+    "delete_draft", "update_block",
     "get_document_structure", "get_block_context",
 ]

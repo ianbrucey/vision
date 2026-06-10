@@ -874,6 +874,227 @@ def create_vision_server(case_id: int):
         except Exception as exc:
             return _error(f"get_strategy_tree failed: {exc}")
 
+    # -- Layer 6: Drafting ---------------------------------------------------
+
+    @tool(
+        "list_drafts",
+        "List all drafts for the current case. Returns id, name, document_type, "
+        "status, block count, and timestamps. Does not return full content — "
+        "use get_draft for that. Use this to see what drafts exist before "
+        "creating or editing one.",
+        {},
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def list_drafts(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import list_drafts as _list_drafts
+                rows = _list_drafts(conn, case_id)
+            finally:
+                conn.close()
+            return _result({"count": len(rows), "drafts": rows})
+        except Exception as exc:
+            return _error(f"list_drafts failed: {exc}")
+
+    @tool(
+        "get_draft",
+        "Read a draft's full content including all blocks. Use this before "
+        "editing a draft so you can see the current state and target specific "
+        "block IDs.",
+        {
+            "type": "object",
+            "properties": {
+                "draft_id": {
+                    "type": "integer",
+                    "description": "Draft ID from list_drafts.",
+                },
+            },
+            "required": ["draft_id"],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def get_draft(args: dict[str, Any]) -> dict[str, Any]:
+        draft_id = args["draft_id"]
+        try:
+            conn = _conn()
+            try:
+                from core.db import get_draft as _get_draft
+                draft = _get_draft(conn, draft_id)
+            finally:
+                conn.close()
+            if not draft:
+                return _error(f"Draft {draft_id} not found.")
+            if draft["case_id"] != case_id:
+                return _error(f"Draft {draft_id} not in case {case_id}.")
+            return _result({"draft": draft})
+        except Exception as exc:
+            return _error(f"get_draft failed: {exc}")
+
+    @tool(
+        "create_draft",
+        "Create a new draft. The content is an array of blocks, each with "
+        "a unique id (short string), a type, and text content. "
+        "Use this to produce a structured document the user can review "
+        "and edit in the Drafts tab.\n\n"
+        "Block types:\n"
+        "  section_heading    — Centered, bold, underlined section title\n"
+        "  numbered_paragraph — Auto-numbered paragraph (1., 2., 3.)\n"
+        "  list_item          — Letter-labeled item (a), (b), (c)\n"
+        "  signature          — Signature block with top-border line\n\n"
+        "Example content array:\n"
+        '  [{"id":"h1","type":"section_heading","content":"BACKGROUND"},\n'
+        '   {"id":"p1","type":"numbered_paragraph","content":"Vision is a..."}]',
+        {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Display title for the draft.",
+                },
+                "document_type": {
+                    "type": "string",
+                    "enum": ["letter", "pleading", "contract", "memo", "other"],
+                    "description": "Type of document.",
+                },
+                "content": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "string"},
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "section_heading",
+                                    "numbered_paragraph",
+                                    "list_item",
+                                    "signature",
+                                ],
+                            },
+                            "content": {"type": "string"},
+                        },
+                        "required": ["id", "type", "content"],
+                    },
+                    "description": "Array of blocks in document order.",
+                },
+            },
+            "required": ["name", "document_type", "content"],
+        },
+    )
+    async def create_draft(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import insert_draft as _insert_draft
+                draft_id = _insert_draft(
+                    conn,
+                    case_id=case_id,
+                    name=args["name"],
+                    document_type=args["document_type"],
+                    content=args["content"],
+                    created_by="agent",
+                )
+            finally:
+                conn.close()
+            return _result({
+                "draft_id": draft_id,
+                "name": args["name"],
+                "document_type": args["document_type"],
+                "block_count": len(args["content"]),
+            })
+        except Exception as exc:
+            return _error(f"create_draft failed: {exc}")
+
+    @tool(
+        "update_draft",
+        "Modify a draft — update its name, status, or replace specific "
+        "blocks. For targeted edits, provide only the blocks that changed "
+        "(they'll be matched by id). To replace the entire content, provide "
+        "a full content array. Use get_draft first to see current block IDs.",
+        {
+            "type": "object",
+            "properties": {
+                "draft_id": {
+                    "type": "integer",
+                    "description": "Draft ID to update.",
+                },
+                "name": {
+                    "type": "string",
+                    "description": "New display title (optional).",
+                },
+                "status": {
+                    "type": "string",
+                    "enum": ["draft", "review", "final"],
+                    "description": "New status (optional).",
+                },
+                "content": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "string"},
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "section_heading",
+                                    "numbered_paragraph",
+                                    "list_item",
+                                    "signature",
+                                ],
+                            },
+                            "content": {"type": "string"},
+                        },
+                        "required": ["id", "type", "content"],
+                    },
+                    "description": "Full replacement content array (optional). "
+                    "Replaces all blocks. Use for significant rewrites.",
+                },
+            },
+            "required": ["draft_id"],
+        },
+    )
+    async def update_draft(args: dict[str, Any]) -> dict[str, Any]:
+        draft_id = args["draft_id"]
+        try:
+            conn = _conn()
+            try:
+                from core.db import get_draft as _get_draft
+                draft = _get_draft(conn, draft_id)
+            finally:
+                conn.close()
+            if not draft:
+                return _error(f"Draft {draft_id} not found.")
+            if draft["case_id"] != case_id:
+                return _error(f"Draft {draft_id} not in case {case_id}.")
+
+            kwargs = {}
+            if "name" in args:
+                kwargs["name"] = args["name"]
+            if "status" in args:
+                kwargs["status"] = args["status"]
+            if "content" in args:
+                kwargs["content"] = args["content"]
+
+            if not kwargs:
+                return _error("No fields to update.")
+
+            conn = _conn()
+            try:
+                from core.db import update_draft as _update_draft
+                updated = _update_draft(conn, draft_id, **kwargs)
+            finally:
+                conn.close()
+
+            return _result({
+                "draft_id": draft_id,
+                "name": updated["name"],
+                "block_count": len(updated.get("content", [])),
+                "updated_at": str(updated.get("updated_at", "")),
+            })
+        except Exception as exc:
+            return _error(f"update_draft failed: {exc}")
+
     # -- Build server --------------------------------------------------------
 
     return create_sdk_mcp_server(
@@ -891,5 +1112,9 @@ def create_vision_server(case_id: int):
             get_blocks_in_section,
             get_strategies,
             get_strategy_tree,
+            list_drafts,
+            get_draft,
+            create_draft,
+            update_draft,
         ],
     )

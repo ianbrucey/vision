@@ -206,7 +206,7 @@ function CaseDashboardInner() {
           <ChatTab caseId={Number(id)} grounded={!!lastSavedAt} onNavigate={setActiveTab} />
         )}
         {activeTab === "documents" && <DocumentsTab caseId={Number(id)} />}
-        {activeTab === "drafts" && <DraftsTab />}
+        {activeTab === "drafts" && <DraftsTab caseId={Number(id)} />}
       </div>
 
       {/* Tab Navigation */}

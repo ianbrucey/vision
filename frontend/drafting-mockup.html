@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drafting — Vision</title>
+<style>
+  :root {
+    --surface-0: #0d0d0d;
+    --surface-1: #1a1a1a;
+    --surface-2: #262626;
+    --surface-3: #333333;
+    --border: #333333;
+    --text-primary: #f5f5f5;
+    --text-secondary: #a3a3a3;
+    --text-disabled: #737373;
+    --brand: #6366f1;
+    --brand-hover: #818cf8;
+    --brand-bg: rgba(99,102,241,0.12);
+    --success: #34d399;
+    --success-bg: rgba(52,211,153,0.12);
+    --warning: #fbbf24;
+    --warning-bg: rgba(251,191,36,0.12);
+    --danger: #f87171;
+    --info: #60a5fa;
+    --info-bg: rgba(96,165,250,0.12);
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'SF Mono', 'Fira Code', monospace;
+    --font-serif: 'Georgia', 'Times New Roman', serif;
+    --shadow-lg: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:var(--font-sans);
+    background:var(--surface-0);
+    color:var(--text-primary);
+    height:100dvh;
+    overflow:hidden;
+  }
+
+  /* ================================================================= */
+  /* 3-Column Layout                                                    */
+  /* ================================================================= */
+  .app {
+    display:flex;
+    height:100dvh;
+  }
+
+  /* ---- Draft list (left sidebar) ---- */
+  .draft-sidebar {
+    width:280px;
+    flex-shrink:0;
+    background:var(--surface-1);
+    border-right:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .draft-sidebar-header {
+    padding:14px 16px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .draft-sidebar-header h3 { font-size:13px; font-weight:600; }
+  .btn-icon {
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text-secondary);
+    width:32px; height:32px;
+    border-radius:6px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:all 0.15s;
+    font-size:14px;
+  }
+  .btn-icon:hover { background:var(--surface-3); color:var(--text-primary); }
+  .draft-list-scroll { flex:1; overflow-y:auto; padding:6px; }
+  .draft-item {
+    padding:10px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    margin-bottom:2px;
+    border:1px solid transparent;
+    transition:background 0.1s;
+  }
+  .draft-item:hover { background:var(--surface-2); }
+  .draft-item.active { background:var(--brand-bg); border-color:var(--brand); }
+  .draft-item-name { font-size:12px; font-weight:500; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .draft-item-meta { display:flex; align-items:center; gap:6px; font-size:10px; color:var(--text-disabled); }
+  .badge { font-size:10px; padding:1px 5px; border-radius:3px; font-weight:500; }
+  .badge-letter { background:var(--info-bg); color:var(--info); }
+  .badge-pleading { background:var(--warning-bg); color:var(--warning); }
+  .badge-contract { background:var(--success-bg); color:var(--success); }
+  .badge-draft { background:var(--surface-3); color:var(--text-disabled); }
+  .badge-final { background:var(--success-bg); color:var(--success); }
+  .draft-sidebar-footer {
+    padding:10px 12px;
+    border-top:1px solid var(--border);
+    font-size:11px;
+    color:var(--text-disabled);
+    text-align:center;
+  }
+
+  /* ---- Preview (center) ---- */
+  .preview-panel {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    background:var(--surface-0);
+    min-width:0;
+  }
+  .preview-toolbar {
+    padding:10px 16px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--surface-1);
+  }
+  .preview-toolbar-left { display:flex; align-items:center; gap:10px; }
+  .btn-back { display:none; background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:16px; padding:4px; }
+  .preview-doc-name { font-size:13px; font-weight:600; }
+  .preview-doc-type { font-size:11px; color:var(--text-disabled); }
+  .btn-tool {
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text-secondary);
+    padding:5px 10px;
+    border-radius:5px;
+    font-size:11px;
+    cursor:pointer;
+    transition:all 0.15s;
+    font-family:var(--font-sans);
+  }
+  .btn-tool:hover { background:var(--surface-3); color:var(--text-primary); }
+  .btn-tool.primary { background:var(--brand); border-color:var(--brand); color:white; }
+  .btn-tool.primary:hover { background:var(--brand-hover); }
+
+  .preview-scroll {
+    flex:1;
+    overflow-y:auto;
+    display:flex;
+    justify-content:center;
+    padding:20px 16px 48px;
+  }
+  .preview-page {
+    width:100%;
+    max-width:640px;
+    background:white;
+    color:#1a1a1a;
+    padding:56px 64px;
+    font-family:var(--font-serif);
+    font-size:14px;
+    line-height:2;
+    box-shadow:var(--shadow-lg);
+    border-radius:2px;
+    min-height:fit-content;
+  }
+
+  /* ---- Blocks ---- */
+  .block {
+    position:relative;
+    cursor:default;
+    border-radius:3px;
+    padding:2px 4px;
+    margin:0 -4px;
+    transition:background 0.1s;
+  }
+  .block.editable:hover {
+    background:rgba(99,102,241,0.08);
+    outline:1px dashed rgba(99,102,241,0.3);
+    outline-offset:1px;
+    cursor:text;
+  }
+  .block-section-heading { text-align:center; font-weight:700; font-size:14px; text-decoration:underline; margin:24px 0 12px; }
+  .block-numbered { text-indent:-24px; padding-left:28px; margin-bottom:0; }
+  .block-numbered .num { font-weight:600; margin-right:4px; }
+  .block-list-item { text-indent:-20px; padding-left:24px; margin-bottom:0; }
+  .block-list-item .label { font-weight:500; margin-right:6px; }
+  .block-signature { margin-top:32px; border-top:1px solid #1a1a1a; padding-top:4px; display:inline-block; min-width:200px; }
+  .block-signature .sig-name { font-weight:600; font-size:14px; }
+
+  /* Inline editor */
+  .block-editing { background:rgba(99,102,241,0.06); outline:2px solid var(--brand); outline-offset:2px; border-radius:4px; }
+  .block-editing textarea { width:100%; border:none; background:transparent; font:inherit; line-height:inherit; color:inherit; resize:vertical; outline:none; padding:8px; min-height:80px; }
+  .edit-actions { display:flex; gap:4px; margin-top:4px; justify-content:flex-end; }
+  .btn-edit { padding:3px 8px; border-radius:4px; font-size:10px; cursor:pointer; border:none; font-family:var(--font-sans); font-weight:500; }
+  .btn-save { background:var(--brand); color:white; }
+  .btn-cancel { background:#e5e5e5; color:#666; }
+
+  /* ---- Chat panel (right) ---- */
+  .chat-panel {
+    width:360px;
+    flex-shrink:0;
+    background:var(--surface-1);
+    border-left:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .chat-panel-header {
+    padding:10px 14px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .chat-panel-header h3 { font-size:12px; font-weight:600; }
+  .chat-scroll {
+    flex:1;
+    overflow-y:auto;
+    padding:12px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .chat-msg {
+    max-width:90%;
+    padding:8px 10px;
+    border-radius:8px;
+    font-size:12px;
+    line-height:1.5;
+  }
+  .chat-msg.agent {
+    background:var(--surface-2);
+    color:var(--text-primary);
+    align-self:flex-start;
+    border:1px solid var(--border);
+  }
+  .chat-msg.user {
+    background:var(--brand);
+    color:white;
+    align-self:flex-end;
+  }
+  .chat-msg.agent .label {
+    font-size:10px;
+    font-weight:600;
+    color:var(--brand);
+    margin-bottom:3px;
+    display:flex;
+    align-items:center;
+    gap:4px;
+  }
+  .chat-msg code {
+    background:var(--surface-3);
+    padding:1px 4px;
+    border-radius:3px;
+    font-size:11px;
+    font-family:var(--font-mono);
+  }
+  .chat-input-row {
+    padding:10px 12px;
+    border-top:1px solid var(--border);
+    display:flex;
+    gap:8px;
+  }
+  .chat-input-row input {
+    flex:1;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text-primary);
+    padding:8px 10px;
+    border-radius:6px;
+    font-size:12px;
+    font-family:var(--font-sans);
+    outline:none;
+  }
+  .chat-input-row input:focus { border-color:var(--brand); }
+  .chat-input-row input::placeholder { color:var(--text-disabled); }
+  .btn-send {
+    background:var(--brand);
+    color:white;
+    border:none;
+    padding:8px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:12px;
+    font-weight:500;
+    font-family:var(--font-sans);
+  }
+  .btn-send:hover { background:var(--brand-hover); }
+
+  /* ---- Chat toggle (mobile) ---- */
+  .chat-toggle {
+    display:none;
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    background:var(--brand);
+    color:white;
+    border:none;
+    cursor:pointer;
+    font-size:20px;
+    box-shadow:var(--shadow-lg);
+    z-index:30;
+    align-items:center;
+    justify-content:center;
+  }
+  .chat-badge {
+    position:absolute;
+    top:-4px;
+    right:-4px;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:var(--danger);
+    font-size:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:600;
+  }
+
+  /* Empty state */
+  .empty-state {
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .empty-state-inner { text-align:center; max-width:280px; }
+  .empty-state-inner h3 { font-size:15px; margin-bottom:6px; color:var(--text-secondary); }
+  .empty-state-inner p { font-size:12px; color:var(--text-disabled); line-height:1.6; }
+
+  /* ================================================================= */
+  /* Mobile                                                            */
+  /* ================================================================= */
+  @media (max-width: 768px) {
+    .draft-sidebar {
+      width:100%;
+      border-right:none;
+    }
+    .draft-sidebar.hide { display:none; }
+
+    .preview-panel { width:100%; }
+    .preview-panel.hide { display:none; }
+    .btn-back { display:inline-flex; align-items:center; }
+
+    .chat-panel {
+      position:fixed;
+      top:0; right:0; bottom:0;
+      width:100%;
+      max-width:100%;
+      z-index:40;
+      transform:translateX(100%);
+      transition:transform 0.2s ease;
+    }
+    .chat-panel.open { transform:translateX(0); }
+    .chat-backdrop {
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.5);
+      z-index:39;
+    }
+    .chat-backdrop.open { display:block; }
+    .chat-toggle { display:flex; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ================================================================ -->
+  <!-- Draft List Sidebar                                                -->
+  <!-- ================================================================ -->
+  <aside class="draft-sidebar" id="draftSidebar">
+    <div class="draft-sidebar-header">
+      <h3>Drafts</h3>
+      <button class="btn-icon" onclick="mockNewDraft()" title="New draft">+</button>
+    </div>
+    <div class="draft-list-scroll" id="draftList"></div>
+    <div class="draft-sidebar-footer">
+      Tip: Ask the agent to create a draft in the chat
+    </div>
+  </aside>
+
+  <!-- ================================================================ -->
+  <!-- Preview Panel                                                     -->
+  <!-- ================================================================ -->
+  <main class="preview-panel" id="previewPanel">
+    <div class="preview-toolbar">
+      <div class="preview-toolbar-left">
+        <button class="btn-back" onclick="showDraftList()">←</button>
+        <div>
+          <div class="preview-doc-name" id="docName">Select a draft</div>
+          <div class="preview-doc-type" id="docType"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;" id="toolbarActions">
+        <button class="btn-tool" onclick="toggleEditMode()" id="btnEditToggle">Edit</button>
+        <button class="btn-tool" onclick="mockExport()">Export</button>
+      </div>
+    </div>
+    <div class="preview-scroll" id="previewScroll">
+      <div id="previewContent">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-state-inner">
+            <h3>No draft selected</h3>
+            <p>Select a draft from the list, or ask the agent to create one.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ================================================================ -->
+  <!-- Chat Panel (right column)                                         -->
+  <!-- ================================================================ -->
+  <aside class="chat-panel" id="chatPanel">
+    <div class="chat-panel-header">
+      <h3>💬 Drafting Chat</h3>
+      <button class="btn-icon" onclick="closeChat()" style="font-size:16px;">✕</button>
+    </div>
+    <div class="chat-scroll" id="chatScroll">
+      <!-- Mock conversation about the active draft -->
+    </div>
+    <div class="chat-input-row">
+      <input type="text" placeholder="Ask about this draft..." id="chatInput"
+             onkeydown="if(event.key==='Enter')sendMockMessage()">
+      <button class="btn-send" onclick="sendMockMessage()">Send</button>
+    </div>
+  </aside>
+</div>
+
+<!-- Mobile chat toggle -->
+<button class="chat-toggle" id="chatToggle" onclick="openChat()">
+  💬
+  <span class="chat-badge" id="chatBadge">2</span>
+</button>
+
+<!-- Mobile chat backdrop -->
+<div class="chat-backdrop" id="chatBackdrop" onclick="closeChat()"></div>
+
+<script>
+  const MOCK_DRAFTS = [
+    {
+      id:1,
+      name:"Response to Sources Sought — HHS IT Modernization",
+      type:"letter", status:"draft", updated:"2026-06-09 14:22",
+      blocks:[
+        {type:"section_heading", content:"COMPANY PROFILE & PAST PERFORMANCE"},
+        {type:"numbered_paragraph", content:"Vision Technologies, LLC is a Maryland-based small business specializing in secure, AI-augmented case management and document intelligence systems for government agencies. Founded in 2024, the company has delivered production systems for legal intelligence and compliance workflows serving state and federal clients."},
+        {type:"numbered_paragraph", content:"Vision's core product is a legal intelligence operating system that ingests unstructured documents, indexes them for full-text and semantic search, models claims as computational trees, and produces citation-anchored analysis and drafting. Built on PostgreSQL with pgvector, FastAPI, and Next.js — a modern, cloud-ready stack."},
+        {type:"numbered_paragraph", content:"The company's principal, Ian Bruce, has over 15 years of experience in legal technology and government contracting. Mr. Bruce previously served as Senior Litigation Counsel at the Maryland Office of the Attorney General, where he managed complex civil litigation and developed case management workflows."},
+        {type:"section_heading", content:"TECHNICAL CAPABILITIES"},
+        {type:"numbered_paragraph", content:"Vision's ingestion pipeline processes PDF, DOCX, CSV, XLSX, images, and audio files through OCR and AI transcription. Documents are decomposed into searchable sections and blocks, each indexed for full-text search (PostgreSQL tsvector) and semantic search (pgvector with Mistral embeddings). The system supports 300+ page documents with sub-second query latency."},
+        {type:"numbered_paragraph", content:"The strategy engine models legal and compliance frameworks as recursive proposition trees with AND/OR gates, enabling automated analysis of regulatory requirements against case facts. An adversarial simulation layer stress-tests conclusions by generating opposing arguments."},
+        {type:"signature", content:"Ian Bruce\nPrincipal, Vision Technologies, LLC"},
+      ]
+    },
+    {
+      id:2,
+      name:"Subpoena Response — Alhad Medical Records",
+      type:"pleading", status:"draft", updated:"2026-06-09 10:05",
+      blocks:[
+        {type:"section_heading", content:"OBJECTIONS AND RESPONSES TO SUBPOENA"},
+        {type:"numbered_paragraph", content:"Respondent objects to the subpoena duces tecum served on Wellstar North Fulton Hospital on the grounds that it seeks documents protected by the physician-patient privilege, O.C.G.A. § 24-9-40, and documents that are neither relevant nor reasonably calculated to lead to the discovery of admissible evidence."},
+        {type:"numbered_paragraph", content:"Without waiving these objections, and subject to the terms of the Protective Order entered in this matter, Respondent produces the following documents, Bates-labeled as set forth below."},
+        {type:"section_heading", content:"DOCUMENTS PRODUCED"},
+        {type:"numbered_paragraph", content:"Medical records for Roohi Ameenudeen Alhad, date of service May 11-13, 2025, comprising 327 pages. Bates range: ALHAD 000001–000327. These records include: admission history and physical, operative report, anesthesia records, nursing notes, medication administration records, laboratory results, discharge summary, and patient education materials."},
+        {type:"signature", content:"Respectfully submitted,\n\n[Attorney Name]\nCounsel for Respondent"},
+      ]
+    },
+    {
+      id:3,
+      name:"Engagement Letter — ACME Corp Contract Review",
+      type:"contract", status:"final", updated:"2026-06-08 18:40",
+      blocks:[
+        {type:"section_heading", content:"SCOPE OF SERVICES"},
+        {type:"numbered_paragraph", content:"Vision Technologies, LLC agrees to provide legal technology consulting services to ACME Corporation, including: (a) ingestion and indexing of up to 50,000 pages of contract documents; (b) configuration of the Vision evidence store and search infrastructure; (c) training of ACME personnel on the Vision platform; and (d) ongoing technical support during the engagement period."},
+        {type:"numbered_paragraph", content:"The engagement shall commence on July 1, 2026 and continue for a period of six months, unless earlier terminated pursuant to Section 4."},
+        {type:"section_heading", content:"FEES AND PAYMENT"},
+        {type:"numbered_paragraph", content:"ACME shall pay Vision a fixed fee of $85,000 for the services described in Section 1, payable in three installments: $30,000 upon execution, $30,000 upon completion of document ingestion, and $25,000 upon final delivery."},
+        {type:"signature", content:"Ian Bruce\nPrincipal, Vision Technologies, LLC\n\n[Counterpart Signature Block]\nACME Corporation"},
+      ]
+    },
+  ];
+
+  const MOCK_CHAT = [
+    {role:"agent", text:"I've drafted a response to the Sources Sought notice based on the documents in this case. I pulled from <code>Vision_Capability_Statement.pdf</code> for past performance and <code>Ian_Bruce_Resume.pdf</code> for key personnel. Review the draft — click any paragraph to edit."},
+    {role:"user", text:"Add a section about our security certifications and FedRAMP readiness."},
+    {role:"agent", text:"Done. I've added a SECURITY & COMPLIANCE section with paragraphs 7–8. The content is based on the architecture documented in our system specs. I also flagged that we should add a CMMC reference once we have that certification."},
+  ];
+
+  let activeDraftId = 1;
+  let editMode = false;
+  let editingBlockIdx = null;
+
+  /* ---- Rendering ---- */
+
+  function renderAll() {
+    renderDraftList();
+    renderPreview();
+    renderChat();
+  }
+
+  function renderDraftList() {
+    document.getElementById('draftList').innerHTML = MOCK_DRAFTS.map(d => `
+      <div class="draft-item ${d.id===activeDraftId?'active':''}" onclick="selectDraft(${d.id})">
+        <div class="draft-item-name">${e(d.name)}</div>
+        <div class="draft-item-meta">
+          <span class="badge badge-${d.type}">${d.type}</span>
+          <span class="badge badge-${d.status}">${d.status}</span>
+          <span>${d.updated}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function selectDraft(id) {
+    activeDraftId = id;
+    editMode = false;
+    editingBlockIdx = null;
+    updateEditButton();
+    renderAll();
+    if (window.innerWidth < 768) showPreview();
+  }
+
+  function renderPreview() {
+    const draft = MOCK_DRAFTS.find(d=>d.id===activeDraftId);
+    const content = document.getElementById('previewContent');
+    const empty = document.getElementById('emptyState');
+    const toolbar = document.getElementById('toolbarActions');
+
+    if (!draft) {
+      empty.style.display = 'flex';
+      content.innerHTML = ''; content.appendChild(empty);
+      document.getElementById('docName').textContent = 'Select a draft';
+      document.getElementById('docType').textContent = '';
+      toolbar.style.display = 'none';
+      return;
+    }
+
+    empty.style.display = 'none';
+    document.getElementById('docName').textContent = draft.name;
+    document.getElementById('docType').textContent = `${draft.type} · ${draft.status} · updated ${draft.updated}`;
+    toolbar.style.display = 'flex';
+
+    content.innerHTML = `
+      <div class="preview-page" id="previewPage">
+        ${draft.blocks.map((b,i)=>renderBlock(b,i,editMode)).join('')}
+      </div>`;
+
+    if (editMode) {
+      content.querySelectorAll('.block.editable').forEach(el => {
+        el.onclick = () => {
+          if (editingBlockIdx !== null) return;
+          startEditing(parseInt(el.dataset.blockIdx));
+        };
+      });
+    }
+  }
+
+  function renderBlock(block, idx, editable) {
+    const ec = editable && block.type !== 'signature' ? 'editable' : '';
+    const da = editable ? `data-block-idx="${idx}"` : '';
+    if (editingBlockIdx === idx) {
+      return `<div class="block block-editing">
+        <textarea id="editTextarea">${e(block.content)}</textarea>
+        <div class="edit-actions">
+          <button class="btn-edit btn-cancel" onclick="cancelEdit()">Cancel</button>
+          <button class="btn-edit btn-save" onclick="saveEdit(${idx})">Save</button>
+        </div></div>`;
+    }
+    switch (block.type) {
+      case 'section_heading':
+        return `<div class="block block-section-heading ${ec}" ${da}>${e(block.content)}</div>`;
+      case 'numbered_paragraph': {
+        const n = countNumBefore(idx)+1;
+        return `<p class="block block-numbered ${ec}" ${da}><span class="num">${n}.</span>${e(block.content)}</p>`;
+      }
+      case 'signature':
+        return `<div class="block block-signature"><span class="sig-name">${e(block.content)}</span></div>`;
+      default:
+        return `<p class="block ${ec}" ${da}>${e(block.content)}</p>`;
+    }
+  }
+
+  function renderChat() {
+    const draft = MOCK_DRAFTS.find(d=>d.id===activeDraftId);
+    const el = document.getElementById('chatScroll');
+    const header = document.querySelector('.chat-panel-header h3');
+    if (draft) {
+      header.textContent = '💬 ' + (draft.name.length > 28 ? draft.name.slice(0,28)+'…' : draft.name);
+    }
+    el.innerHTML = MOCK_CHAT.map(m => `
+      <div class="chat-msg ${m.role}">
+        ${m.role==='agent'?'<div class="label">🤖 Agent</div>':''}
+        ${m.text}
+      </div>
+    `).join('');
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function countNumBefore(idx) {
+    const d = MOCK_DRAFTS.find(d=>d.id===activeDraftId);
+    if (!d) return 0;
+    let c=0; for (let i=0;i<idx;i++) if (d.blocks[i].type==='numbered_paragraph') c++;
+    return c;
+  }
+
+  /* ---- Editing ---- */
+
+  function toggleEditMode() {
+    editMode = !editMode;
+    editingBlockIdx = null;
+    updateEditButton();
+    renderPreview();
+  }
+
+  function updateEditButton() {
+    const btn = document.getElementById('btnEditToggle');
+    if (!activeDraftId) { btn.style.display='none'; return; }
+    btn.style.display = '';
+    btn.textContent = editMode ? 'Done' : 'Edit';
+    if (editMode) btn.classList.remove('primary'); else btn.classList.add('primary');
+  }
+
+  function startEditing(idx) {
+    editingBlockIdx = idx;
+    renderPreview();
+    setTimeout(()=>{ const ta=document.getElementById('editTextarea'); if(ta) ta.focus(); }, 50);
+  }
+
+  function saveEdit(idx) {
+    const ta = document.getElementById('editTextarea');
+    if (!ta) return;
+    const d = MOCK_DRAFTS.find(d=>d.id===activeDraftId);
+    if (!d) return;
+    d.blocks[idx].content = ta.value;
+    d.updated = new Date().toISOString().slice(0,16).replace('T',' ');
+    editingBlockIdx = null;
+    renderAll();
+  }
+
+  function cancelEdit() { editingBlockIdx = null; renderPreview(); }
+
+  /* ---- Chat ---- */
+
+  function sendMockMessage() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+    const el = document.getElementById('chatScroll');
+    el.innerHTML += `<div class="chat-msg user">${e(text)}</div>`;
+    input.value = '';
+    el.scrollTop = el.scrollHeight;
+    // Simulate agent response
+    setTimeout(()=>{
+      el.innerHTML += `<div class="chat-msg agent"><div class="label">🤖 Agent</div>I've updated the draft based on your request. Check the preview.</div>`;
+      el.scrollTop = el.scrollHeight;
+      document.getElementById('chatBadge').textContent = parseInt(document.getElementById('chatBadge').textContent)+1;
+    }, 1500);
+  }
+
+  /* ---- Mobile navigation ---- */
+
+  function showPreview() {
+    document.getElementById('draftSidebar').classList.add('hide');
+    document.getElementById('previewPanel').classList.remove('hide');
+  }
+  function showDraftList() {
+    document.getElementById('previewPanel').classList.add('hide');
+    document.getElementById('draftSidebar').classList.remove('hide');
+  }
+  function openChat() {
+    document.getElementById('chatPanel').classList.add('open');
+    document.getElementById('chatBackdrop').classList.add('open');
+    document.getElementById('chatBadge').textContent = '0';
+    document.getElementById('chatBadge').style.display = 'none';
+  }
+  function closeChat() {
+    document.getElementById('chatPanel').classList.remove('open');
+    document.getElementById('chatBackdrop').classList.remove('open');
+  }
+
+  /* ---- Mocks ---- */
+
+  function mockNewDraft() { alert('Would prompt the agent:\n"Create a new draft for this case based on the evidence and narrative."'); }
+  function mockExport() { alert('Export — Print / PDF / DOCX'); }
+
+  /* ---- Helpers ---- */
+
+  function e(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+  /* ---- Init ---- */
+
+  renderAll();
+  updateEditButton();
+  // Auto-select first draft
+  if (window.innerWidth < 768) showPreview();
+</script>
+
+</body>
+</html>
