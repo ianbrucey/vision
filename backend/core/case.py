@@ -39,18 +39,19 @@ class CaseManager:
         jurisdiction: str | None = None,
         filing_date: str | None = None,
         metadata: dict | None = None,
+        owner_id: str | None = None,
     ) -> dict:
         """Create a new case. Returns the full case dict including generated id."""
         with tx() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     """INSERT INTO cases (name, case_type, narrative, description,
-                       case_number, jurisdiction, filing_date, metadata)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+                       case_number, jurisdiction, filing_date, metadata, owner_id)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s)
                        RETURNING *""",
                     (name, case_type, narrative, description,
                      case_number, jurisdiction, filing_date,
-                     self._j(metadata)),
+                     self._j(metadata), owner_id),
                 )
                 return dict(cur.fetchone())
 
@@ -81,8 +82,9 @@ class CaseManager:
         case_type: str | None = None,
         limit: int = 50,
         offset: int = 0,
+        owner_id: str | None = None,
     ) -> list[dict]:
-        """List cases, optionally filtered by status or type."""
+        """List cases, optionally filtered by status, type, or owner."""
         conn = connect()
         try:
             clauses = []
@@ -93,12 +95,16 @@ class CaseManager:
             if case_type:
                 clauses.append("case_type = %s")
                 params.append(case_type)
+            if owner_id:
+                clauses.append("owner_id = %s")
+                params.append(owner_id)
             where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
             params.extend([limit, offset])
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     f"""SELECT id, external_id, name, case_type, status,
                                jurisdiction, filing_date, description,
+                               owner_id, solicitation,
                                created_at, updated_at
                         FROM cases {where}
                         ORDER BY updated_at DESC

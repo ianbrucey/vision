@@ -173,13 +173,15 @@ def list_cases(
     offset: int = 0,
     user: dict = Depends(get_current_user),
 ):
+    owner_id = user.get("id") if isinstance(user, dict) else None
     return mgr.list_cases(status=status, case_type=case_type,
-                          limit=limit, offset=offset)
+                          limit=limit, offset=offset, owner_id=owner_id)
 
 
 @app.post("/api/cases")
 def create_case(body: CaseCreate, user: dict = Depends(get_current_user)):
-    return mgr.create_case(**body.model_dump(exclude_none=True))
+    owner_id = user.get("id") if isinstance(user, dict) else None
+    return mgr.create_case(**body.model_dump(exclude_none=True), owner_id=owner_id)
 
 
 @app.get("/api/cases/{case_id}")
@@ -289,7 +291,7 @@ async def ingest_document(case_id: int, file: UploadFile = File(...), user: dict
     Poll GET /api/jobs/{job_id} for status.
 
     Supports: PDF, DOCX, JPG, PNG, CSV, XLSX, M4A, MP3, WAV, ZIP, and more.
-    ZIP files are extracted server-side — each contained file gets its own
+    ZIP files are extracted by the worker — each contained file gets its own
     ingest job. Check job.metadata.child_job_ids after completion.
     """
     if not file.filename:
@@ -307,24 +309,19 @@ async def ingest_document(case_id: int, file: UploadFile = File(...), user: dict
         # Upload to MinIO
         storage_ref = _upload_to_minio(tmp_path, file.filename)
 
-        # Detect ZIP — use a different job type so the worker extracts it
-        is_zip = suffix.lower() == ".zip"
-
-        # Enqueue the job
+        # Enqueue the job — worker detects ZIPs by extension
         job = _enqueue_job(
             case_id=case_id,
-            job_type="ingest_zip" if is_zip else "ingest",
+            job_type="ingest",
             storage_ref=storage_ref,
         )
 
-        result = {
+        return {
             "job_id": job["id"],
             "status": job["status"],
             "storage_ref": storage_ref,
+            "is_zip": suffix.lower() == ".zip",
         }
-        if is_zip:
-            result["is_zip"] = True
-        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
@@ -480,10 +477,12 @@ from api.routes.chat import router as chat_router
 from api.routes.drafts import router as drafts_router
 from api.routes.correspondence import router as correspondence_router
 from api.routes.tasks import router as tasks_router
+from api.routes.profiles import router as profiles_router
 app.include_router(chat_router)
 app.include_router(drafts_router)
 app.include_router(correspondence_router)
 app.include_router(tasks_router)
+app.include_router(profiles_router)
 
 # ---------------------------------------------------------------------------
 # Health check

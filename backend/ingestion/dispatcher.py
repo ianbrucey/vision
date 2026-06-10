@@ -481,6 +481,30 @@ def ingest_pdf(
     finally:
         conn.close()
 
+    # -- Step 6: Image with no extractable text → Mistral visual description --
+    _IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp"}
+    if block_count == 0 and pdf_path.suffix.lower() in _IMAGE_EXTENSIONS:
+        try:
+            description = _describe_image_with_mistral(pdf_path)
+            if description:
+                with tx() as conn:
+                    _normalize_image_description(conn, doc_id, document_name, description)
+                # Recount
+                conn = connect()
+                try:
+                    with conn.cursor() as cur:
+                        cur.execute("SELECT count(*) FROM sections WHERE document_id = %s", (doc_id,))
+                        section_count = cur.fetchone()[0]
+                        cur.execute("SELECT count(*) FROM blocks WHERE document_id = %s", (doc_id,))
+                        block_count = cur.fetchone()[0]
+                finally:
+                    conn.close()
+                print(f"  → Image described: {len(description)} chars")
+            else:
+                print("  → Image description returned empty — skipping")
+        except Exception as e:
+            print(f"  → Image description failed (non-fatal): {e}")
+
     result = {
         "document_id": doc_id,
         "document_name": document_name,
@@ -851,6 +875,116 @@ def ingest_file(
     raise ValueError(
         f"Unsupported file type: {suffix}. "
         f"Supported: {sorted(_DATALAB_EXTENSIONS | _DOCX_EXTENSIONS | _CSV_EXTENSIONS | _XLSX_EXTENSIONS | _AUDIO_EXTENSIONS)}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Image Description (Mistral vision)
+# ---------------------------------------------------------------------------
+
+def _load_mistral_key() -> str:
+    """Load MISTRAL_API_KEY from env or .env files."""
+    key = os.environ.get("MISTRAL_API_KEY")
+    if key:
+        return key.strip()
+    for env_path in [
+        Path(__file__).resolve().parents[3] / ".env",
+        Path(__file__).resolve().parents[3] / "mcp-server" / ".env",
+    ]:
+        if env_path.exists():
+            for line in env_path.read_text().splitlines():
+                if line.startswith("MISTRAL_API_KEY="):
+                    key = line.split("=", 1)[1].strip().strip('"').strip("'")
+                    if key:
+                        return key
+    raise RuntimeError("MISTRAL_API_KEY not found in env or .env files")
+
+
+def _describe_image_with_mistral(image_path: Path) -> str | None:
+    """Return a textual description of an image using Mistral's vision model.
+
+    Encodes the image as base64, sends to pixtral-large, returns the
+    assistant's content text. Returns None on failure.
+    """
+    import base64
+    from mistralai.client import Mistral
+
+    mistral_key = _load_mistral_key()
+    client = Mistral(api_key=mistral_key)
+
+    suffix = image_path.suffix.lower()
+    mime_map = {
+        ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+        ".png": "image/png", ".tiff": "image/tiff",
+        ".tif": "image/tiff", ".bmp": "image/bmp",
+    }
+    mime_type = mime_map.get(suffix, "image/jpeg")
+
+    with open(image_path, "rb") as f:
+        img_b64 = base64.b64encode(f.read()).decode("utf-8")
+
+    data_url = f"data:{mime_type};base64,{img_b64}"
+
+    print("    → Sending to Mistral vision (pixtral-large)...")
+    resp = client.chat.complete(
+        model="pixtral-large-latest",
+        messages=[{
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": (
+                        "Describe this image in detail. Include any text visible in "
+                        "the image, the setting, people, objects, actions, and any "
+                        "other relevant details that would help someone understand "
+                        "what this image contains without seeing it."
+                    ),
+                },
+                {"type": "image_url", "image_url": data_url},
+            ],
+        }],
+        max_tokens=1000,
+    )
+
+    content = resp.choices[0].message.content
+    if isinstance(content, list):
+        content = " ".join(
+            c.get("text", "") if isinstance(c, dict) else str(c)
+            for c in content
+        )
+    return str(content).strip() if content else None
+
+
+def _normalize_image_description(
+    conn, document_id: int, document_name: str, description: str,
+) -> None:
+    """Insert a text description of an image into the evidence store.
+
+    Creates one section spanning page 1 with a single Text block containing
+    the Mistral-generated description. This makes image-only documents
+    searchable and readable by the agent.
+    """
+    section_id = insert_section(
+        conn,
+        document_id=document_id,
+        heading_level=0,
+        title=f"Visual Description — {document_name}",
+        page_start=1,
+        page_end=1,
+        search_text=description[:100000],
+        heading_chain=[f"Visual Description — {document_name}"],
+    )
+
+    insert_block(
+        conn,
+        document_id=document_id,
+        section_id=section_id,
+        block_type="Text",
+        page=1,
+        html_content=f"<p>{description}</p>",
+        text_content=description,
+        metadata={"source": "mistral-pixtral-vision"},
     )
 
 

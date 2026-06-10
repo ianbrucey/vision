@@ -328,7 +328,7 @@ export default function DocumentsTab({ caseId }: DocumentsTabProps) {
             ref={fileInputRef}
             type="file"
             multiple
-            accept=".pdf,.docx,.txt,.csv,.xlsx,.jpg,.jpeg,.png,.m4a,.mp3,.wav,.ogg,.flac,.webm,.mp4"
+            accept=".pdf,.docx,.txt,.csv,.xlsx,.jpg,.jpeg,.png,.m4a,.mp3,.wav,.ogg,.flac,.webm,.mp4,.zip"
             className="hidden"
             onChange={(e) => {
               if (e.target.files) handleFiles(e.target.files);

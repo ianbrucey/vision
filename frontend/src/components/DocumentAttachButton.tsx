@@ -248,7 +248,7 @@ export default function DocumentAttachButton({
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf,.docx,.txt,.csv,.xlsx,.jpg,.jpeg,.png"
+        accept=".pdf,.docx,.txt,.csv,.xlsx,.jpg,.jpeg,.png,.zip"
         className="hidden"
         onChange={handleUpload}
       />

@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovCon Dashboard — Vision Mockup</title>
+<style>
+  :root {
+    --s0: #0d0d0d; --s1: #1a1a1a; --s2: #262626; --s3: #333;
+    --b: #333; --bs: #4d4d4d;
+    --tp: #f5f5f5; --ts: #a3a3a3; --td: #737373;
+    --brand: #6366f1; --brand-h: #818cf8; --brand-bg: rgba(99,102,241,0.12);
+    --success: #34d399; --success-bg: rgba(52,211,153,0.12);
+    --warning: #fbbf24; --warning-bg: rgba(251,191,36,0.12);
+    --danger: #f87171; --danger-bg: rgba(248,113,113,0.12);
+    --info: #60a5fa; --info-bg: rgba(96,165,250,0.12);
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --serif: 'Georgia', 'Times New Roman', serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:var(--font); background:var(--s0); color:var(--tp); }
+
+  /* ================================================================= */
+  /* View switcher                                                      */
+  /* ================================================================= */
+  .view-tabs {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background:var(--s1); border-bottom:1px solid var(--b);
+    display:flex; gap:2px; padding:8px 12px; overflow-x:auto;
+  }
+  .view-tab {
+    padding:6px 14px; border-radius:6px; font-size:12px; cursor:pointer;
+    border:1px solid transparent; background:transparent; color:var(--ts);
+    white-space:nowrap; transition:all 0.15s; font-family:var(--font);
+  }
+  .view-tab:hover { background:var(--s2); color:var(--tp); }
+  .view-tab.active { background:var(--brand-bg); border-color:var(--brand); color:var(--brand); }
+  .view-content { display:none; margin-top:52px; }
+  .view-content.active { display:block; }
+
+  /* ================================================================= */
+  /* Dashboard (View 1)                                                  */
+  /* ================================================================= */
+  .dashboard { max-width:900px; margin:0 auto; padding:20px 16px; }
+  .dash-header { margin-bottom:24px; }
+  .dash-header h1 { font-size:20px; font-weight:600; }
+  .dash-header p { font-size:13px; color:var(--ts); margin-top:4px; }
+
+  /* Profile card on dashboard */
+  .profile-card {
+    background:var(--s1); border:1px solid var(--b); border-radius:10px;
+    padding:20px; margin-bottom:24px; cursor:pointer;
+  }
+  .profile-card:hover { border-color:var(--brand); }
+  .profile-card-header {
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;
+  }
+  .profile-card-header h2 { font-size:15px; font-weight:600; }
+  .profile-status { font-size:10px; padding:3px 8px; border-radius:4px; font-weight:500; }
+  .status-complete { background:var(--success-bg); color:var(--success); }
+  .status-draft { background:var(--warning-bg); color:var(--warning); }
+  .profile-fields {
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr));
+    gap:8px;
+  }
+  .pf-item {
+    display:flex; align-items:center; gap:6px; font-size:12px;
+    padding:6px 8px; border-radius:5px; background:var(--s2);
+  }
+  .pf-icon { font-size:14px; flex-shrink:0; }
+  .pf-label { color:var(--td); margin-right:2px; }
+  .pf-value { color:var(--tp); font-weight:500; }
+  .pf-empty { color:var(--danger); font-style:italic; }
+  .pf-uncertain { color:var(--warning); }
+
+  /* Cases section */
+  .section-header {
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;
+  }
+  .section-header h2 { font-size:14px; font-weight:600; }
+  .btn { padding:7px 14px; border-radius:6px; font-size:12px; cursor:pointer; border:none; font-family:var(--font); font-weight:500; transition:all 0.15s; }
+  .btn-primary { background:var(--brand); color:white; }
+  .btn-primary:hover { background:var(--brand-h); }
+  .btn-secondary { background:var(--s2); color:var(--ts); border:1px solid var(--b); }
+  .btn-secondary:hover { background:var(--s3); color:var(--tp); }
+
+  .case-list { display:flex; flex-direction:column; gap:4px; }
+  .case-item {
+    display:flex; align-items:center; gap:12px; padding:12px 14px;
+    background:var(--s1); border:1px solid var(--b); border-radius:8px;
+    cursor:pointer; transition:border-color 0.1s;
+  }
+  .case-item:hover { border-color:var(--brand); }
+  .case-type-badge {
+    font-size:10px; padding:2px 8px; border-radius:4px; font-weight:500; white-space:nowrap;
+  }
+  .badge-rfp { background:var(--info-bg); color:var(--info); }
+  .badge-legal { background:var(--warning-bg); color:var(--warning); }
+  .case-name { font-size:13px; font-weight:500; flex:1; }
+  .case-meta { font-size:11px; color:var(--td); display:flex; gap:12px; }
+  .case-type-filter { display:flex; gap:4px; margin-bottom:12px; }
+  .type-pill {
+    padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer;
+    border:1px solid var(--b); background:var(--s1); color:var(--ts);
+    transition:all 0.1s; font-family:var(--font);
+  }
+  .type-pill:hover { border-color:var(--bs); }
+  .type-pill.active { background:var(--brand-bg); border-color:var(--brand); color:var(--brand); }
+
+  /* ================================================================= */
+  /* Company Profile Page (View 2)                                      */
+  /* ================================================================= */
+  .profile-page { max-width:800px; margin:0 auto; padding:20px 16px; }
+  .pp-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:24px; flex-wrap:wrap; gap:12px;
+  }
+  .pp-header h1 { font-size:18px; font-weight:600; }
+  .pp-actions { display:flex; gap:6px; }
+
+  .card-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:640px) { .card-grid { grid-template-columns:1fr; } }
+
+  .field-card {
+    background:var(--s1); border:1px solid var(--b); border-radius:10px;
+    padding:16px; cursor:pointer; transition:border-color 0.1s;
+  }
+  .field-card:hover { border-color:var(--bs); }
+  .field-card-header {
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
+  }
+  .field-card-header h3 { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--td); }
+  .field-badge { font-size:10px; padding:2px 6px; border-radius:3px; font-weight:500; }
+  .badge-verified { background:var(--success-bg); color:var(--success); }
+  .badge-agent { background:var(--info-bg); color:var(--info); }
+  .badge-uncertain { background:var(--warning-bg); color:var(--warning); }
+  .badge-missing { background:var(--danger-bg); color:var(--danger); }
+
+  .field-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:6px 0; border-bottom:1px solid var(--b); font-size:12px;
+  }
+  .field-row:last-child { border-bottom:none; }
+  .field-label { color:var(--td); }
+  .field-val { color:var(--tp); font-weight:500; }
+  .field-val.empty { color:var(--danger); font-style:italic; font-weight:400; }
+  .field-status-dot {
+    width:6px; height:6px; border-radius:50%; margin-left:6px; flex-shrink:0;
+  }
+  .dot-ok { background:var(--success); }
+  .dot-agent { background:var(--info); }
+  .dot-warn { background:var(--warning); }
+  .dot-miss { background:var(--danger); }
+
+  /* Capability statement section */
+  .full-card {
+    background:var(--s1); border:1px solid var(--b); border-radius:10px;
+    padding:20px; margin-top:16px;
+  }
+  .full-card h3 { font-size:13px; font-weight:600; margin-bottom:8px; }
+  .full-card p { font-size:12px; color:var(--ts); line-height:1.6; }
+  .preview-box {
+    background:var(--s2); border-radius:6px; padding:16px;
+    font-family:var(--serif); font-size:13px; line-height:1.8; color:var(--tp);
+    margin-top:12px; max-height:200px; overflow-y:auto;
+  }
+
+  /* ================================================================= */
+  /* RFP Case Overview (View 3)                                         */
+  /* ================================================================= */
+  .rfp-overview { max-width:720px; margin:0 auto; padding:20px 16px; }
+  .ro-header { margin-bottom:24px; }
+  .ro-header h1 { font-size:18px; font-weight:600; }
+  .ro-badges { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+
+  .ro-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+  @media (max-width:640px) { .ro-grid { grid-template-columns:1fr; } }
+
+  .ro-card {
+    background:var(--s1); border:1px solid var(--b); border-radius:10px; padding:16px;
+  }
+  .ro-card h3 { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--td); margin-bottom:10px; }
+  .ro-stat { display:flex; align-items:center; gap:8px; }
+  .ro-stat-value { font-size:22px; font-weight:600; }
+  .ro-stat-label { font-size:11px; color:var(--ts); }
+
+  .ro-profile-mini {
+    display:flex; align-items:center; gap:10px; padding:10px;
+    background:var(--s2); border-radius:6px;
+  }
+  .ro-profile-mini .check { color:var(--success); font-weight:600; font-size:13px; }
+
+  .ro-section { margin-bottom:20px; }
+  .ro-section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .ro-section-header h2 { font-size:14px; font-weight:600; }
+
+  .doc-chip {
+    display:inline-flex; align-items:center; gap:4px; padding:4px 8px;
+    background:var(--s2); border:1px solid var(--b); border-radius:4px;
+    font-size:11px; margin:2px;
+  }
+
+  /* ================================================================= */
+  /* Shared                                                             */
+  /* ================================================================= */
+  .mt-12 { margin-top:12px; }
+  .mt-16 { margin-top:16px; }
+  .text-sm { font-size:12px; }
+  .text-xs { font-size:10px; }
+  .text-ts { color:var(--ts); }
+  .text-td { color:var(--td); }
+  .flex-between { display:flex; align-items:center; justify-content:space-between; }
+  .gap-8 { gap:8px; }
+  .badge-outline { font-size:10px; padding:2px 8px; border-radius:4px; font-weight:500; border:1px solid var(--b); color:var(--ts); }
+</style>
+</head>
+<body>
+
+<div class="view-tabs">
+  <button class="view-tab active" onclick="switchView('dashboard')">Dashboard</button>
+  <button class="view-tab" onclick="switchView('profile')">Company Profile</button>
+  <button class="view-tab" onclick="switchView('rfp')">RFP Case: HHS IT Modernization</button>
+</div>
+
+<!-- ================================================================= -->
+<!-- View 1: Dashboard                                                  -->
+<!-- ================================================================= -->
+<div class="view-content active" id="view-dashboard">
+  <div class="dashboard">
+
+    <div class="dash-header">
+      <h1>Dashboard</h1>
+      <p>Welcome back. 2 active solicitations, 1 legal case.</p>
+    </div>
+
+    <!-- Company Profile Card -->
+    <div class="profile-card" onclick="switchView('profile')">
+      <div class="profile-card-header">
+        <h2>Vision Technologies, LLC</h2>
+        <span class="profile-status status-complete">Complete</span>
+      </div>
+      <div class="profile-fields">
+        <div class="pf-item">
+          <span class="pf-icon">✓</span>
+          <span class="pf-label">CAGE</span>
+          <span class="pf-value">9ABCD</span>
+        </div>
+        <div class="pf-item">
+          <span class="pf-icon">✓</span>
+          <span class="pf-label">UEI</span>
+          <span class="pf-value">FM8XKJ2B...</span>
+        </div>
+        <div class="pf-item">
+          <span class="pf-icon">✓</span>
+          <span class="pf-label">NAICS</span>
+          <span class="pf-value">541511</span>
+        </div>
+        <div class="pf-item">
+          <span class="pf-icon">✓</span>
+          <span class="pf-label">Certs</span>
+          <span class="pf-value">8(a), SDVOSB</span>
+        </div>
+        <div class="pf-item">
+          <span class="pf-icon" style="color:var(--danger)">✗</span>
+          <span class="pf-label">PSC</span>
+          <span class="pf-empty">Needs input</span>
+        </div>
+        <div class="pf-item">
+          <span class="pf-icon">✓</span>
+          <span class="pf-label">Past Perf</span>
+          <span class="pf-value">3 references</span>
+        </div>
+        <div class="pf-item">
+          <span class="pf-icon">✓</span>
+          <span class="pf-label">Personnel</span>
+          <span class="pf-value">2 key</span>
+        </div>
+        <div class="pf-item">
+          <span class="pf-icon" style="color:var(--warning)">?</span>
+          <span class="pf-label">Tax ID</span>
+          <span class="pf-uncertain">Not verified</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cases -->
+    <div class="section-header">
+      <h2>Cases &amp; Matters</h2>
+      <button class="btn btn-primary" onclick="alert('Create case flow:\n1. Select type (RFP / Legal)\n2. For RFP: select profile + upload ZIP\n3. For Legal: enter case name')">+ New Case</button>
+    </div>
+    <div class="case-type-filter">
+      <button class="type-pill active">All</button>
+      <button class="type-pill">RFP Responses</button>
+      <button class="type-pill">Legal</button>
+    </div>
+    <div class="case-list">
+      <div class="case-item" onclick="switchView('rfp')">
+        <span class="case-type-badge badge-rfp">RFP</span>
+        <span class="case-name">HHS IT Modernization RFP</span>
+        <span class="case-meta">
+          <span>Due Jul 15</span>
+          <span>12 docs</span>
+          <span>8(a) match ✓</span>
+        </span>
+      </div>
+      <div class="case-item">
+        <span class="case-type-badge badge-rfp">RFP</span>
+        <span class="case-name">DOD Cloud Migration RFQ</span>
+        <span class="case-meta">
+          <span>Due Aug 3</span>
+          <span>8 docs</span>
+          <span>SDVOSB match ✓</span>
+        </span>
+      </div>
+      <div class="case-item">
+        <span class="case-type-badge badge-rfp">RFP</span>
+        <span class="case-name">VA Healthcare Services RFP</span>
+        <span class="case-meta">
+          <span>Submitted Jun 2</span>
+          <span>24 docs</span>
+          <span>Awaiting response</span>
+        </span>
+      </div>
+      <div class="case-item">
+        <span class="case-type-badge badge-legal">Legal</span>
+        <span class="case-name">Alhad v. Edmonds</span>
+        <span class="case-meta">
+          <span>Medical Board Complaint</span>
+          <span>3 docs</span>
+          <span>Evidence indexed</span>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- View 2: Company Profile                                            -->
+<!-- ================================================================= -->
+<div class="view-content" id="view-profile">
+  <div class="profile-page">
+
+    <div class="pp-header">
+      <div>
+        <h1>Vision Technologies, LLC</h1>
+        <p class="text-sm text-ts mt-12">Last synthesized June 9, 2026 from 4 documents</p>
+      </div>
+      <div class="pp-actions">
+        <button class="btn btn-secondary">Edit Profile</button>
+        <button class="btn btn-primary">Re-synthesize</button>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <!-- Company Info -->
+      <div class="field-card" onclick="this.querySelector('.field-val.empty')?.focus()">
+        <div class="field-card-header">
+          <h3>Company Info</h3>
+          <span class="field-badge badge-agent">Agent filled</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Company Name</span>
+          <span class="field-val">Vision Technologies, LLC<span class="field-status-dot dot-agent"></span></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Legal Name</span>
+          <span class="field-val">Vision Technologies LLC<span class="field-status-dot dot-agent"></span></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">DBA</span>
+          <span class="field-val empty">Not set<span class="field-status-dot dot-miss"></span></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Tax ID</span>
+          <span class="field-val empty">Needs verification<span class="field-status-dot dot-warn"></span></span>
+        </div>
+      </div>
+
+      <!-- Codes -->
+      <div class="field-card">
+        <div class="field-card-header">
+          <h3>Codes &amp; Identifiers</h3>
+          <span class="field-badge badge-verified">Verified</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">CAGE Code</span>
+          <span class="field-val">9ABCD<span class="field-status-dot dot-ok"></span></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">UEI</span>
+          <span class="field-val">FM8XKJ2B1N34<span class="field-status-dot dot-ok"></span></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">PSC Codes</span>
+          <span class="field-val empty">Not found in docs<span class="field-status-dot dot-miss"></span></span>
+        </div>
+      </div>
+
+      <!-- NAICS -->
+      <div class="field-card">
+        <div class="field-card-header">
+          <h3>NAICS Codes</h3>
+          <span class="field-badge badge-agent">Agent filled</span>
+        </div>
+        <div class="field-row"><span class="field-label">Primary</span><span class="field-val">541511<span class="field-status-dot dot-agent"></span></span></div>
+        <div class="field-row"><span class="field-label">Secondary</span><span class="field-val">541512<span class="field-status-dot dot-agent"></span></span></div>
+        <div class="field-row"><span class="field-label">Additional</span><span class="field-val">518210<span class="field-status-dot dot-agent"></span></span></div>
+        <div class="field-row"><span class="field-label">Additional</span><span class="field-val">541330<span class="field-status-dot dot-agent"></span></span></div>
+      </div>
+
+      <!-- Certifications -->
+      <div class="field-card">
+        <div class="field-card-header">
+          <h3>Certifications</h3>
+          <span class="field-badge badge-verified">Verified</span>
+        </div>
+        <div class="field-row"><span class="field-label">8(a)</span><span class="field-val">Certified — expires 2029<span class="field-status-dot dot-ok"></span></span></div>
+        <div class="field-row"><span class="field-label">SDVOSB</span><span class="field-val">Self-certified<span class="field-status-dot dot-ok"></span></span></div>
+        <div class="field-row"><span class="field-label">WOSB</span><span class="field-val empty">Not claimed<span class="field-status-dot dot-miss"></span></span></div>
+        <div class="field-row"><span class="field-label">HUBZone</span><span class="field-val empty">Not claimed<span class="field-status-dot dot-miss"></span></span></div>
+      </div>
+
+      <!-- Contact -->
+      <div class="field-card">
+        <div class="field-card-header">
+          <h3>Contact</h3>
+          <span class="field-badge badge-uncertain">Partial</span>
+        </div>
+        <div class="field-row"><span class="field-label">Address</span><span class="field-val">1018 Prestwyck Ct<span class="field-status-dot dot-agent"></span></span></div>
+        <div class="field-row"><span class="field-label">City/State/ZIP</span><span class="field-val">Alpharetta, GA 30004<span class="field-status-dot dot-agent"></span></span></div>
+        <div class="field-row"><span class="field-label">Phone</span><span class="field-val empty">Not found<span class="field-status-dot dot-miss"></span></span></div>
+        <div class="field-row"><span class="field-label">Email</span><span class="field-val empty">Not found<span class="field-status-dot dot-miss"></span></span></div>
+      </div>
+    </div>
+
+    <!-- Past Performance -->
+    <div class="full-card mt-16">
+      <div class="flex-between">
+        <h3>Past Performance</h3>
+        <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;">+ Add Reference</button>
+      </div>
+      <div style="margin-top:8px;">
+        <div class="field-row">
+          <span class="field-label">State of Maryland</span>
+          <span class="field-val">$500K · CMS Platform · 2024–2025<span class="field-status-dot dot-agent"></span></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">US Department of Defense</span>
+          <span class="field-val">$200K · Cloud Migration · 2023–2024<span class="field-status-dot dot-agent"></span></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">FEMA</span>
+          <span class="field-val">$350K · Data Analytics · 2022–2023<span class="field-status-dot dot-agent"></span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Personnel -->
+    <div class="full-card mt-16">
+      <div class="flex-between">
+        <h3>Key Personnel</h3>
+        <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;">+ Add Personnel</button>
+      </div>
+      <div style="margin-top:8px;">
+        <div class="field-row">
+          <span class="field-label">Ian Bruce</span>
+          <span class="field-val">Principal · 15 yrs · resume.pdf ✓ · No clearance<span class="field-status-dot dot-ok"></span></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Jane Doe</span>
+          <span class="field-val">Sr. Engineer · 12 yrs · no resume uploaded<span class="field-status-dot dot-miss"></span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Capability Statement -->
+    <div class="full-card mt-16">
+      <div class="flex-between">
+        <h3>Agent-Derived Capability Statement</h3>
+        <button class="btn btn-primary" style="font-size:11px;padding:5px 12px;">Generate</button>
+      </div>
+      <p class="text-sm text-ts mt-12">
+        The agent will synthesize a capability statement from your profile data.
+        Choose to generate a generic version (from this page) or tailor it to a
+        specific solicitation (from an RFP case).
+      </p>
+    </div>
+
+    <!-- Source Documents -->
+    <div class="full-card mt-16">
+      <div class="flex-between">
+        <h3>Source Documents</h3>
+        <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;">Upload More</button>
+      </div>
+      <p class="text-xs text-td mt-12">Documents the agent used to populate this profile. Upload more to fill gaps.</p>
+      <div class="mt-12 flex gap-8" style="flex-wrap:wrap;">
+        <span class="doc-chip">📄 capability-statement-2025.pdf</span>
+        <span class="doc-chip">📄 sam-gov-printout.pdf</span>
+        <span class="doc-chip">📄 cert-8a-2024.pdf</span>
+        <span class="doc-chip">📄 ian-bruce-resume.pdf</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- View 3: RFP Case Overview                                          -->
+<!-- ================================================================= -->
+<div class="view-content" id="view-rfp">
+  <div class="rfp-overview">
+
+    <div class="ro-header">
+      <h1>HHS IT Modernization RFP</h1>
+      <div class="ro-badges">
+        <span class="case-type-badge badge-rfp">RFP Response</span>
+        <span class="badge-outline">Due: July 15, 2026</span>
+        <span class="badge-outline">Solicitation #75A50323R0001</span>
+        <span class="badge-outline" style="border-color:var(--success);color:var(--success);">8(a) Set-Aside</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="ro-grid">
+      <div class="ro-card">
+        <h3>Solicitation Status</h3>
+        <div class="ro-stat">
+          <span class="ro-stat-value" style="color:var(--info);">Open</span>
+          <span class="ro-stat-label">28 days remaining</span>
+        </div>
+      </div>
+      <div class="ro-card">
+        <h3>Documents</h3>
+        <div class="ro-stat">
+          <span class="ro-stat-value">12</span>
+          <span class="ro-stat-label">ingested · 4,802 blocks · indexed</span>
+        </div>
+      </div>
+      <div class="ro-card">
+        <h3>Requirements</h3>
+        <div class="ro-stat">
+          <span class="ro-stat-value">14</span>
+          <span class="ro-stat-label">extracted · 3 compliance gaps flagged</span>
+        </div>
+      </div>
+      <div class="ro-card">
+        <h3>Proposal Progress</h3>
+        <div class="ro-stat">
+          <span class="ro-stat-value" style="color:var(--warning);">Draft</span>
+          <span class="ro-stat-label">1 draft · last edited Jun 9</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Linked Profile -->
+    <div class="ro-card" style="margin-bottom:20px;">
+      <h3>Linked Company Profile</h3>
+      <div class="ro-profile-mini">
+        <span class="check">Vision Technologies, LLC</span>
+        <span class="text-xs text-ts ml-8">CAGE: 9ABCD · UEI: FM8XKJ2B... · NAICS: 541511 · 8(a) ✓</span>
+        <button class="btn btn-secondary" style="margin-left:auto;font-size:10px;padding:4px 8px;" onclick="switchView('profile')">View Profile</button>
+      </div>
+    </div>
+
+    <!-- Requirements -->
+    <div class="ro-section">
+      <div class="ro-section-header">
+        <h2>Extracted Requirements</h2>
+        <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;">Re-extract</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div class="field-row"><span class="field-label">R01</span><span class="field-val">Cloud migration experience — min 3 contracts</span></div>
+        <div class="field-row"><span class="field-label">R02</span><span class="field-val">FedRAMP Moderate or higher ATO</span></div>
+        <div class="field-row"><span class="field-label">R03</span><span class="field-val">8(a) set-aside — must be certified</span></div>
+        <div class="field-row"><span class="field-label">R04</span><span class="field-val">Key personnel: PMP-certified PM, AWS Solutions Architect</span></div>
+        <div class="field-row"><span class="field-label">R05</span><span class="field-val">Past performance: Federal health IT contracts</span></div>
+        <div class="field-row"><span class="field-val empty">+ 9 more requirements — click to expand</span></div>
+      </div>
+    </div>
+
+    <!-- Proposal Drafts -->
+    <div class="ro-section">
+      <div class="ro-section-header">
+        <h2>Proposal Drafts</h2>
+        <button class="btn btn-primary" style="font-size:11px;padding:5px 12px;">Generate Proposal</button>
+      </div>
+      <div class="case-list">
+        <div class="case-item">
+          <span style="font-size:11px;padding:2px 6px;border-radius:3px;background:var(--warning-bg);color:var(--warning);">Draft</span>
+          <span class="case-name">HHS IT Modernization — Technical Response</span>
+          <span class="case-meta">Edited Jun 9 · 15 blocks</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function switchView(name) {
+  document.querySelectorAll('.view-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.view-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('.view-tab').forEach(el => {
+    if (el.textContent.toLowerCase().includes(name.replace('rfp','rfp'))) el.classList.add('active');
+  });
+  // Specific tab mapping
+  const map = { dashboard:0, profile:1, rfp:2 };
+  document.querySelectorAll('.view-tab')[map[name]].classList.add('active');
+}
+</script>
+
+</body>
+</html>

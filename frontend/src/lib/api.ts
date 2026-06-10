@@ -216,6 +216,44 @@ export const deleteTask = (taskId: number): Promise<{ deleted: boolean }> =>
 export const healthCheck = () => fetchAPI("/api/health");
 
 // ---------------------------------------------------------------------------
+// Company Profiles
+// ---------------------------------------------------------------------------
+
+export interface CompanyProfile {
+  id: number;
+  name: string;
+  content: Record<string, unknown>;
+  source_docs: Array<{ document_id: number; document_name: string }>;
+  status: "draft" | "complete";
+  created_at: string;
+  updated_at: string;
+}
+
+export const listCompanyProfiles = (): Promise<{ profiles: CompanyProfile[] }> =>
+  fetchAPI("/api/profiles");
+
+export const getCompanyProfile = (id: number): Promise<{ profile: CompanyProfile }> =>
+  fetchAPI(`/api/profiles/${id}`);
+
+export const createCompanyProfile = (name: string): Promise<{ profile: CompanyProfile }> =>
+  fetchAPI("/api/profiles", { method: "POST", body: JSON.stringify({ name }) });
+
+export const updateCompanyProfile = (
+  id: number,
+  data: { name?: string; content?: Record<string, unknown>; status?: string; source_docs?: Array<{ document_id: number; document_name: string }> },
+): Promise<{ profile: CompanyProfile }> =>
+  fetchAPI(`/api/profiles/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+
+export const deleteCompanyProfile = (id: number): Promise<{ deleted: boolean }> =>
+  fetchAPI(`/api/profiles/${id}`, { method: "DELETE" });
+
+export const synthesizeProfile = (profileId: number): Promise<{ job_id: number; status: string }> =>
+  fetchAPI(`/api/profiles/${profileId}/synthesize`, { method: "POST" });
+
+export const generateCapabilityStatement = (profileId: number): Promise<{ job_id: number; status: string }> =>
+  fetchAPI(`/api/profiles/${profileId}/generate-statement`, { method: "POST" });
+
+// ---------------------------------------------------------------------------
 // Correspondence
 // ---------------------------------------------------------------------------
 

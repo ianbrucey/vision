@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { listCases, listJobs, createCase, deleteCase, healthCheck } from "@/lib/api";
+import { listCases, listJobs, createCase, deleteCase, healthCheck, listCompanyProfiles, type CompanyProfile } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
-import { Plus, FolderOpen, Trash2, Loader2 } from "lucide-react";
+import { Plus, FolderOpen, Trash2, Loader2, Building2 } from "lucide-react";
 
 interface Case {
   id: number;
@@ -36,11 +36,15 @@ export default function Dashboard() {
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [showCreateMobile, setShowCreateMobile] = useState(false);
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [profiles, setProfiles] = useState<CompanyProfile[]>([]);
 
   const refresh = useCallback(async () => {
     try { await healthCheck(); setApiOk(true); } catch { setApiOk(false); return; }
     const [c, j] = await Promise.all([listCases(), listJobs()]);
     setCases(c); setJobs(j);
+    // Fetch profiles
+    try { const p = await listCompanyProfiles(); setProfiles(p.profiles); } catch {}
   }, []);
 
   // Initial load + polling
@@ -118,8 +122,14 @@ export default function Dashboard() {
             </span>
           </div>
 
-          {/* Right: status + user */}
+          {/* Right: profile link + status + user */}
           <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+            <button onClick={() => router.push("/profile")}
+                    className="text-xs text-text-secondary hover:text-brand transition-colors
+                               flex items-center gap-1">
+              <Building2 size={14} />
+              <span className="hidden sm:inline">Profile</span>
+            </button>
             {/* API status pill */}
             <span className="inline-flex items-center gap-1.5 text-xs text-text-secondary">
               <span
@@ -281,9 +291,75 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* === Company Profile === */}
+        {profiles.length > 0 ? (
+          <div
+            onClick={() => router.push("/profile")}
+            className="bg-surface-1 border border-border rounded-xl p-5 mb-6
+                       cursor-pointer hover:border-brand transition-colors"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Building2 size={16} className="text-brand" />
+                <h2 className="text-sm font-semibold">{profiles[0].name}</h2>
+              </div>
+              <span className={`text-[10px] px-2 py-0.5 rounded font-medium ${
+                profiles[0].status === "complete" ? "bg-success-bg text-success" : "bg-warning-bg text-warning"
+              }`}>
+                {profiles[0].status === "complete" ? "Complete" : "Draft"}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {["cage_code", "uei", "naics_codes", "certifications"].map((key) => {
+                const val = profiles[0].content?.[key];
+                const display = Array.isArray(val) ? (val as string[]).join(", ") : String(val || "");
+                return (
+                  <div key={key} className="text-xs">
+                    <span className="text-text-disabled">{key === "uei" ? "UEI" : key === "naics_codes" ? "NAICS" : key === "cage_code" ? "CAGE" : "Certs"}: </span>
+                    <span className={display ? "font-medium" : "text-danger italic"}>
+                      {display || "Not set"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div
+            onClick={() => router.push("/profile")}
+            className="bg-surface-1 border border-dashed border-border rounded-xl p-5 mb-6
+                       cursor-pointer hover:border-brand transition-colors text-center"
+          >
+            <Building2 size={24} className="text-text-disabled mx-auto mb-2" />
+            <p className="text-sm text-text-secondary">No company profile yet</p>
+            <p className="text-xs text-text-disabled mt-1">
+              Create a profile for GovCon solicitations — CAGE codes, NAICS, certs, past performance.
+            </p>
+          </div>
+        )}
+
+        {/* === Type Filter + New Case === */}
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <div className="flex gap-1.5">
+            {["all", "rfp_response", "medical_board_complaint", "civil_litigation"].map((t) => (
+              <button
+                key={t}
+                onClick={() => setTypeFilter(t)}
+                className={`text-[11px] px-2.5 py-1 rounded-md border transition-colors ${
+                  typeFilter === t
+                    ? "bg-brand-bg border-brand text-brand"
+                    : "border-border text-text-secondary hover:border-border-strong"
+                }`}
+              >
+                {t === "all" ? "All" : t === "rfp_response" ? "RFP" : t === "medical_board_complaint" ? "Medical" : "Legal"}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* === Cases List === */}
         <div className="flex flex-col gap-3">
-          {cases.map((c) => {
+          {cases.filter((c) => typeFilter === "all" || c.case_type === typeFilter).map((c) => {
             const caseJobs = jobs.filter((j) => j.case_id === c.id);
             const pending = caseJobs.filter(
               (j) => j.status === "queued" || j.status === "processing",
@@ -301,8 +377,10 @@ export default function Dashboard() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold text-sm truncate">{c.name}</h3>
-                      <span className="text-xs px-2 py-0.5 rounded-sm bg-surface-2 text-text-secondary shrink-0">
-                        {caseTypeLabel(c.case_type)}
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 ${
+                        c.case_type === "rfp_response" ? "bg-info-bg text-info" : "bg-surface-2 text-text-secondary"
+                      }`}>
+                        {c.case_type === "rfp_response" ? "RFP" : caseTypeLabel(c.case_type)}
                       </span>
                       <span
                         className={`text-xs px-2 py-0.5 rounded-sm shrink-0 ${statusPill(c.status)}`}
@@ -310,6 +388,13 @@ export default function Dashboard() {
                         {c.status}
                       </span>
                     </div>
+                    {(c as any).solicitation?.due_date && (
+                      <p className="text-xs text-text-secondary mt-0.5">
+                        Due {(c as any).solicitation.due_date}
+                        {(c as any).solicitation?.set_aside && ` · ${(c as any).solicitation.set_aside}`}
+                        {(c as any).solicitation?.agency && ` · ${(c as any).solicitation.agency}`}
+                      </p>
+                    )}
                     <p className="text-xs text-text-disabled mt-1">
                       {new Date(c.created_at).toLocaleDateString(undefined, {
                         year: "numeric",

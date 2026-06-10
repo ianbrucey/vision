@@ -725,6 +725,84 @@ def detach_task_document(
         return cur.rowcount > 0
 
 
+# -- company profiles --------------------------------------------------------
+
+def insert_company_profile(
+    conn: connection,
+    name: str,
+    content: dict | None = None,
+) -> int:
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO company_profiles (name, content)
+               VALUES (%s, %s::jsonb)
+               RETURNING id""",
+            (name, json.dumps(content or {})),
+        )
+        return cur.fetchone()[0]
+
+
+def update_company_profile(
+    conn: connection,
+    profile_id: int,
+    name: str | None = None,
+    description: str | None = None,
+    content: dict | None = None,
+    status: str | None = None,
+    source_docs: list | None = None,
+    docs_case_id: int | None = None,
+    statement_draft_id: int | None = None,
+) -> dict | None:
+    sets = []
+    params: list[Any] = []
+    if name is not None:
+        sets.append("name = %s"); params.append(name)
+    if description is not None:
+        sets.append("description = %s"); params.append(description)
+    if content is not None:
+        sets.append("content = %s::jsonb"); params.append(json.dumps(content))
+    if status is not None:
+        sets.append("status = %s"); params.append(status)
+    if source_docs is not None:
+        sets.append("source_docs = %s::jsonb"); params.append(json.dumps(source_docs))
+    if docs_case_id is not None:
+        sets.append("docs_case_id = %s"); params.append(docs_case_id)
+    if statement_draft_id is not None:
+        sets.append("statement_draft_id = %s"); params.append(statement_draft_id)
+    if not sets:
+        return None
+    sets.append("updated_at = now()")
+    params.append(profile_id)
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            f"UPDATE company_profiles SET {', '.join(sets)} WHERE id = %s RETURNING *",
+            tuple(params),
+        )
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def get_company_profile(conn: connection, profile_id: int) -> dict | None:
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("SELECT * FROM company_profiles WHERE id = %s", (profile_id,))
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def list_company_profiles(conn: connection) -> list[dict]:
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            "SELECT * FROM company_profiles ORDER BY updated_at DESC"
+        )
+        return [dict(row) for row in cur.fetchall()]
+
+
+def delete_company_profile(conn: connection, profile_id: int) -> bool:
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM company_profiles WHERE id = %s", (profile_id,))
+        return cur.rowcount > 0
+
+
 __all__ = [
     "connect", "tx",
     "ensure_schema", "ensure_strategy_schema", "ensure_chat_schema",
@@ -737,5 +815,7 @@ __all__ = [
     "delete_draft", "update_block",
     "insert_task", "update_task", "get_task", "list_tasks", "delete_task",
     "attach_task_documents", "detach_task_document",
+    "insert_company_profile", "update_company_profile",
+    "get_company_profile", "list_company_profiles", "delete_company_profile",
     "get_document_structure", "get_block_context",
 ]

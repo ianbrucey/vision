@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS cases (
     filing_date     DATE,                                            -- when filed, if applicable
     description     TEXT,                                            -- 1-2 sentence summary
     narrative       TEXT,                                            -- the user's raw brain dump
+    owner_id        UUID,                                            -- who owns this case (FK added post-users)
     case_brief      JSONB,                                           -- extracted structured brief
     metadata        JSONB DEFAULT '{}',
     created_at      TIMESTAMPTZ DEFAULT now(),
@@ -496,7 +497,7 @@ BEGIN
     ALTER TABLE jobs ADD CONSTRAINT jobs_job_type_check
         CHECK (job_type IN ('ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
                              'analyze', 'export', 'ocr', 'embed', 'enrich',
-                             'synthesize', 'other'));
+                             'synthesize', 'profile_synthesis', 'capability_statement', 'other'));
 END $$;
 
 INSERT INTO schema_migrations (version, name) VALUES (2, 'add_enrich_job_type')
@@ -509,7 +510,7 @@ BEGIN
     ALTER TABLE jobs ADD CONSTRAINT jobs_job_type_check
         CHECK (job_type IN ('ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
                              'analyze', 'export', 'ocr', 'embed', 'enrich',
-                             'synthesize', 'other'));
+                             'synthesize', 'profile_synthesis', 'capability_statement', 'other'));
 END $$;
 
 INSERT INTO schema_migrations (version, name) VALUES (3, 'add_synthesize_job_type')
@@ -524,7 +525,8 @@ CREATE TABLE IF NOT EXISTS drafts (
     name            TEXT NOT NULL,
     document_type   TEXT NOT NULL DEFAULT 'letter'
                     CHECK (document_type IN (
-                        'letter', 'pleading', 'contract', 'memo', 'other'
+                        'letter', 'pleading', 'contract', 'memo',
+                        'capability_statement', 'other'
                     )),
     status          TEXT NOT NULL DEFAULT 'draft'
                     CHECK (status IN ('draft', 'review', 'final')),
@@ -579,4 +581,70 @@ CREATE TABLE IF NOT EXISTS task_documents (
 CREATE INDEX IF NOT EXISTS idx_task_documents_task ON task_documents (task_id);
 
 INSERT INTO schema_migrations (version, name) VALUES (5, 'add_tasks_table')
+ON CONFLICT (version) DO NOTHING;
+
+-- ============================================================================
+-- COMPANY PROFILES — Account-level GovCon profile
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS company_profiles (
+    id              SERIAL PRIMARY KEY,
+    name            TEXT NOT NULL,
+    description     TEXT,                                            -- north star for synthesis
+    content         JSONB NOT NULL DEFAULT '{}',
+    source_docs     JSONB DEFAULT '[]',
+    status          TEXT NOT NULL DEFAULT 'draft'
+                    CHECK (status IN ('draft', 'complete')),
+    created_at      TIMESTAMPTZ DEFAULT now(),
+    updated_at      TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_cp_status ON company_profiles (status);
+
+-- Add profile reference + solicitation fields to cases
+ALTER TABLE cases ADD COLUMN IF NOT EXISTS profile_id
+    INTEGER REFERENCES company_profiles(id) ON DELETE SET NULL;
+ALTER TABLE cases ADD COLUMN IF NOT EXISTS solicitation JSONB;
+
+INSERT INTO schema_migrations (version, name) VALUES (6, 'add_company_profiles')
+ON CONFLICT (version) DO NOTHING;
+
+-- Add owner_id to cases for multi-tenancy (migration v7)
+ALTER TABLE cases ADD COLUMN IF NOT EXISTS owner_id UUID;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'fk_cases_owner'
+          AND conrelid = 'cases'::regclass
+    ) THEN
+        ALTER TABLE cases ADD CONSTRAINT fk_cases_owner
+            FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE SET NULL;
+    END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS idx_cases_owner ON cases (owner_id);
+
+INSERT INTO schema_migrations (version, name) VALUES (7, 'add_cases_owner_id')
+ON CONFLICT (version) DO NOTHING;
+
+-- Add docs_case_id to company_profiles for profile doc uploads
+ALTER TABLE company_profiles ADD COLUMN IF NOT EXISTS docs_case_id
+    INTEGER REFERENCES cases(id) ON DELETE SET NULL;
+ALTER TABLE company_profiles ADD COLUMN IF NOT EXISTS statement_draft_id
+    INTEGER REFERENCES drafts(id) ON DELETE SET NULL;
+
+-- Add capability_statement to drafts document_type (migration v9)
+ALTER TABLE drafts DROP CONSTRAINT IF EXISTS drafts_document_type_check;
+ALTER TABLE drafts ADD CONSTRAINT drafts_document_type_check
+    CHECK (document_type IN ('letter', 'pleading', 'contract', 'memo',
+                             'capability_statement', 'other'));
+
+INSERT INTO schema_migrations (version, name) VALUES (8, 'add_profile_docs_case')
+ON CONFLICT (version) DO NOTHING;
+INSERT INTO schema_migrations (version, name) VALUES (9, 'add_drafts_capability_statement')
+ON CONFLICT (version) DO NOTHING;
+
+-- Add description to company_profiles
+ALTER TABLE company_profiles ADD COLUMN IF NOT EXISTS description TEXT;
+
+INSERT INTO schema_migrations (version, name) VALUES (10, 'add_company_profiles_description')
 ON CONFLICT (version) DO NOTHING;
