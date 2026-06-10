@@ -242,7 +242,7 @@ export function FloatingChatButton({ onClick, unread }: FloatingChatButtonProps)
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-5 right-5 z-30 size-12 rounded-full bg-brand text-white
+      className="fixed bottom-[4.5rem] md:bottom-5 right-5 z-30 size-12 rounded-full bg-brand text-white
                  shadow-lg hover:bg-brand-hover active:scale-95
                  transition-all flex items-center justify-center"
       aria-label="Open chat"
