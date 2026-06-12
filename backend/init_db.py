@@ -145,12 +145,14 @@ def main() -> int:
     for version, name in migrations:
         print(f"    v{version} — {name}")
 
-    # Expected tables from all three schema files
+    # Expected tables from all four schema files + migrations
     expected = {
         # 001_core.sql
         "cases", "parties", "allegations", "documents", "sections",
         "blocks", "block_headings", "citations", "events", "workspaces",
         "embedding_cache", "users", "schema_migrations", "jobs",
+        "drafts", "tasks", "task_documents", "company_profiles",
+        "business_vault", "vault_documents",
         # 002_strategy.sql
         "rhetorical_moves", "case_facts", "strategies", "doctrine_elements",
         "strategy_propositions", "strategy_facts", "proposition_fact_mappings",
@@ -159,6 +161,9 @@ def main() -> int:
         "gauntlet_check_definitions", "strategy_gauntlet_results",
         # 003_chat.sql
         "session_store_entries", "chat_sessions", "chat_messages",
+        # 004_correspondence.sql
+        "correspondence_threads", "correspondence_items",
+        "correspondence_attachments",
     }
     actual = set(tables)
     missing = expected - actual

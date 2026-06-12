@@ -14,6 +14,7 @@ Security:
 from __future__ import annotations
 
 import json
+import re
 from datetime import date, datetime
 from typing import Any
 
@@ -97,6 +98,18 @@ def _embed_query(query_text: str) -> str:
     )
     vec = resp.data[0].embedding
     return "[" + ",".join(repr(float(v)) for v in vec) + "]"
+
+
+# ---------------------------------------------------------------------------
+# FAR constants — used by far_lookup and far_status tools
+# ---------------------------------------------------------------------------
+
+FAR_CASE_NAME = "FAR — Federal Acquisition Regulation"
+FAR_ZIP_URL = (
+    "https://www.acquisition.gov/sites/default/files/"
+    "current/far/zip/html/FARHTML.zip"
+)
+KB_CASE_NAME = "Knowledge Base — Cross-Case Reference"
 
 
 # ---------------------------------------------------------------------------
@@ -2053,6 +2066,780 @@ def create_vision_server(case_id: int):
         except Exception as exc:
             return _error(f"get_case_profile failed: {exc}")
 
+    # -- Knowledge Base helper (capture case_id for cross-case knowledge) -----
+
+    def _ensure_kb_case() -> int:
+        """Get or create the cross-case Knowledge Base. Returns case_id."""
+        row = _query_one(
+            "SELECT id FROM cases WHERE name = %s AND case_type = 'other'",
+            (KB_CASE_NAME,),
+        )
+        if row:
+            return row["id"]
+        from core.db import insert_case as _insert_case
+        conn = _conn()
+        try:
+            kb_id = _insert_case(conn, name=KB_CASE_NAME, case_type="other")
+        finally:
+            conn.close()
+        return kb_id
+
+    # -- Layer 9.5: Knowledge Base -------------------------------------------
+
+    @tool(
+        "create_knowledge_entry",
+        "Persist a piece of knowledge as a searchable, tagged document in "
+        "the cross-case Knowledge Base. Use this when you learn something "
+        "worth remembering: an industry strategy, a competitor insight, a "
+        "procurement lesson, an agency contact pattern, a pricing approach, "
+        "or any reusable GovCon intelligence. Each entry gets tags for "
+        "filtered retrieval later. The content is markdown — structure it "
+        "with headers, bullet lists, and links as appropriate.",
+        {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "description": "Short descriptive title. Think of it as a filename.",
+                },
+                "content": {
+                    "type": "string",
+                    "description": (
+                        "Full markdown content. Use headers, lists, code blocks, "
+                        "and links. This is the body of the knowledge entry."
+                    ),
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": (
+                        "Tags for categorization and retrieval. Use lowercase "
+                        "kebab-case or short labels. Examples: 'cybersecurity', "
+                        "'pricing-strategy', 'agency-patterns', 'incumbent-analysis', "
+                        "'set-aside-tactics', 'naics-541511'. At least one tag required."
+                    ),
+                },
+                "source_url": {
+                    "type": "string",
+                    "description": "Optional URL where this knowledge was sourced from.",
+                },
+                "document_type": {
+                    "type": "string",
+                    "enum": ["strategy", "insight", "lesson_learned",
+                             "reference", "template", "other"],
+                    "description": "Classification. Defaults to 'insight'.",
+                },
+            },
+            "required": ["title", "content", "tags"],
+        },
+    )
+    async def create_knowledge_entry(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            kb_case_id = _ensure_kb_case()
+            tags = args["tags"]
+            knowledge_type = args.get("document_type", "insight")
+
+            content_list = [{"markdown": args["content"]}]
+
+            conn = _conn()
+            try:
+                from core.db import insert_draft as _insert_draft
+                item_id = _insert_draft(
+                    conn,
+                    case_id=kb_case_id,
+                    name=args["title"],
+                    document_type="other",
+                    content=content_list,
+                    created_by="agent",
+                    file_type="markdown",
+                    folder="artifacts",
+                    status="final",
+                )
+            finally:
+                conn.close()
+
+            # Write tags + knowledge type to metadata
+            import json as _json
+            conn = _conn()
+            try:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "UPDATE drafts SET metadata = %s::jsonb WHERE id = %s",
+                        (_json.dumps({
+                            "tags": tags,
+                            "knowledge_type": knowledge_type,
+                            "source_url": args.get("source_url", ""),
+                            "created_by": "agent",
+                        }), item_id),
+                    )
+            finally:
+                conn.close()
+
+            return _result({
+                "entry_id": item_id,
+                "title": args["title"],
+                "tags": tags,
+                "document_type": doc_type,
+                "case_id": kb_case_id,
+            })
+        except Exception as exc:
+            return _error(f"create_knowledge_entry failed: {exc}")
+
+    @tool(
+        "search_knowledge",
+        "Search the Knowledge Base by tags, text, or both. Returns "
+        "matching entries ranked by relevance. Use this before creating "
+        "new entries to avoid duplicates, or when you need to recall "
+        "previously stored strategies, insights, or reference material. "
+        "Pass tags to filter to a specific topic; pass query for full-text "
+        "search across all entry content; pass both for tagged search.",
+        {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "Full-text search query across title and content.",
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Filter to entries matching ANY of these tags.",
+                },
+                "document_type": {
+                    "type": "string",
+                    "enum": ["strategy", "insight", "lesson_learned",
+                             "reference", "template", "other"],
+                    "description": "Filter by document type.",
+                },
+            },
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def search_knowledge(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            kb_case_id = _ensure_kb_case()
+            query = args.get("query", "").strip()
+            tags = args.get("tags") or []
+            doc_type = args.get("document_type")
+
+            # Build SQL
+            conditions = ["d.case_id = %s"]
+            params: list[Any] = [kb_case_id]
+            order = "d.updated_at DESC"
+
+            if query:
+                conditions.append(
+                    """(to_tsvector('english', d.name || ' ' ||
+                       COALESCE(d.content::text, ''))
+                       @@ plainto_tsquery('english', %s))"""
+                )
+                params.append(query)
+                order = (
+                    f"ts_rank(to_tsvector('english', d.name || ' ' || "
+                    f"COALESCE(d.content::text, '')), "
+                    f"plainto_tsquery('english', %s)) DESC"
+                )
+
+            if tags:
+                tag_clauses = []
+                for tag in tags:
+                    tag_clauses.append("d.metadata->>'tags' ILIKE %s")
+                    params.append(f"%{tag}%")
+                conditions.append(f"({' OR '.join(tag_clauses)})")
+
+            if doc_type:
+                conditions.append("d.metadata->>'knowledge_type' = %s")
+                params.append(doc_type)
+
+            where = " AND ".join(conditions)
+            sql = (
+                f"SELECT d.id, d.name, d.document_type, d.metadata, "
+                f"d.file_type, d.folder, d.status, d.created_at, d.updated_at, "
+                f"COALESCE((d.content->0->>'markdown'), '') AS body "
+                f"FROM drafts d WHERE {where} ORDER BY {order} LIMIT 20"
+            )
+
+            rows = _query(sql, tuple(params))
+
+            results = []
+            for r in rows:
+                body = r.get("body") or ""
+                meta = r.get("metadata") or {}
+                if isinstance(meta, str):
+                    import json as _json
+                    meta = _json.loads(meta)
+                results.append({
+                    "entry_id": r["id"],
+                    "title": r["name"],
+                    "knowledge_type": meta.get("knowledge_type", "insight"),
+                    "tags": meta.get("tags", []),
+                    "source_url": meta.get("source_url", ""),
+                    "excerpt": body[:300] + ("..." if len(body) > 300 else ""),
+                    "created_at": str(r.get("created_at", "")),
+                    "updated_at": str(r.get("updated_at", "")),
+                })
+
+            return _result({
+                "query": query or None,
+                "tags_filter": tags or None,
+                "count": len(results),
+                "results": results,
+            })
+        except Exception as exc:
+            return _error(f"search_knowledge failed: {exc}")
+
+    @tool(
+        "list_knowledge_tags",
+        "List all unique tags currently used across the Knowledge Base, "
+        "with counts. Use this to understand what topics have been "
+        "captured before searching or creating entries.",
+        {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def list_knowledge_tags(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            kb_case_id = _ensure_kb_case()
+            rows = _query(
+                """SELECT d.metadata->>'tags' AS tags_json
+                   FROM drafts d WHERE d.case_id = %s
+                     AND d.metadata->>'tags' IS NOT NULL""",
+                (kb_case_id,),
+            )
+            import json as _json
+            tag_counts: dict[str, int] = {}
+            for r in rows:
+                raw = r.get("tags_json") or "[]"
+                try:
+                    tag_list = _json.loads(raw) if isinstance(raw, str) else raw
+                except _json.JSONDecodeError:
+                    continue
+                for tag in tag_list:
+                    tag_counts[tag] = tag_counts.get(tag, 0) + 1
+
+            sorted_tags = sorted(tag_counts.items(), key=lambda x: -x[1])
+            return _result({
+                "total_entries_with_tags": sum(
+                    1 for r in rows if r.get("tags_json")
+                ),
+                "unique_tags": len(sorted_tags),
+                "tags": [
+                    {"tag": t, "count": c} for t, c in sorted_tags
+                ],
+            })
+        except Exception as exc:
+            return _error(f"list_knowledge_tags failed: {exc}")
+
+    # -- Layer 10: FAR (Federal Acquisition Regulation) -----------------------
+
+    @tool(
+        "far_lookup",
+        "Look up the authoritative text of a FAR citation. Pass a FAR "
+        "reference like '15.101', '52.212-1', 'Subpart 15.1', or 'Part 15'. "
+        "Returns the exact regulatory text with proper citation format. "
+        "Use this when a solicitation cites a FAR clause and you need the "
+        "verbatim text, or when you need to verify a FAR reference is real. "
+        "NEVER paraphrase a FAR clause from memory — always look it up.",
+        {
+            "type": "object",
+            "properties": {
+                "citation": {
+                    "type": "string",
+                    "description": (
+                        "FAR citation to look up. Examples: '15.101', "
+                        "'52.212-1', 'Subpart 15.1', 'Part 15', "
+                        "'52.212-1(b)', '1.106'. Supports Part numbers, "
+                        "section numbers, subpart references, and clause "
+                        "numbers with dashes."
+                    ),
+                },
+            },
+            "required": ["citation"],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def far_lookup(args: dict[str, Any]) -> dict[str, Any]:
+        citation = args["citation"].strip()
+        # Normalize: strip "FAR " prefix, "(a)" suffixes
+        citation = re.sub(r"^FAR\s+", "", citation, flags=re.IGNORECASE)
+        parenthetical = re.search(r"\(([a-z]+)\)$", citation)
+        citation_clean = citation.split("(")[0].strip() if parenthetical else citation
+
+        try:
+            # Strategy 1: exact match on sections.metadata->>'far_number'
+            rows = _query(
+                """SELECT s.id AS section_id, s.title, s.search_text,
+                          s.metadata->>'far_number' AS far_number,
+                          s.heading_level, s.document_id,
+                          d.name AS document_name,
+                          d.metadata->>'part' AS part_num
+                   FROM sections s
+                   JOIN documents d ON d.id = s.document_id
+                   JOIN cases c ON c.id = d.case_id
+                   WHERE c.name = %s
+                     AND s.metadata->>'far_number' = %s
+                   LIMIT 5""",
+                (FAR_CASE_NAME, citation_clean),
+            )
+
+            # Quality filter: exclude Part 52 parse artifacts where
+            # far_number is a parenthetical like "(c)" or "(d)"
+            QUALITY_FILTER = (
+                "AND (s.metadata->>'far_number' ~ '^[0-9]' "
+                "     OR s.metadata->>'far_number' IS NULL)"
+            )
+
+            if not rows:
+                # Strategy 2: partial match — try without subsection
+                base = citation_clean.rsplit("-", 1)[0] if "-" in citation_clean else citation_clean
+                rows = _query(
+                    f"""SELECT s.id AS section_id, s.title, s.search_text,
+                              s.metadata->>'far_number' AS far_number,
+                              s.heading_level, s.document_id,
+                              d.name AS document_name,
+                              d.metadata->>'part' AS part_num
+                       FROM sections s
+                       JOIN documents d ON d.id = s.document_id
+                       JOIN cases c ON c.id = d.case_id
+                       WHERE c.name = %s
+                         AND s.metadata->>'far_number' LIKE %s
+                         {QUALITY_FILTER}
+                       ORDER BY s.heading_level
+                       LIMIT 10""",
+                    (FAR_CASE_NAME, base + "%"),
+                )
+
+            if not rows:
+                # Strategy 3: title search (FAR numbers embedded in h1 text)
+                rows = _query(
+                    f"""SELECT s.id AS section_id, s.title, s.search_text,
+                              s.metadata->>'far_number' AS far_number,
+                              s.heading_level, s.document_id,
+                              d.name AS document_name,
+                              d.metadata->>'part' AS part_num
+                       FROM sections s
+                       JOIN documents d ON d.id = s.document_id
+                       JOIN cases c ON c.id = d.case_id
+                       WHERE c.name = %s
+                         AND s.title LIKE %s
+                         {QUALITY_FILTER}
+                       ORDER BY s.heading_level
+                       LIMIT 10""",
+                    (FAR_CASE_NAME, "%" + citation_clean + "%"),
+                )
+
+            if not rows:
+                # Strategy 4: full-text search fallback (last resort)
+                rows = _query(
+                    f"""SELECT s.id AS section_id, s.title, s.search_text,
+                              s.metadata->>'far_number' AS far_number,
+                              s.heading_level, s.document_id,
+                              d.name AS document_name,
+                              d.metadata->>'part' AS part_num,
+                              ts_rank(
+                                  to_tsvector('english', s.search_text),
+                                  plainto_tsquery('english', %s)
+                              ) AS rank
+                       FROM sections s
+                       JOIN documents d ON d.id = s.document_id
+                       JOIN cases c ON c.id = d.case_id
+                       WHERE c.name = %s
+                         AND to_tsvector('english', s.search_text)
+                             @@ plainto_tsquery('english', %s)
+                         {QUALITY_FILTER}
+                       ORDER BY rank DESC
+                       LIMIT 10""",
+                    (citation, FAR_CASE_NAME, citation),
+                )
+
+            if not rows:
+                return _error(
+                    f"Citation '{citation}' not found in the FAR corpus. "
+                    "Check the citation format. If the FAR hasn't been "
+                    "ingested yet, run: python -m scripts.far_ingest"
+                )
+
+            # Build the response
+            results = []
+            for r in rows:
+                far_num = r.get("far_number") or ""
+                title = r.get("title") or ""
+                search_text = r.get("search_text") or ""
+
+                # Get blocks for full text
+                blocks = _query(
+                    """SELECT text_content FROM blocks
+                       WHERE section_id = %s
+                       ORDER BY id""",
+                    (r["section_id"],),
+                )
+                block_texts = [b["text_content"] for b in blocks if b.get("text_content")]
+
+                results.append({
+                    "citation": f"FAR {far_num}" if far_num else title,
+                    "title": title,
+                    "part": r.get("part_num"),
+                    "document": r.get("document_name"),
+                    "heading_level": r.get("heading_level"),
+                    "full_text": (
+                        title + "\n\n" +
+                        "\n".join(block_texts)
+                    ) if block_texts else search_text,
+                    "block_count": len(block_texts),
+                })
+
+            return _result({
+                "query": citation,
+                "match_type": "exact" if rows and rows[0].get("far_number") == citation_clean else "broad",
+                "count": len(results),
+                "results": results,
+            })
+
+        except Exception as exc:
+            return _error(f"far_lookup failed: {exc}")
+
+    @tool(
+        "far_status",
+        "Check whether the FAR corpus has been ingested into the database. "
+        "Returns the FAR case ID, part count, section count, block count, "
+        "and last update time. If the FAR hasn't been ingested, returns "
+        "instructions for running the ingest script. Use this before any "
+        "FAR-dependent work to verify the corpus is available.",
+        {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def far_status(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            case_row = _query_one(
+                "SELECT id, created_at FROM cases WHERE name = %s AND case_type = 'other'",
+                (FAR_CASE_NAME,),
+            )
+
+            if not case_row:
+                return _result({
+                    "ingested": False,
+                    "message": (
+                        "The FAR corpus has not been ingested. "
+                        "To ingest it, run from the backend directory:\n\n"
+                        "    python -m scripts.far_ingest\n\n"
+                        "This will download the FAR HTML ZIP from "
+                        "acquisition.gov, parse all 53 Parts into "
+                        "sections and blocks, and generate Mistral "
+                        "embeddings for semantic search. "
+                        "Estimated time: ~2 min ingest + ~7 min embed."
+                    ),
+                })
+
+            case_id = case_row["id"]
+
+            # Count documents, sections, blocks
+            stats = _query_one(
+                """SELECT
+                       (SELECT count(*) FROM documents WHERE case_id = %s) AS doc_count,
+                       (SELECT count(*) FROM sections s
+                        JOIN documents d ON d.id = s.document_id
+                        WHERE d.case_id = %s) AS section_count,
+                       (SELECT count(*) FROM blocks b
+                        JOIN documents d ON d.id = b.document_id
+                        WHERE d.case_id = %s) AS block_count,
+                       (SELECT count(*) FROM sections s
+                        JOIN documents d ON d.id = s.document_id
+                        WHERE d.case_id = %s AND s.embedding IS NOT NULL) AS embedded_count
+                """,
+                (case_id, case_id, case_id, case_id),
+            )
+
+            return _result({
+                "ingested": True,
+                "case_id": case_id,
+                "case_name": FAR_CASE_NAME,
+                "created_at": str(case_row.get("created_at", "")),
+                "documents": stats["doc_count"] if stats else 0,
+                "sections": stats["section_count"] if stats else 0,
+                "blocks": stats["block_count"] if stats else 0,
+                "embedded": stats["embedded_count"] if stats else 0,
+                "current_fac": "FAC 2026-01 (2026-03-13)",
+                "source_url": FAR_ZIP_URL,
+                "re_ingest_command": "python -m scripts.far_ingest",
+            })
+
+        except Exception as exc:
+            return _error(f"far_status failed: {exc}")
+
+    # -- Layer 11: Business Vault -------------------------------------------
+
+    @tool(
+        "list_vault_items",
+        "List items in the business vault for the current case. "
+        "Optionally filter by kind (e.g. 'bank_account', 'net_30', "
+        "'insurance_policy', 'vendor', 'lease', 'subscription'). "
+        "Returns id, kind, name, status, notes, data, document_count, "
+        "and timestamps. Does not return attached documents — use "
+        "get_vault_item for that.",
+        {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "type": "string",
+                    "description": "Filter by kind. Free-form text — common values: "
+                    "bank_account, net_30_account, insurance_policy, vendor, "
+                    "operating_agreement, lease, subscription, contract, other.",
+                },
+            },
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def list_vault_items(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import list_vault_items as _list_vault_items
+                rows = _list_vault_items(
+                    conn,
+                    case_id=case_id,
+                    kind=args.get("kind"),
+                )
+            finally:
+                conn.close()
+            return _result({"count": len(rows), "items": rows})
+        except Exception as exc:
+            return _error(f"list_vault_items failed: {exc}")
+
+    @tool(
+        "get_vault_item",
+        "Read a vault item's full details including attached documents. "
+        "Use before editing to see the current state.",
+        {
+            "type": "object",
+            "properties": {
+                "vault_id": {
+                    "type": "integer",
+                    "description": "Vault item ID from list_vault_items.",
+                },
+            },
+            "required": ["vault_id"],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def get_vault_item(args: dict[str, Any]) -> dict[str, Any]:
+        vault_id = args["vault_id"]
+        try:
+            conn = _conn()
+            try:
+                from core.db import get_vault_item as _get_vault_item
+                item = _get_vault_item(conn, vault_id)
+            finally:
+                conn.close()
+            if not item:
+                return _error(f"Vault item {vault_id} not found.")
+            # Case-scope check: item must belong to this case (or be case-null)
+            if item.get("case_id") is not None and item["case_id"] != case_id:
+                return _error(f"Vault item {vault_id} not in case {case_id}.")
+            return _result({"item": item})
+        except Exception as exc:
+            return _error(f"get_vault_item failed: {exc}")
+
+    @tool(
+        "create_vault_item",
+        "Create a new item in the business vault. Use this to record "
+        "bank accounts, Net 30 accounts, insurance policies, vendors, "
+        "leases, subscriptions, operating agreements, or any other "
+        "business document or relationship. "
+        "The 'kind' field is free-form. Common values: bank_account, "
+        "net_30_account, insurance_policy, vendor, operating_agreement, "
+        "lease, subscription, contract, other. "
+        "The 'data' field is a JSON object for kind-specific structured "
+        "data — populate whatever fields are relevant for that kind. "
+        "Example for bank_account: "
+        '{"bank":"Chase","type":"checking","account_last_4":"1234","routing":"..."}. '
+        "Example for net_30_account: "
+        '{"vendor":"Uline","credit_limit":5000,"opened":"2025-03"}.',
+        {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "type": "string",
+                    "description": "What kind of item this is. Free-form text.",
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Display name, e.g. 'Chase Business Checking'.",
+                },
+                "status": {
+                    "type": "string",
+                    "description": "Status. Default: 'active'. Common: active, "
+                    "inactive, expired, closed, pending.",
+                },
+                "notes": {
+                    "type": "string",
+                    "description": "Free-text notes or summary.",
+                },
+                "data": {
+                    "type": "object",
+                    "description": "Kind-specific structured data as a JSON object.",
+                },
+            },
+            "required": ["kind", "name"],
+        },
+    )
+    async def create_vault_item(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import insert_vault_item as _insert_vault_item
+                item_id = _insert_vault_item(
+                    conn,
+                    case_id=case_id,
+                    kind=args["kind"],
+                    name=args["name"],
+                    status=args.get("status", "active"),
+                    notes=args.get("notes"),
+                    data=args.get("data"),
+                    created_by="agent",
+                )
+            finally:
+                conn.close()
+            return _result({
+                "vault_id": item_id,
+                "kind": args["kind"],
+                "name": args["name"],
+                "status": args.get("status", "active"),
+            })
+        except Exception as exc:
+            return _error(f"create_vault_item failed: {exc}")
+
+    @tool(
+        "update_vault_item",
+        "Modify a vault item — update its kind, name, status, notes, or "
+        "structured data. Use get_vault_item first to see current state. "
+        "All fields are optional — only provide what changed.",
+        {
+            "type": "object",
+            "properties": {
+                "vault_id": {
+                    "type": "integer",
+                    "description": "Vault item ID to update.",
+                },
+                "kind": {
+                    "type": "string",
+                    "description": "New kind value (optional).",
+                },
+                "name": {
+                    "type": "string",
+                    "description": "New display name (optional).",
+                },
+                "status": {
+                    "type": "string",
+                    "description": "New status (optional).",
+                },
+                "notes": {
+                    "type": "string",
+                    "description": "New notes (optional).",
+                },
+                "data": {
+                    "type": "object",
+                    "description": "New structured data — replaces entirely (optional).",
+                },
+            },
+            "required": ["vault_id"],
+        },
+    )
+    async def update_vault_item(args: dict[str, Any]) -> dict[str, Any]:
+        vault_id = args["vault_id"]
+        try:
+            # Case-scope check
+            conn = _conn()
+            try:
+                from core.db import get_vault_item as _get_vault_item
+                item = _get_vault_item(conn, vault_id)
+            finally:
+                conn.close()
+            if not item:
+                return _error(f"Vault item {vault_id} not found.")
+            if item.get("case_id") is not None and item["case_id"] != case_id:
+                return _error(f"Vault item {vault_id} not in case {case_id}.")
+
+            kwargs = {}
+            for field in ("kind", "name", "status", "notes", "data"):
+                if field in args:
+                    kwargs[field] = args[field]
+
+            if not kwargs:
+                return _error("No fields to update.")
+
+            conn = _conn()
+            try:
+                from core.db import update_vault_item as _update_vault_item
+                updated = _update_vault_item(conn, vault_id, **kwargs)
+            finally:
+                conn.close()
+
+            return _result({
+                "vault_id": vault_id,
+                "name": updated["name"],
+                "kind": updated["kind"],
+                "status": updated["status"],
+                "updated_at": str(updated.get("updated_at", "")),
+            })
+        except Exception as exc:
+            return _error(f"update_vault_item failed: {exc}")
+
+    @tool(
+        "attach_vault_documents",
+        "Link existing case documents to a vault item. Use after creating "
+        "a vault item to connect supporting documents (e.g. a bank statement "
+        "PDF or an insurance policy declaration page). Idempotent — attaching "
+        "the same document twice is a no-op.",
+        {
+            "type": "object",
+            "properties": {
+                "vault_id": {
+                    "type": "integer",
+                    "description": "Vault item ID to attach documents to.",
+                },
+                "document_ids": {
+                    "type": "array",
+                    "items": {"type": "integer"},
+                    "description": "List of document IDs to attach.",
+                },
+            },
+            "required": ["vault_id", "document_ids"],
+        },
+    )
+    async def attach_vault_documents(args: dict[str, Any]) -> dict[str, Any]:
+        vault_id = args["vault_id"]
+        try:
+            # Case-scope check
+            conn = _conn()
+            try:
+                from core.db import get_vault_item as _get_vault_item
+                item = _get_vault_item(conn, vault_id)
+            finally:
+                conn.close()
+            if not item:
+                return _error(f"Vault item {vault_id} not found.")
+            if item.get("case_id") is not None and item["case_id"] != case_id:
+                return _error(f"Vault item {vault_id} not in case {case_id}.")
+
+            conn = _conn()
+            try:
+                from core.db import attach_vault_documents as _attach_vault_documents
+                count = _attach_vault_documents(conn, vault_id, args["document_ids"])
+            finally:
+                conn.close()
+            return _result({"vault_id": vault_id, "attached": count})
+        except Exception as exc:
+            return _error(f"attach_vault_documents failed: {exc}")
+
     # -- Build server --------------------------------------------------------
 
     return create_sdk_mcp_server(
@@ -2092,5 +2879,15 @@ def create_vision_server(case_id: int):
             list_company_profiles,
             get_company_profile,
             get_case_profile,
+            create_knowledge_entry,
+            search_knowledge,
+            list_knowledge_tags,
+            far_lookup,
+            far_status,
+            list_vault_items,
+            get_vault_item,
+            create_vault_item,
+            update_vault_item,
+            attach_vault_documents,
         ],
     )

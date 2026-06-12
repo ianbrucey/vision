@@ -209,6 +209,77 @@ export const updateWorkspaceBlock = (
 export const deleteWorkspaceItem = (itemId: number): Promise<{ deleted: boolean }> =>
   fetchAPI(`/api/workspace/${itemId}`, { method: "DELETE" });
 
+// Business Vault
+export interface VaultDocument {
+  id: number;
+  name: string;
+  page_count: number | null;
+  document_type: string | null;
+}
+
+export interface VaultItem {
+  id: number;
+  case_id: number | null;
+  kind: string;
+  name: string;
+  status: string;
+  notes: string | null;
+  data: Record<string, unknown>;
+  documents?: VaultDocument[];
+  document_count: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const listVaultItems = (
+  params?: { case_id?: number; kind?: string },
+): Promise<{ items: VaultItem[] }> => {
+  const qs = new URLSearchParams();
+  if (params?.case_id) qs.set("case_id", String(params.case_id));
+  if (params?.kind) qs.set("kind", params.kind);
+  const s = qs.toString();
+  return fetchAPI(`/api/vault${s ? `?${s}` : ""}`);
+};
+
+export const getVaultItem = (itemId: number): Promise<{ item: VaultItem }> =>
+  fetchAPI(`/api/vault/${itemId}`);
+
+export const createVaultItem = (data: {
+  case_id?: number | null;
+  kind: string;
+  name: string;
+  status?: string;
+  notes?: string | null;
+  data?: Record<string, unknown>;
+  created_by?: string;
+}): Promise<{ item: VaultItem }> =>
+  fetchAPI("/api/vault", { method: "POST", body: JSON.stringify(data) });
+
+export const updateVaultItem = (
+  itemId: number,
+  data: { kind?: string; name?: string; status?: string; notes?: string | null; data?: Record<string, unknown>; case_id?: number | null },
+): Promise<{ item: VaultItem }> =>
+  fetchAPI(`/api/vault/${itemId}`, { method: "PATCH", body: JSON.stringify(data) });
+
+export const deleteVaultItem = (itemId: number): Promise<{ deleted: boolean }> =>
+  fetchAPI(`/api/vault/${itemId}`, { method: "DELETE" });
+
+export const attachVaultDocuments = (
+  itemId: number,
+  document_ids: number[],
+): Promise<{ attached: number }> =>
+  fetchAPI(`/api/vault/${itemId}/documents`, {
+    method: "POST",
+    body: JSON.stringify({ document_ids }),
+  });
+
+export const detachVaultDocument = (
+  itemId: number,
+  documentId: number,
+): Promise<{ detached: boolean }> =>
+  fetchAPI(`/api/vault/${itemId}/documents/${documentId}`, { method: "DELETE" });
+
 // Tasks
 export interface TaskDocument {
   id: number;

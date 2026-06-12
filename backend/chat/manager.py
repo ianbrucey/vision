@@ -20,6 +20,7 @@ import psycopg2.extras
 from chat.prompt import WAR_ROOM_SYSTEM_PROMPT
 from chat.session_store import PostgresSessionStore
 from chat.tools import create_vision_server
+from chat.external_tools import create_external_tools_server
 from core.db import connect, ensure_chat_schema
 
 logger = logging.getLogger("vision.chat.manager")
@@ -61,10 +62,14 @@ class AgentSession:
         # every tool handler's closure. The agent never sees a case_id.
         vision_server = create_vision_server(self.case_id)
 
+        # External integration tools (research, court listener, legal brain)
+        legal_hub = create_external_tools_server()
+
         options = ClaudeAgentOptions(
             system_prompt=self.system_prompt,
-            mcp_servers={"vision": vision_server},
+            mcp_servers={"vision": vision_server, "legal_hub": legal_hub},
             allowed_tools=["mcp__vision__*",
+                           "mcp__legal_hub__*",
                            "Read", "Grep", "Write", "Edit",
                            "WebSearch", "WebFetch"],
             session_store=store,

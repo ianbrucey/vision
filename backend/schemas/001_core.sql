@@ -659,3 +659,38 @@ ALTER TABLE drafts ADD COLUMN IF NOT EXISTS folder TEXT NOT NULL DEFAULT 'artifa
 
 INSERT INTO schema_migrations (version, name) VALUES (11, 'add_workspace_file_type_and_folder')
 ON CONFLICT (version) DO NOTHING;
+
+-- ============================================================================
+-- BUSINESS VAULT + DOCUMENT ATTACHMENTS — Migration v12
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS business_vault (
+    id              SERIAL PRIMARY KEY,
+    case_id         INTEGER REFERENCES cases(id) ON DELETE CASCADE,
+    kind            TEXT NOT NULL,
+    name            TEXT NOT NULL,
+    status          TEXT NOT NULL DEFAULT 'active',
+    notes           TEXT,
+    data            JSONB DEFAULT '{}',
+    created_by      TEXT NOT NULL DEFAULT 'user'
+                    CHECK (created_by IN ('user', 'agent')),
+    created_at      TIMESTAMPTZ DEFAULT now(),
+    updated_at      TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_vault_case ON business_vault (case_id);
+CREATE INDEX IF NOT EXISTS idx_vault_kind ON business_vault (kind);
+CREATE INDEX IF NOT EXISTS idx_vault_case_kind ON business_vault (case_id, kind);
+
+CREATE TABLE IF NOT EXISTS vault_documents (
+    vault_id        INTEGER REFERENCES business_vault(id) ON DELETE CASCADE NOT NULL,
+    document_id     INTEGER REFERENCES documents(id) ON DELETE CASCADE NOT NULL,
+    attached_at     TIMESTAMPTZ DEFAULT now(),
+    PRIMARY KEY (vault_id, document_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_vault_docs_vault ON vault_documents (vault_id);
+CREATE INDEX IF NOT EXISTS idx_vault_docs_document ON vault_documents (document_id);
+
+INSERT INTO schema_migrations (version, name) VALUES (12, 'add_business_vault')
+ON CONFLICT (version) DO NOTHING;

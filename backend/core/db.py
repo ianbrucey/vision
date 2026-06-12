@@ -823,6 +823,147 @@ def delete_company_profile(conn: connection, profile_id: int) -> bool:
         return cur.rowcount > 0
 
 
+# -- business vault ---------------------------------------------------------
+
+def insert_vault_item(
+    conn: connection,
+    case_id: int | None,
+    kind: str,
+    name: str,
+    status: str = "active",
+    notes: str | None = None,
+    data: dict | None = None,
+    created_by: str = "user",
+) -> int:
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO business_vault (case_id, kind, name, status,
+               notes, data, created_by)
+               VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s)
+               RETURNING id""",
+            (case_id, kind, name, status, notes, _j(data), created_by),
+        )
+        return cur.fetchone()[0]
+
+
+def update_vault_item(
+    conn: connection,
+    vault_id: int,
+    kind: str | None = None,
+    name: str | None = None,
+    status: str | None = None,
+    notes: str | None = None,
+    data: dict | None = None,
+    case_id: int | None = None,
+) -> dict | None:
+    sets: list[str] = []
+    params: list[Any] = []
+    if kind is not None:
+        sets.append("kind = %s"); params.append(kind)
+    if name is not None:
+        sets.append("name = %s"); params.append(name)
+    if status is not None:
+        sets.append("status = %s"); params.append(status)
+    if notes is not None:
+        sets.append("notes = %s"); params.append(notes)
+    if data is not None:
+        sets.append("data = %s::jsonb"); params.append(_j(data))
+    if case_id is not None:
+        sets.append("case_id = %s"); params.append(case_id)
+    if not sets:
+        return None
+    sets.append("updated_at = now()")
+    params.append(vault_id)
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            f"UPDATE business_vault SET {', '.join(sets)} WHERE id = %s RETURNING *",
+            tuple(params),
+        )
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def get_vault_item(conn: connection, vault_id: int) -> dict | None:
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("SELECT * FROM business_vault WHERE id = %s", (vault_id,))
+        row = cur.fetchone()
+        if row:
+            d = dict(row)
+            # Attach document references
+            cur.execute(
+                """SELECT d.id, d.name, d.page_count, d.document_type
+                   FROM documents d
+                   JOIN vault_documents vd ON vd.document_id = d.id
+                   WHERE vd.vault_id = %s
+                   ORDER BY d.name""",
+                (vault_id,),
+            )
+            d["documents"] = [dict(r) for r in cur.fetchall()]
+            return d
+        return None
+
+
+def list_vault_items(
+    conn: connection,
+    case_id: int | None = None,
+    kind: str | None = None,
+) -> list[dict]:
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        clauses = []
+        params: list[Any] = []
+        if case_id is not None:
+            clauses.append("case_id = %s"); params.append(case_id)
+        else:
+            clauses.append("case_id IS NULL")
+        if kind is not None:
+            clauses.append("kind = %s"); params.append(kind)
+        where = " AND ".join(clauses)
+        cur.execute(
+            f"""SELECT bv.*,
+                       (SELECT count(*) FROM vault_documents vd
+                        WHERE vd.vault_id = bv.id) AS document_count
+                FROM business_vault bv
+                WHERE {where}
+                ORDER BY updated_at DESC""",
+            tuple(params),
+        )
+        return [dict(row) for row in cur.fetchall()]
+
+
+def delete_vault_item(conn: connection, vault_id: int) -> bool:
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM business_vault WHERE id = %s", (vault_id,))
+        return cur.rowcount > 0
+
+
+def attach_vault_documents(
+    conn: connection, vault_id: int, document_ids: list[int]
+) -> int:
+    """Attach documents to a vault item. Returns count attached."""
+    attached = 0
+    with conn.cursor() as cur:
+        for doc_id in document_ids:
+            cur.execute(
+                """INSERT INTO vault_documents (vault_id, document_id)
+                   VALUES (%s, %s)
+                   ON CONFLICT (vault_id, document_id) DO NOTHING""",
+                (vault_id, doc_id),
+            )
+            attached += cur.rowcount
+    return attached
+
+
+def detach_vault_document(
+    conn: connection, vault_id: int, document_id: int
+) -> bool:
+    with conn.cursor() as cur:
+        cur.execute(
+            "DELETE FROM vault_documents WHERE vault_id = %s AND document_id = %s",
+            (vault_id, document_id),
+        )
+        return cur.rowcount > 0
+
+
 __all__ = [
     "connect", "tx",
     "ensure_schema", "ensure_strategy_schema", "ensure_chat_schema",
@@ -838,4 +979,7 @@ __all__ = [
     "insert_company_profile", "update_company_profile",
     "get_company_profile", "list_company_profiles", "delete_company_profile",
     "get_document_structure", "get_block_context",
+    "insert_vault_item", "update_vault_item", "get_vault_item",
+    "list_vault_items", "delete_vault_item",
+    "attach_vault_documents", "detach_vault_document",
 ]
