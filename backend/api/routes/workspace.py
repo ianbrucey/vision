@@ -20,6 +20,7 @@ from core.db import (
     delete_draft as _delete_draft,
     update_block as _update_block,
 )
+from schemas.view_envelope import validate_view_envelope
 
 router = APIRouter(prefix="/api", tags=["workspace"])
 
@@ -34,14 +35,14 @@ class CreateWorkspaceItemRequest(BaseModel):
     file_type: str = "markdown"
     document_type: str = "other"
     folder: str = "freestyle"
-    content: list = []
+    content: list | dict = []
 
 
 class UpdateWorkspaceItemRequest(BaseModel):
     name: str | None = None
     document_type: str | None = None
     status: str | None = None
-    content: list | None = None
+    content: list | dict | None = None
     file_type: str | None = None
     folder: str | None = None
 
@@ -100,6 +101,12 @@ def create_workspace_item_endpoint(
     user: dict = Depends(get_current_user),
 ):
     """Create a new workspace item (user-initiated)."""
+    # Validate json_view content against the view envelope schema
+    if body.file_type == "json_view":
+        valid, error = validate_view_envelope(body.content)
+        if not valid:
+            raise HTTPException(status_code=422, detail=f"Invalid view envelope: {error}")
+
     with tx() as conn:
         item_id = insert_draft(
             conn,
@@ -129,6 +136,26 @@ def update_workspace_item_endpoint(
     kwargs = {k: v for k, v in body.model_dump().items() if v is not None}
     if not kwargs:
         raise HTTPException(status_code=400, detail="No fields to update")
+
+    # Validate json_view content when updating a dict payload (non-list).
+    # Must check file_type — dict content isn't exclusive to json_view
+    # (markdown also accepts direct-object content like {markdown: "..."}).
+    new_content = kwargs.get("content")
+    if isinstance(new_content, dict):
+        # Determine file_type: from the update body, or fall back to the stored item
+        file_type = kwargs.get("file_type")
+        if file_type is None:
+            conn = connect()
+            try:
+                existing = _get_draft(conn, item_id)
+            finally:
+                conn.close()
+            if existing:
+                file_type = existing.get("file_type")
+        if file_type == "json_view":
+            valid, error = validate_view_envelope(new_content)
+            if not valid:
+                raise HTTPException(status_code=422, detail=f"Invalid view envelope: {error}")
 
     with tx() as conn:
         updated = _update_draft(conn, item_id, **kwargs)

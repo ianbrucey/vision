@@ -18,6 +18,8 @@ import {
 import FileExplorer from "@/components/FileExplorer";
 import DraftPreview from "@/components/DraftPreview";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import HtmlRenderer from "@/components/HtmlRenderer";
+import JsonViewRenderer from "@/components/views/JsonViewRenderer";
 
 /* ------------------------------------------------------------------ */
 /* Props                                                              */
@@ -82,6 +84,22 @@ function getMarkdownContent(content: unknown): { markdown: string } {
     return { markdown: String((content as Record<string, unknown>).markdown || "") };
   }
   return { markdown: "" };
+}
+
+/** Extract HTML string from content (for html file_type items). */
+function getHtmlContent(content: unknown): string {
+  // Content from API is a JSONB array: [{"html": "..."}]
+  if (Array.isArray(content) && content.length > 0) {
+    const first = content[0] as Record<string, unknown> | null;
+    if (first && typeof first === "object" && "html" in first) {
+      return String(first.html || "");
+    }
+  }
+  // Content might be the envelope directly: {"html": "..."}
+  if (content && typeof content === "object" && !Array.isArray(content) && "html" in content) {
+    return String((content as Record<string, unknown>).html || "");
+  }
+  return "";
 }
 
 /** Extract Block array from content (for structured_draft items). */
@@ -301,24 +319,14 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
           />
         );
       case "html":
-        return (
-          <div className="flex-1 flex items-center justify-center text-text-disabled text-sm p-6">
-            <div className="text-center">
-              <FileText size={32} className="mx-auto mb-3 opacity-40" />
-              <p className="font-medium">HTML Renderer</p>
-              <p className="text-xs mt-1">Coming in Phase 2</p>
-            </div>
-          </div>
-        );
+        return <HtmlRenderer html={getHtmlContent(activeItem.content)} />;
       case "json_view":
         return (
-          <div className="flex-1 flex items-center justify-center text-text-disabled text-sm p-6">
-            <div className="text-center">
-              <FileText size={32} className="mx-auto mb-3 opacity-40" />
-              <p className="font-medium">JSON Viewer</p>
-              <p className="text-xs mt-1">Coming in Phase 3</p>
-            </div>
-          </div>
+          <JsonViewRenderer
+            content={activeItem.content}
+            itemId={activeItem.id}
+            editMode={editMode}
+          />
         );
       default:
         return null;
@@ -360,7 +368,7 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
         <div className="flex-1" />
         {mobileView === "preview" && activeItem && (
           <>
-            {activeItem.file_type !== "html" && activeItem.file_type !== "json_view" && (
+            {activeItem.file_type !== "html" && (
               <button
                 onClick={() => setEditMode(!editMode)}
                 className={`text-xs px-3 py-1 rounded-md font-medium ${
@@ -494,7 +502,7 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
                     <option value="review">Review</option>
                     <option value="final">Final</option>
                   </select>
-                  {activeItem.file_type !== "html" && activeItem.file_type !== "json_view" && (
+                  {activeItem.file_type !== "html" && (
                     <button
                       onClick={() => setEditMode(!editMode)}
                       className={`text-xs px-3 py-1 rounded font-medium transition-colors ${

@@ -1,0 +1,136 @@
+[
+  {
+    "documentMetadata": {
+      "title": "Credit Report Analysis — Negative Accounts",
+      "sourceId": "doc_credit_001",
+      "lastUpdated": "2026-06-16T12:00:00Z"
+    },
+    "views": [
+      {
+        "viewType": "cards",
+        "title": "Summary",
+        "description": "Key metrics extracted from your credit report",
+        "data": {
+          "pairs": [
+            { "key": "Total Negative Accounts", "value": "7", "emphasis": "danger" },
+            { "key": "Total Balance Owed", "value": "$23,450", "emphasis": "warning" },
+            { "key": "Accounts in Good Standing", "value": "14", "emphasis": "success" },
+            { "key": "Report Date", "value": "June 1, 2026", "emphasis": "default" }
+          ]
+        }
+      },
+      {
+        "viewType": "table",
+        "title": "Negative Accounts Detail",
+        "description": "Accounts requiring dispute or resolution",
+        "data": {
+          "headers": ["Account Name", "Balance", "Status", "Date Opened", "Dispute Status"],
+          "rows": [
+            { "id": "r1", "Account Name": "Chase Bank — Credit Card", "Balance": "$4,230", "Status": "Delinquent (90+ days)", "Date Opened": "2019-03-15", "Dispute Status": "Unresolved" },
+            { "id": "r2", "Account Name": "Wells Fargo — Auto Loan", "Balance": "$8,900", "Status": "Charge-Off", "Date Opened": "2020-07-22", "Dispute Status": "In Progress" },
+            { "id": "r3", "Account Name": "Portfolio Recovery — Collections", "Balance": "$2,150", "Status": "Collections", "Date Opened": "2021-01-10", "Dispute Status": "Not Started" },
+            { "id": "r4", "Account Name": "Capital One — Credit Card", "Balance": "$1,850", "Status": "Delinquent (60 days)", "Date Opened": "2018-11-05", "Dispute Status": "Not Started" },
+            { "id": "r5", "Account Name": "Medical Debt — City Hospital", "Balance": "$4,120", "Status": "Collections", "Date Opened": "2022-06-18", "Dispute Status": "Not Started" },
+            { "id": "r6", "Account Name": "Synchrony Bank — Retail", "Balance": "$950", "Status": "Charge-Off", "Date Opened": "2020-02-28", "Dispute Status": "In Progress" },
+            { "id": "r7", "Account Name": "LVNV Funding — Collections", "Balance": "$1,250", "Status": "Collections", "Date Opened": "2021-09-03", "Dispute Status": "Not Started" }
+          ]
+        }
+      },
+      {
+        "viewType": "list",
+        "title": "Recommended Dispute Actions",
+        "description": "Ordered by priority — work top to bottom",
+        "data": {
+          "listStyle": "checkbox",
+          "items": [
+            { "id": "t1", "text": "Dispute Chase Bank balance — verify original charge-off date with original creditor", "completed": false },
+            { "id": "t2", "text": "Request debt validation letter from Portfolio Recovery (30-day deadline)", "completed": false },
+            { "id": "t3", "text": "File FCRA dispute with Equifax for Medical Debt — request verification of debt", "completed": false },
+            { "id": "t4", "text": "Contact Wells Fargo for settlement negotiation — account already charged off", "completed": false },
+            { "id": "t5", "text": "Check statute of limitations for all collection accounts (Georgia: 6 years written, 4 years oral)", "completed": false },
+            { "id": "t6", "text": "Pull TransUnion and Experian reports — cross-reference for discrepancies", "completed": false },
+            { "id": "t7", "text": "Draft goodwill letter for Capital One — only 60 days delinquent, best recovery candidate", "completed": false }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "documentMetadata": {
+      "title": "Bank Statement Review — March 2026",
+      "sourceId": "doc_bank_003",
+      "lastUpdated": "2026-06-16T14:30:00Z"
+    },
+    "views": [
+      {
+        "viewType": "cards",
+        "title": "Monthly Summary",
+        "data": {
+          "pairs": [
+            { "key": "Total Deposits", "value": "$8,450.00", "emphasis": "default" },
+            { "key": "Total Withdrawals", "value": "$6,230.50", "emphasis": "default" },
+            { "key": "Ending Balance", "value": "$2,219.50", "emphasis": "info" },
+            { "key": "Subscription Spend", "value": "$187.34", "emphasis": "warning" }
+          ]
+        }
+      },
+      {
+        "viewType": "table",
+        "title": "Recurring Subscriptions Detected",
+        "description": "Monthly subscriptions identified from transaction patterns",
+        "data": {
+          "headers": ["Service", "Amount", "Frequency", "Category", "Status"],
+          "rows": [
+            { "id": "s1", "Service": "Netflix Premium", "Amount": "$22.99", "Frequency": "Monthly", "Category": "Entertainment", "Status": "Active" },
+            { "id": "s2", "Service": "Amazon Prime", "Amount": "$16.99", "Frequency": "Monthly", "Category": "Shopping", "Status": "Active" },
+            { "id": "s3", "Service": "Spotify Family", "Amount": "$19.99", "Frequency": "Monthly", "Category": "Entertainment", "Status": "Active" },
+            { "id": "s4", "Service": "Adobe Creative Cloud", "Amount": "$59.99", "Frequency": "Monthly", "Category": "Software", "Status": "Active" },
+            { "id": "s5", "Service": "Dropbox Plus", "Amount": "$11.99", "Frequency": "Monthly", "Category": "Software", "Status": "Active" },
+            { "id": "s6", "Service": "Planet Fitness", "Amount": "$24.99", "Frequency": "Monthly", "Category": "Health", "Status": "Unused — 0 check-ins" },
+            { "id": "s7", "Service": "The New York Times", "Amount": "$17.00", "Frequency": "Monthly", "Category": "News", "Status": "Active" },
+            { "id": "s8", "Service": "Apple iCloud+ 2TB", "Amount": "$12.99", "Frequency": "Monthly", "Category": "Storage", "Status": "Active" }
+          ]
+        }
+      },
+      {
+        "viewType": "list",
+        "title": "Optimization Recommendations",
+        "data": {
+          "listStyle": "checkbox",
+          "items": [
+            { "id": "r1", "text": "Cancel Planet Fitness — $24.99/mo with zero usage over 3 months", "completed": false },
+            { "id": "r2", "text": "Downgrade Adobe CC to Photography plan — save $40/mo if video tools unused", "completed": false },
+            { "id": "r3", "text": "Switch Spotify to annual plan — save ~$20/year", "completed": false },
+            { "id": "r4", "text": "Consolidate cloud storage — Dropbox + iCloud overlap. Keep one.", "completed": false }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "documentMetadata": {
+      "title": "Monthly Expenses — Chart",
+      "sourceId": "doc_bank_007",
+      "lastUpdated": "2026-06-16T15:00:00Z"
+    },
+    "views": [
+      {
+        "viewType": "chart",
+        "title": "Monthly Expense Breakdown",
+        "description": "Bar chart comparing spending across categories",
+        "data": {
+          "chartType": "bar",
+          "headers": ["Category", "Amount"],
+          "rows": [
+            { "id": "c1", "Category": "Rent", "Amount": "2200" },
+            { "id": "c2", "Category": "Groceries", "Amount": "850" },
+            { "id": "c3", "Category": "Subscriptions", "Amount": "187" },
+            { "id": "c4", "Category": "Utilities", "Amount": "340" },
+            { "id": "c5", "Category": "Transport", "Amount": "420" },
+            { "id": "c6", "Category": "Dining Out", "Amount": "560" }
+          ]
+        }
+      }
+    ]
+  }
+]

@@ -1,21 +1,118 @@
-Um, the government contracting stuff is sort of my way out. But I need a system, though. I will not survive without a system. And so, um, what I've been working on is a system called Vision—an agentic, uh, an agentic intelligence operating system, I guess. But to simplify it all, the way that it works is by, um, basically dumping your documents into the data lake, um, tagging the information, and having your agent be able to parse through the—parse through the stuff via like protocols.
+Role & Objective
+You are an expert full-stack software engineer and system architect. We are building a "Dynamic View System" (a context-aware visibility app) that acts like an AI-native version of Notion. The system ingests unstructured files (bank statements, legal case documents, credit reports), extracts the data into structured JSON, and dynamically renders the data into pre-built frontend components based on the context of the data.
 
-Um, so if you're dealing with a legal document, um, there are a number of steps that you have to go through. If you're dealing with a solicitation from the government, like an RFP or a sources sought, you know, there's a set of steps you go through, like first extracting the requirements. Yeah, extracting the requirements, um, you know, all of that good stuff, whatever is involved in that.
+Do not generate raw, unstyled HTML strings from the LLM. Instead, enforce a strict "Headless UI" design pattern where the AI controls the DATA and the METADATA, and the frontend handles the VISUAL PRESENTATION.
 
-Um, and so what I have right now is a good start. Basically, the ingestion works. Um, you know, we OCR the documents, split them up by their—by the sections that DataLab provides us, we tag the documents, um, we do embeddings for semantic search. And then, you know, the agent has in—has visibility into the system, so it can tell us, you know, how many documents we have for the case or whatever. Um, and it can look it look into the documents and blah, blah, blah, you know what I mean?
+---
 
-Um, and so, uh, I mean aside from a few cleanup items like UI and like establishing who the user is, um, which we'll have to maybe add a form for that, or maybe we do it on registration where like you got to put in your first name and last name, and I don't know. Or maybe we do it at a case level, I don't know.
+### System Architecture & Data Flow
 
-Um, but for right now, I think I want to focus on the RFP part of it, or the government contract part of it. Um, so I got to figure out how I would do this in the context of the application. Like, what does the workflow look like?
+1. Database Layer:
+   - A Hybrid Model. Chunks/embeddings are stored in a Vector DB for semantic RAG search.
+   - Clean, extracted document data is stored as a structured JSON payload in a relational/document database (e.g., PostgreSQL `JSONB` or MongoDB).
+2. Backend LLM Layer:
+   - Analyzes the document type or user request and returns a strict JSON payload containing a "Metadata Envelope" (`viewType`) and a structured `data` payload.
+3. Frontend Layer:
+   - Uses a conditional rendering engine. It reads the `viewType` envelope and dynamically maps the data payload into a corresponding, pre-designed component (e.g., `<DynamicTable />`, `<DynamicList />`, `<LetterTemplate />`).
 
-So, for example, do I build a specific—yeah, here, here's the here's here's the challenge I need to figure out. Do I build a specific workflow for, um, the application? Meaning like, we know that when we go to do an RFP, we, um, basically have a specific, uh, you know, set of forms and documents that we produce and show to the user? Or do we treat it a lot more like a VS Code type situation where a coding agent can pretty much produce any sort of document that it deems relevant to the case or the matter, and we display it?
+---
 
-Now, the challenge is we're not working on, um, we're not working on like a machine. We—this is a web application. And because there's—it's a web application, we have to be consider of the fact that like, yeah, you can't just put a bunch of fi—like, you can't just put a bunch of files on a—a multi-tenant server because technically it's a—it's a stateless, um, application, um, or the server is stateless, I mean.
+### Strict JSON Response Schema
 
-Um, and so the question becomes, uh, I guess—well, I guess so, I guess it's not a problem. It's like maybe you have documents, right? But those, those are, are, are—so we establish a workspace, and within those—within that workspace, you establish, um, workspace documents, but maybe those workspace documents are in the form of database rows. And so you have different type of workspace documents: it can be markdown, it can be JSON, um, really be anything.
+Every UI generation response from the AI must conform to this exact wrapper schema:
 
-And then we'd have to figure out, okay, like how do we want to display that to the user as the agent, um, you know, produces these particular documents? Like, it's, it's tricky the way we have it set up, um, because right now we have agent—we have agent chat on its own tab, and then we have basically, uh, like drafting on its own tab. Um, and what we could do is like we could add the—on the drafting, we could have basically, uh, a—a three-column split where like 1/3 of the grid is agent chat, the other 2/3 are like document and, you know, whatever else we need. Um, but then when we shrink down to the mobile view, like how does that work, you know what I mean? So, so a couple considerations we have to make with that.
+{
+  "viewType": "string", // Options: "table" | "list" | "letter" | "spreadsheet"
+  "documentMetadata": {
+    "title": "string",
+    "sourceId": "string",
+    "lastUpdated": "string"
+  },
+  "data": {} // Shape dynamically shifts based on viewType
+}
 
-Um, but I think once we get it to the point where it's like we, we figured out how to produce, um, produce the documents on the page, you get—you know what I mean? Um, in some cases, the document might be HTML, like if we want to—I don't know, dude, it's, it's going—I don't know, we'll figure it out. But yeah, if we can get to that point where the—where the agent can then start to produce workspace documents for the purpose of like taking notes or building out requirements or RFPs or legal drafts, whatever, um, I think we'll be in a good spot for in—because then from that point, now it's just like, all right, we have these tools. Now, what are the protocols for making them work together? Um, but, uh, like all of that is application stuff. So, yeah, once we figure that out...
+---
 
-So, I'm probably spend like another hour or two on that, and then the rest of my day will be spent figured out—like figuring out, well, actually when I get back, I'm going to handle all my paperwork stuff that I got to do. That should take me like 20 minutes each if I just focus, I don't bullshit, don't allow myself to get distracted, like just knock it out. That should be good. Um, put another like hour of focus on whatever I talked about for Vision, and then I'm going to spend—spend the rest of the day working on that, uh, sources sought notice. And that's it.
+### Explicit Context & Schema Examples
+
+#### Example 1: Financial Statements / Credit Reports (viewType: "table")
+
+When rendering tabular data, the `data` object must provide an array of `headers` and an array of `rows` consisting of key-value objects. This ensures the frontend table component can dynamically map columns.
+
+{
+  "viewType": "table",
+  "documentMetadata": {
+    "title": "Negative Credit Accounts Summary",
+    "sourceId": "doc_credit_001",
+    "lastUpdated": "2026-06-16"
+  },
+  "data": {
+    "headers": ["Account Name", "Balance", "Status", "DisputeStatus"],
+    "rows": [
+      { "id": "1", "Account Name": "Chase Bank", "Balance": "$4,230", "Status": "Delinquent", "DisputeStatus": "Unresolved" },
+      { "id": "2", "Account Name": "Wells Fargo", "Balance": "$1,150", "Status": "Charge-Off", "DisputeStatus": "In-Progress" }
+    ]
+  }
+}
+
+#### Example 2: Corporate/Legal Letters (viewType: "letter")
+
+To render an 8.5x11 printable letter, the LLM provides content variables. The frontend will map these into a fixed-width CSS print container with standardized margins, a professional letterhead layout, and signature lines.
+
+{
+  "viewType": "letter",
+  "documentMetadata": {
+    "title": "Notice of Credit Dispute Letter",
+    "sourceId": "doc_letter_882",
+    "lastUpdated": "2026-06-16"
+  },
+  "data": {
+    "sender": { "name": "John Doe Enterprises", "address": "123 Main St, Atlanta, GA" },
+    "recipient": { "name": "Equifax Dispute Dept", "address": "P.O. Box 740256, Atlanta, GA" },
+    "date": "June 16, 2026",
+    "subject": "Formal Dispute of Inaccurate Account Information",
+    "salutation": "To Whom It May Concern,",
+    "paragraphs": [
+      "I am writing to formally dispute the inaccurate reporting of the Chase Bank account listed on my credit file...",
+      "Under the Fair Credit Reporting Act, I request an immediate investigation and removal of this inaccurate balance."
+    ],
+    "closing": "Sincerely,",
+    "signatureName": "John Doe, CEO"
+  }
+}
+
+#### Example 3: Compliance Tasks / Checklists (viewType: "list")
+
+For standard operational checklists or chronological logs.
+
+{
+  "viewType": "list",
+  "documentMetadata": {
+    "title": "Post-Award Onboarding Steps",
+    "sourceId": "sop_mpt_01",
+    "lastUpdated": "2026-06-16"
+  },
+  "data": {
+    "listStyle": "checkbox", // Options: "checkbox" | "ordered" | "bullet"
+    "items": [
+      { "id": "t1", "text": "Verify Government Purchase Card (GPC) authorization limit", "completed": true },
+      { "id": "t2", "text": "Execute sub-tier commercial execution agreement with vendor", "completed": false },
+      { "id": "t3", "text": "Submit closeout log to Contracting Officer via WAWF", "completed": false }
+    ]
+  }
+}
+
+---
+
+### The Interactive Editing Loop Requirements
+
+We need to be able to modify this data directly on-screen. Program the following logic:
+
+1. Inline Editing: When a user clicks on a cell in a `<Table />` or a paragraph in a `<LetterTemplate />`, switch that element into an active HTML input/textarea state bound to the frontend's local state.
+2. State Syncing: As the user edits, update the active local JSON payload in memory.
+3. Database Persist: When the user clicks a "Save Changes" button:
+   - Fire a `PUT/PATCH` API call passing the newly modified JSON data back to the database.
+   - Overwrite the existing JSON document record.
+   - Trigger a background worker script that re-chunks the modified fields and re-indexes them into the Vector DB so the RAG search stays perfectly synced with user edits.
+
+Please generate the foundational database schema, backend router logic, and the frontend dynamic conditional renderer component to implement this architecture.

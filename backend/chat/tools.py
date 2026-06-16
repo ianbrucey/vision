@@ -1164,10 +1164,19 @@ def create_vision_server(case_id: int):
         "get_workspace_item",
         "Read a workspace item's full content. The content structure depends "
         "on file_type:\n"
-        "  markdown         — {\"markdown\": \"# Title...\"}\n"
+        "  markdown         — [{\"markdown\": \"# Title...\"}]\n"
         "  structured_draft — [{id, type, content}, ...]\n"
-        "  html             — {\"html\": \"<html>...\"}\n"
-        "  json_view        — {\"data\": {...}}\n"
+        "  html             — [{\"html\": \"<html>...\"}]\n"
+        "  json_view        — {documentMetadata: {title, sourceId?, lastUpdated?}, "
+        "views: [{viewType, title, description?, data}]}\n"
+        "    viewType: 'table' | 'list' | 'cards' | 'chart'\n"
+        "    table data: {headers: [string], rows: [{id, ...column}]}\n"
+        "    list data:  {listStyle: 'checkbox'|'ordered'|'bullet', "
+        "items: [{id, text, completed?, notes?}]}\n"
+        "    cards data: {pairs: [{key, value, emphasis?}]}\n"
+        "    chart data: {chartType: 'bar'|'line'|'pie', "
+        "headers: [string], rows: [{id, ...column}]}  (same structure as table)\n"
+        "    emphasis: 'default' | 'warning' | 'danger' | 'success' | 'info'\n"
         "Use this before editing so you can see the current state.",
         {
             "type": "object",
@@ -1201,15 +1210,14 @@ def create_vision_server(case_id: int):
     @tool(
         "create_workspace_item",
         "Create a new workspace item. Content structure depends on file_type:\n"
-        "  markdown         — {\"markdown\": \"# Title\\n\\nContent...\"}\n"
+        "  markdown         — [{\"markdown\": \"# Title\\n\\nContent...\"}]\n"
         "  structured_draft — [{\"id\":\"b1\",\"type\":\"section_heading\","
         "\"content\":\"TITLE\"}, ...]\n"
-        "  html             — {\"html\": \"<html>...</html>\"}\n"
-        "  json_view        — {\"data\": {...}}\n\n"
-        "For markdown, wrap the full markdown string in an object with a "
-        "'markdown' key. For structured_draft, use the block array format "
-        "with section_heading, numbered_paragraph, list_item, and signature "
-        "block types.",
+        "  html             — [{\"html\": \"<html>...</html>\"}]\n"
+        "  json_view        — {documentMetadata: {title}, "
+        "views: [{viewType, title, data}]}  (direct object — NOT array-wrapped)\n\n"
+        "For json_view, see the dynamic-views skill for the full envelope schema. "
+        "For all other types, content must be wrapped in a single-element array.",
         {
             "type": "object",
             "properties": {
@@ -1235,7 +1243,9 @@ def create_vision_server(case_id: int):
                 },
                 "content": {
                     "type": "object",
-                    "description": "Content envelope matching file_type.",
+                    "description": "Content envelope matching file_type. "
+                    "For json_view: a direct object {documentMetadata, views[]}. "
+                    "For all other types: array-wrapped.",
                 },
             },
             "required": ["name", "file_type", "folder", "content"],
@@ -1244,12 +1254,17 @@ def create_vision_server(case_id: int):
     async def create_workspace_item(args: dict[str, Any]) -> dict[str, Any]:
         try:
             content_raw = args.get("content", {})
-            if isinstance(content_raw, list):
-                content_list = content_raw
+            file_type = args.get("file_type", "markdown")
+
+            # json_view stores content as a direct object — never array-wrap it.
+            if file_type == "json_view" and isinstance(content_raw, dict):
+                content_to_store = content_raw
+            elif isinstance(content_raw, list):
+                content_to_store = content_raw
             elif isinstance(content_raw, dict):
-                content_list = [content_raw]
+                content_to_store = [content_raw]
             else:
-                content_list = [{"raw": str(content_raw)}]
+                content_to_store = [{"raw": str(content_raw)}]
 
             conn = _conn()
             try:
@@ -1259,7 +1274,7 @@ def create_vision_server(case_id: int):
                     case_id=case_id,
                     name=args["name"],
                     document_type=args.get("document_type", "other"),
-                    content=content_list,
+                    content=content_to_store,
                     created_by="agent",
                     file_type=args["file_type"],
                     folder=args["folder"],
@@ -1271,7 +1286,7 @@ def create_vision_server(case_id: int):
                 "name": args["name"],
                 "file_type": args["file_type"],
                 "folder": args["folder"],
-                "block_count": len(content_list),
+                "block_count": len(content_to_store),
             })
         except Exception as exc:
             return _error(f"create_workspace_item failed: {exc}")
@@ -1281,7 +1296,9 @@ def create_vision_server(case_id: int):
         "Modify a workspace item — update its name, content, folder, or "
         "status. For targeted edits, provide only what changed. To replace "
         "the entire content, provide a full content envelope matching the "
-        "item's file_type. Use get_workspace_item first to see current state.",
+        "item's file_type. Use get_workspace_item first to see current state.\n\n"
+        "For json_view: send content as a direct object {documentMetadata, views[]} "
+        "(NOT array-wrapped). For all other types: content is array-wrapped.",
         {
             "type": "object",
             "properties": {
@@ -1295,7 +1312,8 @@ def create_vision_server(case_id: int):
                 },
                 "content": {
                     "type": "object",
-                    "description": "Full replacement content envelope (optional).",
+                    "description": "Full replacement content envelope (optional). "
+                    "For json_view: direct object. For other types: array-wrapped.",
                 },
                 "folder": {
                     "type": "string",
@@ -1335,7 +1353,10 @@ def create_vision_server(case_id: int):
                 kwargs["folder"] = args["folder"]
             if "content" in args:
                 content_raw = args["content"]
-                if isinstance(content_raw, list):
+                item_file_type = item.get("file_type", "")
+                if item_file_type == "json_view" and isinstance(content_raw, dict):
+                    kwargs["content"] = content_raw  # direct object — never wrap
+                elif isinstance(content_raw, list):
                     kwargs["content"] = content_raw
                 elif isinstance(content_raw, dict):
                     kwargs["content"] = [content_raw]
@@ -2139,7 +2160,7 @@ def create_vision_server(case_id: int):
             tags = args["tags"]
             knowledge_type = args.get("document_type", "insight")
 
-            content_list = [{"markdown": args["content"]}]
+            content_to_store = [{"markdown": args["content"]}]
 
             conn = _conn()
             try:
@@ -2149,7 +2170,7 @@ def create_vision_server(case_id: int):
                     case_id=kb_case_id,
                     name=args["title"],
                     document_type="other",
-                    content=content_list,
+                    content=content_to_store,
                     created_by="agent",
                     file_type="markdown",
                     folder="artifacts",

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
-import { Loader2 } from "lucide-react";
+import { Loader2, Printer } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
 /* Props                                                              */
@@ -118,19 +118,19 @@ export default function MarkdownRenderer({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <article className="p-6 max-w-[680px] mx-auto
-                        prose prose-invert prose-sm
-                        prose-headings:text-text-primary
-                        prose-p:text-text-primary prose-p:leading-relaxed
-                        prose-a:text-info prose-a:no-underline hover:prose-a:underline
-                        prose-strong:text-text-primary
-                        prose-code:text-text-primary prose-code:bg-surface-2 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
-                        prose-pre:bg-surface-2 prose-pre:border prose-pre:border-border
-                        prose-blockquote:border-brand prose-blockquote:text-text-secondary
-                        prose-ul:text-text-primary prose-ol:text-text-primary
-                        prose-li:text-text-primary
-                        prose-hr:border-border
+    <div className="flex-1 overflow-y-auto bg-[--surface-0] p-4 md:p-8">
+      <article className="max-w-[8.5in] mx-auto bg-white rounded-lg shadow-lg p-8 md:p-12
+                        prose prose-sm
+                        prose-headings:text-gray-900
+                        prose-p:text-gray-800 prose-p:leading-relaxed
+                        prose-a:text-[--info] prose-a:no-underline hover:prose-a:underline
+                        prose-strong:text-gray-900
+                        prose-code:text-gray-800 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
+                        prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200
+                        prose-blockquote:border-[--brand] prose-blockquote:text-gray-600
+                        prose-ul:text-gray-800 prose-ol:text-gray-800
+                        prose-li:text-gray-800
+                        prose-hr:border-gray-200
                         prose-img:rounded-md">
         <ReactMarkdown>{markdownText}</ReactMarkdown>
       </article>

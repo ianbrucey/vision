@@ -479,7 +479,7 @@ def insert_draft(
     case_id: int,
     name: str,
     document_type: str = "letter",
-    content: list | None = None,
+    content: list | dict | None = None,
     created_by: str = "agent",
     status: str = "draft",
     file_type: str = "structured_draft",
@@ -492,7 +492,8 @@ def insert_draft(
                VALUES (%s, %s, %s, %s::jsonb, %s, %s, %s, %s)
                RETURNING id""",
             (case_id, name, document_type,
-             json.dumps(content or []), created_by, status, file_type, folder),
+             json.dumps(content if content is not None else []),
+             created_by, status, file_type, folder),
         )
         return cur.fetchone()[0]
 
@@ -503,7 +504,7 @@ def update_draft(
     name: str | None = None,
     document_type: str | None = None,
     status: str | None = None,
-    content: list | None = None,
+    content: list | dict | None = None,
     file_type: str | None = None,
     folder: str | None = None,
 ) -> dict | None:
@@ -547,7 +548,15 @@ def list_drafts(conn: connection, case_id: int, folder: str | None = None) -> li
             cur.execute(
                 """SELECT id, case_id, name, document_type, file_type, folder,
                           status, created_by,
-                          jsonb_array_length(content) AS block_count,
+                          CASE
+                            WHEN jsonb_typeof(content) = 'array'
+                              THEN jsonb_array_length(content)
+                            WHEN jsonb_typeof(content) = 'object' AND content ? 'views'
+                              THEN jsonb_array_length(content->'views')
+                            WHEN jsonb_typeof(content) = 'object'
+                              THEN 1
+                            ELSE 0
+                          END AS block_count,
                           created_at, updated_at
                    FROM drafts WHERE case_id = %s AND folder = %s
                    ORDER BY updated_at DESC""",
@@ -557,7 +566,15 @@ def list_drafts(conn: connection, case_id: int, folder: str | None = None) -> li
             cur.execute(
                 """SELECT id, case_id, name, document_type, file_type, folder,
                           status, created_by,
-                          jsonb_array_length(content) AS block_count,
+                          CASE
+                            WHEN jsonb_typeof(content) = 'array'
+                              THEN jsonb_array_length(content)
+                            WHEN jsonb_typeof(content) = 'object' AND content ? 'views'
+                              THEN jsonb_array_length(content->'views')
+                            WHEN jsonb_typeof(content) = 'object'
+                              THEN 1
+                            ELSE 0
+                          END AS block_count,
                           created_at, updated_at
                    FROM drafts WHERE case_id = %s
                    ORDER BY updated_at DESC""",
