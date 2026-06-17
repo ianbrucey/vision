@@ -1,0 +1,393 @@
+/* ============================================================================
+   Vision — Draft Styles (ported from war-room-1 generateHtml.ts)
+   ============================================================================
+   Single source of truth for legal document formatting. Applied to both
+   screen rendering (React components) and print (blob window).
+   DO NOT use Tailwind classes for document content — use these classes. */
+
+/* --- Base --- */
+.draft-document {
+  font-family: "Times New Roman", Times, Georgia, serif;
+  font-size: 14pt;
+  line-height: 2.0;
+  background: white;
+  color: black;
+  overflow-wrap: break-word;
+}
+
+.draft-document.draft-letter {
+  font-size: 12pt;
+  line-height: 1.7;
+}
+
+/* --- Court Caption --- */
+.court-caption {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 2em;
+}
+
+.case-caption {
+  width: 100%;
+  margin-bottom: 2em;
+  border-collapse: collapse;
+}
+
+.case-caption td {
+  vertical-align: top;
+  padding: 0.5em;
+}
+
+.case-left {
+  width: 50%;
+}
+
+.case-right {
+  width: 50%;
+  text-align: center;
+  border-left: 1px solid black;
+  padding-left: 1em;
+}
+
+.motion-title {
+  text-align: center;
+  font-weight: bold;
+  margin: 2em 0;
+  text-decoration: underline;
+}
+
+/* --- Section Headers --- */
+.section-header {
+  font-weight: bold;
+  margin: 1.5em 0 1em 0;
+  text-align: center;
+  text-decoration: underline;
+  text-transform: uppercase;
+}
+
+.argument-subheading {
+  font-weight: bold;
+  margin: 1.25em 0 0.75em 0;
+}
+
+/* --- Paragraphs --- */
+.draft-document p {
+  margin: 1em 0;
+  text-align: justify;
+}
+
+.para-num {
+  font-weight: bold;
+  margin-right: 0.25em;
+}
+
+.draft-list-item {
+  display: block;
+  margin-left: 2em;
+  text-indent: -1.5em;
+  padding-left: 1.5em;
+}
+
+.list-label {
+  display: inline-block;
+  min-width: 2em;
+  margin-right: 0.5em;
+}
+
+/* --- Block Quote --- */
+.draft-document blockquote {
+  margin: 1em 2em;
+  padding: 0.5em 1em;
+  border-left: 3px solid #ccc;
+  font-style: italic;
+}
+
+/* --- Signature --- */
+.signature-row {
+  margin-top: 3em;
+  margin-bottom: 1em;
+  max-width: 300px;
+}
+
+.signature-line {
+  border-top: 1px solid black;
+  margin-bottom: 4px;
+}
+
+.signature-name {
+  font-weight: bold;
+}
+
+/* --- Dividers --- */
+.section-divider {
+  margin: 2em 0;
+  border: 0;
+  border-top: 1px solid #eee;
+}
+
+/* --- Editing --- */
+.editable-block {
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+
+.editable-block:hover {
+  background: rgba(184, 134, 11, 0.08);
+  outline: 1px dashed rgba(184, 134, 11, 0.3);
+}
+
+.editable-caption-field {
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.editable-caption-field:hover {
+  background: rgba(184, 134, 11, 0.08);
+  outline: 1px dashed rgba(184, 134, 11, 0.3);
+}
+
+.edit-textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  background: #fafafa;
+  border: 1px solid #B8860B;
+  border-radius: 4px;
+  padding: 0.5em;
+  resize: vertical;
+  min-height: 4em;
+  outline: none;
+}
+
+.edit-textarea:focus {
+  box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.2);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.5em;
+  margin-top: 0.25em;
+}
+
+.btn-save {
+  font-size: 0.7em;
+  padding: 0.25em 0.75em;
+  background: #B8860B;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  font-size: 0.7em;
+  padding: 0.25em 0.75em;
+  background: #f0f0f0;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* --- Insert Row --- */
+.insert-row {
+  position: relative;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.insert-row-line {
+  position: absolute;
+  inset: 50% 0 auto 0;
+  border-top: 1px dashed #ddd;
+}
+
+.insert-row-btn {
+  position: relative;
+  z-index: 1;
+  font-size: 10px;
+  color: #999;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  padding: 1px 8px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.insert-row:hover .insert-row-btn {
+  opacity: 1;
+}
+
+.insert-row-btn:hover {
+  color: #666;
+  border-color: #999;
+}
+
+.insert-menu {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 20;
+  min-width: 160px;
+  padding: 4px 0;
+}
+
+.insert-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #333;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.insert-menu button:hover {
+  background: #f5f5f5;
+}
+
+/* --- Letter --- */
+.letter-date {
+  margin-bottom: 2em;
+}
+
+.letter-recipient {
+  margin: 2em 0;
+}
+
+.letter-salutation {
+  margin-bottom: 1.5em;
+}
+
+.letter-subject {
+  font-weight: bold;
+  margin-bottom: 1.5em;
+}
+
+.letter-signoff {
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+/* --- Contract --- */
+.document-title {
+  margin-bottom: 2em;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.2em;
+  text-transform: uppercase;
+}
+
+.contract-parties {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2em;
+  margin-bottom: 2em;
+}
+
+.contract-party-label {
+  font-size: 0.8em;
+  color: #666;
+  margin-top: 0.25em;
+}
+
+/* --- Memo --- */
+.memo-header-table {
+  width: 100%;
+  margin-bottom: 2em;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 1em;
+}
+
+.memo-header-table td {
+  padding: 0.25em 0;
+  vertical-align: top;
+}
+
+.memo-header-label {
+  font-weight: bold;
+  padding-right: 1em;
+  white-space: nowrap;
+}
+
+/* --- Raw HTML --- */
+.raw-html-block {
+  margin: 1em 0;
+}
+
+.raw-html-block table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5em 0;
+}
+
+.raw-html-block th,
+.raw-html-block td {
+  border: 1px solid #ccc;
+  padding: 0.4em 0.75em;
+  text-align: left;
+}
+
+.raw-html-block th {
+  background: #f0f0f0;
+  font-weight: bold;
+}
+
+/* --- Print --- */
+@media print {
+  .draft-document {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+  }
+}
+
+/* --- Print Preview Container (screen only) --- */
+.draft-preview-shell {
+  max-width: 8.5in;
+  margin: 20px auto;
+  padding: 1in;
+  background: white;
+  border: 1px solid #d3d3d3;
+  box-shadow: 3px 3px 20px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .draft-preview-shell {
+    max-width: 100%;
+    margin: 0;
+    padding: 0.5in;
+    box-shadow: none;
+    border: none;
+  }
+  .draft-document {
+    font-size: 12pt;
+    line-height: 1.8;
+  }
+  .case-caption td {
+    display: block;
+    width: 100%;
+    border-left: none;
+    padding: 0.3em 0;
+  }
+  .case-right {
+    border-top: 1px solid black;
+    margin-top: 0.5em;
+    padding-top: 0.5em;
+  }
+}

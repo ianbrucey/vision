@@ -90,8 +90,14 @@ export const synthesizeCase = (caseId: number): Promise<{ job_id: number; status
 // Drafts
 export interface Block {
   id: string;
-  type: "section_heading" | "numbered_paragraph" | "list_item" | "signature";
+  type: "section_heading" | "numbered_paragraph" | "unnumbered_paragraph"
+      | "block_quote" | "list_item" | "signature_row"
+      | "section_divider" | "raw_html";
   content: string;
+  /** For list_item: "letter" | "roman" | "bullet" — defaults to "letter" */
+  list_style?: "letter" | "roman" | "bullet";
+  /** For signature_row: printed name below the line */
+  printed_name?: string;
 }
 
 export interface DraftSummary {
@@ -213,7 +219,7 @@ export const createWorkspaceItem = (data: {
 
 export const updateWorkspaceItem = (
   itemId: number,
-  data: { name?: string; content?: unknown; folder?: string; status?: string; file_type?: string; document_type?: string },
+  data: { name?: string; content?: unknown; folder?: string; status?: string; file_type?: string; document_type?: string; metadata?: Record<string, unknown> | null },
 ): Promise<{ item: WorkspaceItemFull }> =>
   fetchAPI(`/api/workspace/${itemId}`, { method: "PATCH", body: JSON.stringify(data) });
 

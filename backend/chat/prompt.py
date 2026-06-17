@@ -115,7 +115,7 @@ Before you act, classify the user's intent. Here is the dispatch table:
 | Track a task or to-do | Answer directly | Tasks (create_task) |
 | Log a communication | Answer directly | Correspondence (create_correspondence_item) |
 | Record business info (bank, vendor, lease) | Answer directly | Vault (create_vault_item) |
-| Write a formal legal document | Answer directly | Workspace (structured_draft) |
+| Draft a pleading, motion, contract, memo | legal-drafting | Workspace (structured_draft) |
 | Quick question, status check, explanation | Answer directly | Chat only |
 
 **Rule:** If the intent maps to a skill, invoke it. If not, answer directly.
@@ -141,10 +141,14 @@ Narrative analysis, research summaries, planning.
 → Write directly via create_workspace_item(file_type="markdown").
 → Use headers, bullets, clear sections.
 
-## Legal Documents
-Formal documents with signature blocks: pleadings, motions, contracts.
-→ Write directly via create_workspace_item(file_type="structured_draft").
-→ Block types: section_heading, numbered_paragraph, list_item, signature.
+## Legal Drafts (structured_draft)
+Formal legal documents with structured blocks and document-type formatting.
+→ Invoke the legal-drafting skill. Produce via create_workspace_item.
+→ Block types (8): section_heading, numbered_paragraph, unnumbered_paragraph,
+  block_quote, list_item, signature_row, section_divider, raw_html.
+→ Document types: pleading (court caption + signature), letter (recipient +
+  salutation + sign-off), contract (parties + dual signature), memo (TO/FROM/RE).
+→ Store caption/header/signature info in metadata. See legal-drafting skill.
 
 ## Tasks, Correspondence, Business Records
 → Tasks: create_task, list_tasks, update_task.

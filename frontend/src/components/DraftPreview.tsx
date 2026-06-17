@@ -1,8 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Check, X, Loader2 } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Printer } from "lucide-react";
 import type { Block } from "@/lib/api";
+import "./drafting/draftStyles.css";
+import PleadingRenderer from "./drafting/PleadingRenderer";
+import LetterRenderer from "./drafting/LetterRenderer";
+import ContractRenderer from "./drafting/ContractRenderer";
+import MemoRenderer from "./drafting/MemoRenderer";
+import { printDraft } from "./drafting/printUtils";
 
 /* ------------------------------------------------------------------ */
 /* Props                                                              */
@@ -12,6 +18,10 @@ interface DraftPreviewProps {
   blocks: Block[];
   editMode: boolean;
   onBlockUpdate: (blockId: string, content: string) => Promise<void>;
+  onBlocksChange?: (blocks: Block[]) => Promise<void>;
+  onMetadataChange?: (metadata: Record<string, unknown>) => Promise<void>;
+  documentType?: string;
+  metadata?: Record<string, unknown> | null;
   className?: string;
 }
 
@@ -19,182 +29,148 @@ interface DraftPreviewProps {
 /* Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-function countNumBefore(blocks: Block[], idx: number): number {
-  let c = 0;
-  for (let i = 0; i < idx; i++) {
-    if (blocks[i].type === "numbered_paragraph") c++;
-  }
-  return c;
+let _counter = 0;
+function nextBlockId(): string {
+  _counter++;
+  return `b${Date.now().toString(36)}-${_counter}`;
 }
 
-function countListBefore(blocks: Block[], idx: number): number {
-  let c = 0;
-  for (let i = idx - 1; i >= 0; i--) {
-    if (blocks[i].type === "list_item") c++;
-    else break;
-  }
-  return c;
-}
-
-const LIST_LABELS = "abcdefghijklmnopqrstuvwxyz";
+const PLACEHOLDER: Record<string, string> = {
+  section_heading: "New Section",
+  numbered_paragraph: "Start writing here...",
+  unnumbered_paragraph: "Start writing here...",
+  block_quote: "Quoted text...",
+  list_item: "List item...",
+  signature_row: "Your Name",
+  section_divider: "",
+  raw_html: "",
+};
 
 /* ------------------------------------------------------------------ */
 /* Component                                                          */
 /* ------------------------------------------------------------------ */
 
 export default function DraftPreview({
-  blocks,
-  editMode,
-  onBlockUpdate,
-  className,
+  blocks, editMode, onBlockUpdate, onBlocksChange, onMetadataChange,
+  documentType, metadata, className,
 }: DraftPreviewProps) {
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
-  const [saving, setSaving] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  /* Auto-focus textarea when editing starts */
-  useEffect(() => {
-    if (editingId) textareaRef.current?.focus();
-  }, [editingId]);
-
-  const startEdit = (block: Block) => {
-    if (!editMode || saving) return;
-    setEditingId(block.id);
+  const handleBlockClick = useCallback((block: Block) => {
+    setEditingBlockId(block.id);
     setEditText(block.content);
-  };
+  }, []);
 
-  const cancelEdit = () => {
-    setEditingId(null);
+  const handleBlockSave = useCallback(async (blockId: string) => {
+    await onBlockUpdate(blockId, editText);
+    setEditingBlockId(null);
+  }, [editText, onBlockUpdate]);
+
+  const handleBlockCancel = useCallback(() => {
+    setEditingBlockId(null);
     setEditText("");
+  }, []);
+
+  const handleInsertBlock = useCallback(async (
+    afterIdx: number, blockType: Block["type"],
+  ) => {
+    if (!onBlocksChange) return;
+    const b: Block = { id: nextBlockId(), type: blockType, content: PLACEHOLDER[blockType] || "" };
+    const updated = [...blocks];
+    updated.splice(afterIdx + 1, 0, b);
+    await onBlocksChange(updated);
+    setEditingBlockId(b.id);
+    setEditText(b.content);
+  }, [blocks, onBlocksChange]);
+
+  const handlePrint = () => {
+    const el = document.querySelector(".draft-preview-shell");
+    if (!el) return;
+    printDraft(el.innerHTML);
   };
 
-  const saveEdit = async () => {
-    if (!editingId || saving) return;
-    setSaving(true);
-    try {
-      await onBlockUpdate(editingId, editText);
-      setEditingId(null);
-    } catch {
-      // keep editor open on failure
-    } finally {
-      setSaving(false);
-    }
+  /* ---- shared renderer props ---- */
+  const rp = {
+    blocks, editMode, editingBlockId, editText,
+    onBlockClick: handleBlockClick,
+    onBlockSave: handleBlockSave,
+    onBlockCancel: handleBlockCancel,
+    onEditTextChange: setEditText,
+    onInsertBlock: handleInsertBlock,
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") cancelEdit();
-    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") saveEdit();
-  };
+  const docType = documentType || "letter";
+  const title = metadata ? String((metadata as Record<string, unknown>).title || "") : "";
+
+  if (!blocks || blocks.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-6">
+        <p className="text-sm text-[--text-disabled]">No content yet.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className={className}>
-      <div className="bg-white text-gray-900 font-serif text-sm leading-relaxed
-                      shadow-lg rounded-sm px-8 py-14 md:px-16 md:py-14
-                      max-w-[680px] mx-auto min-h-full
-                      md:border md:border-gray-200
-                      max-md:bg-transparent max-md:text-text-primary max-md:shadow-none
-                      max-md:px-4 max-md:py-4 max-md:max-w-none max-md:font-sans">
-        {blocks.map((block, i) => {
-          if (editingId === block.id) {
-            return (
-              <div key={block.id} className="my-2 rounded ring-2 ring-brand ring-offset-2">
-                <textarea
-                  ref={textareaRef}
-                  value={editText}
-                  onChange={(e) => setEditText(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="w-full bg-transparent font-inherit text-inherit leading-inherit
-                             resize-y outline-none p-3 min-h-[100px] text-sm"
-                  rows={4}
-                />
-                <div className="flex justify-end gap-1.5 px-2 pb-2">
-                  <button
-                    onClick={cancelEdit}
-                    disabled={saving}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded text-xs
-                               bg-gray-100 text-gray-600 hover:bg-gray-200
-                               disabled:opacity-50 font-sans"
-                  >
-                    <X size={12} /> Cancel
-                  </button>
-                  <button
-                    onClick={saveEdit}
-                    disabled={saving}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded text-xs
-                               bg-brand text-white hover:bg-brand-hover
-                               disabled:opacity-50 font-sans"
-                  >
-                    {saving ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
-                    Save
-                  </button>
-                </div>
-              </div>
-            );
-          }
+    <div className={`flex-1 flex flex-col min-h-0 ${className || ""}`}>
+      {/* Toolbar */}
+      <div className="shrink-0 flex items-center justify-between px-4 py-2 bg-[--surface-1] border-b border-[--border]">
+        <span className="text-xs text-[--text-secondary]">
+          {docType.charAt(0).toUpperCase() + docType.slice(1)}
+          {title ? ` — ${title}` : ""}
+        </span>
+        <button
+          onClick={handlePrint}
+          className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-[--border] bg-[--surface-1] hover:bg-[--surface-3] text-[--text-primary] transition-colors"
+        >
+          <Printer size={14} />
+          <span className="hidden sm:inline">Print</span>
+        </button>
+      </div>
 
-          const editClass = editMode && block.type !== "signature"
-            ? "cursor-text hover:bg-brand-bg hover:outline hover:outline-1 hover:outline-dashed hover:outline-brand/30 rounded-sm px-1 -mx-1"
-            : "";
-
-          switch (block.type) {
-            case "section_heading":
-              return (
-                <div
-                  key={block.id}
-                  onClick={() => startEdit(block)}
-                  className={`text-center font-bold text-sm underline mt-8 mb-4 first:mt-0 ${editClass}`}
-                >
-                  {block.content}
-                </div>
-              );
-
-            case "numbered_paragraph": {
-              const num = countNumBefore(blocks, i) + 1;
-              return (
-                <p
-                  key={block.id}
-                  onClick={() => startEdit(block)}
-                  className={`mb-0 ${editClass}`}
-                  style={{ textIndent: "-24px", paddingLeft: "28px" }}
-                >
-                  <span className="font-semibold mr-1">{num}.</span>
-                  {block.content}
-                </p>
-              );
-            }
-
-            case "list_item": {
-              const labelIdx = countListBefore(blocks, i);
-              const label = LIST_LABELS[labelIdx] || "?";
-              return (
-                <p
-                  key={block.id}
-                  onClick={() => startEdit(block)}
-                  className={`mb-0 ${editClass}`}
-                  style={{ textIndent: "-20px", paddingLeft: "24px" }}
-                >
-                  <span className="font-medium mr-1.5">({label})</span>
-                  {block.content}
-                </p>
-              );
-            }
-
-            case "signature":
-              return (
-                <div key={block.id} className="mt-10 pt-1 border-t border-current inline-block min-w-[180px]">
-                  <span className="font-semibold text-sm whitespace-pre-wrap">{block.content}</span>
-                </div>
-              );
-
-            default:
-              return (
-                <p key={block.id} onClick={() => startEdit(block)} className={editClass}>
-                  {block.content}
-                </p>
-              );
-          }
-        })}
+      {/* Document */}
+      <div className="flex-1 overflow-y-auto bg-[#f5f5f5] p-4">
+        <div className="draft-preview-shell">
+          {docType === "pleading" && (
+            <PleadingRenderer
+              {...rp}
+              caption={metadata?.caption as PleadingRenderer["caption"]}
+              signature={metadata?.signature as PleadingRenderer["signature"]}
+              onCaptionChange={async (field, value) => {
+                const currentMeta = (metadata || {}) as Record<string, unknown>;
+                const currentCaption = (currentMeta.caption || {}) as Record<string, string>;
+                const updated = {
+                  ...currentMeta,
+                  caption: { ...currentCaption, [field]: value },
+                };
+                try {
+                  await onMetadataChange?.(updated);
+                } catch (e) {
+                  console.error("Failed to save caption:", e);
+                }
+              }}
+            />
+          )}
+          {docType === "letter" && (
+            <LetterRenderer
+              {...rp}
+              header={metadata as LetterRenderer["header"]}
+              footer={metadata as LetterRenderer["footer"]}
+            />
+          )}
+          {(docType === "contract" || docType === "settlement") && (
+            <ContractRenderer
+              {...rp}
+              header={metadata as ContractRenderer["header"]}
+            />
+          )}
+          {docType === "memo" && (
+            <MemoRenderer {...rp} header={metadata as MemoRenderer["header"]} />
+          )}
+          {!["pleading", "letter", "contract", "settlement", "memo"].includes(docType) && (
+            <LetterRenderer {...rp} />
+          )}
+        </div>
       </div>
     </div>
   );

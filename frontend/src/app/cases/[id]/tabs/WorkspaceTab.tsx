@@ -341,6 +341,18 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
             blocks={getBlocksContent(activeItem.content)}
             editMode={editMode}
             onBlockUpdate={handleBlockUpdate}
+            onBlocksChange={async (newBlocks) => {
+              if (!activeItem) return;
+              await updateWorkspaceItem(activeItem.id, { content: newBlocks });
+              setActiveItem({ ...activeItem, content: newBlocks });
+            }}
+            onMetadataChange={async (newMeta) => {
+              if (!activeItem) return;
+              await updateWorkspaceItem(activeItem.id, { metadata: newMeta });
+              setActiveItem({ ...activeItem, metadata: newMeta });
+            }}
+            documentType={activeItem.document_type}
+            metadata={activeItem.metadata}
           />
         );
       case "html":

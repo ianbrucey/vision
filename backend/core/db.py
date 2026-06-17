@@ -620,6 +620,7 @@ def update_draft(
     content: list | dict | None = None,
     file_type: str | None = None,
     folder: str | None = None,
+    metadata: dict | None = None,
 ) -> dict | None:
     sets = []
     params: list[Any] = []
@@ -635,6 +636,8 @@ def update_draft(
         sets.append("file_type = %s"); params.append(file_type)
     if folder is not None:
         sets.append("folder = %s"); params.append(folder)
+    if metadata is not None:
+        sets.append("metadata = %s::jsonb"); params.append(json.dumps(metadata))
     if not sets:
         return None
     sets.append("updated_at = now()")

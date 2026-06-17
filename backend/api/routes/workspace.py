@@ -47,6 +47,7 @@ class UpdateWorkspaceItemRequest(BaseModel):
     content: list | dict | None = None
     file_type: str | None = None
     folder: str | None = None
+    metadata: dict | None = None
 
 
 class UpdateBlockRequest(BaseModel):
