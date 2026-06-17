@@ -2,9 +2,7 @@
 
 import { useRef, useCallback, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import {
-  MessageCircle, Loader2, Wrench, ChevronDown, ChevronRight,
-} from "lucide-react";
+import { MessageCircle, Loader2, ChevronDown } from "lucide-react";
 import type { ChatSession } from "@/lib/api";
 
 /* ------------------------------------------------------------------ */
@@ -12,13 +10,9 @@ import type { ChatSession } from "@/lib/api";
 /* ------------------------------------------------------------------ */
 
 export interface UIMessage {
-  role: "user" | "assistant" | "tool_call" | "tool_result" | "system" | "error";
+  role: "user" | "assistant" | "system" | "error";
   content: string;
   sequence: number | null;
-  toolName?: string;
-  toolInputs?: unknown;
-  toolResult?: unknown;
-  toolExpanded?: boolean;
   timestamp: Date;
 }
 
@@ -26,9 +20,9 @@ interface ChatMessagesProps {
   messages: UIMessage[];
   loading: boolean;
   streaming: boolean;
+  working: boolean;
   activeSession: ChatSession | undefined;
   grounded: boolean;
-  onToggleTool: (idx: number) => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -39,9 +33,9 @@ export default function ChatMessages({
   messages,
   loading,
   streaming,
+  working,
   activeSession,
   grounded,
-  onToggleTool,
 }: ChatMessagesProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -116,46 +110,9 @@ export default function ChatMessages({
                   ? "bg-brand text-white"
                   : msg.role === "error"
                     ? "bg-danger-bg text-danger border border-danger/20"
-                    : msg.role === "tool_call" || msg.role === "tool_result"
-                      ? "bg-surface-2 border border-border text-text-secondary"
-                      : "bg-surface-1 border border-border text-text-primary"
+                    : "bg-surface-1 border border-border text-text-primary"
               }`}
             >
-              {/* Tool call */}
-              {msg.role === "tool_call" && (
-                <button
-                  onClick={() => onToggleTool(i)}
-                  className="flex items-center gap-1.5 w-full text-left"
-                >
-                  {msg.toolExpanded ? (
-                    <ChevronDown size={14} />
-                  ) : (
-                    <ChevronRight size={14} />
-                  )}
-                  <Wrench size={12} />
-                  <span className="font-mono text-xs">{msg.toolName}</span>
-                </button>
-              )}
-              {msg.role === "tool_call" && msg.toolExpanded && (
-                <pre className="mt-1.5 text-xs bg-surface-3 rounded p-1.5 overflow-x-auto max-h-32">
-                  {JSON.stringify(msg.toolInputs, null, 2)}
-                </pre>
-              )}
-
-              {/* Tool result */}
-              {msg.role === "tool_result" && (
-                <details className="text-xs">
-                  <summary className="cursor-pointer text-text-disabled hover:text-text-secondary">
-                    Tool result
-                  </summary>
-                  <pre className="mt-1 bg-surface-3 rounded p-1.5 overflow-x-auto max-h-40 text-xs">
-                    {typeof msg.toolResult === "string"
-                      ? msg.toolResult.slice(0, 2000)
-                      : JSON.stringify(msg.toolResult, null, 2).slice(0, 2000)}
-                  </pre>
-                </details>
-              )}
-
               {/* Assistant / user / error content */}
               {msg.role === "assistant" && (
                 <div className="wrap-break-word prose prose-sm max-w-none prose-table:text-sm prose-td:border prose-td:border-border prose-td:px-2 prose-td:py-1 prose-th:bg-surface-2 prose-th:px-2 prose-th:py-1 prose-th:font-semibold">
@@ -177,6 +134,17 @@ export default function ChatMessages({
             </div>
           </div>
         ))}
+        {/* Working indicator — shown during tool execution before text arrives */}
+        {working && (
+          <div className="flex justify-start">
+            <div className="rounded-lg px-3 py-2 text-sm bg-surface-1 border border-border text-text-secondary">
+              <span className="inline-flex items-center gap-2">
+                <Loader2 size={14} className="animate-spin" />
+                Working...
+              </span>
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 

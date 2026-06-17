@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, type FormEvent } from "react";
 import {
-  MessageCircle, X, Send, Loader2, ChevronDown, Wrench, ChevronRight,
+  MessageCircle, X, Send, Loader2, ChevronDown,
   Maximize2, Minimize2, Mic, MicOff,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -227,42 +227,9 @@ export default function FloatingChat({ caseId, context, open, onClose }: Floatin
                     ? "bg-brand text-white"
                     : m.role === "error"
                       ? "bg-danger-bg text-danger border border-danger/20"
-                      : m.role === "tool_call" || m.role === "tool_result"
-                        ? "bg-surface-2 border border-border text-text-secondary"
-                        : "bg-surface-2 text-text-primary border border-border"
+                      : "bg-surface-2 text-text-primary border border-border"
                 }`}
               >
-                {m.role === "tool_call" && (
-                  <button
-                    onClick={() => chat.toggleTool(i)}
-                    className="flex items-center gap-1.5 w-full text-left"
-                  >
-                    {m.toolExpanded ? (
-                      <ChevronDown size={12} />
-                    ) : (
-                      <ChevronRight size={12} />
-                    )}
-                    <Wrench size={10} />
-                    <span className="font-mono text-[10px]">{m.toolName}</span>
-                  </button>
-                )}
-                {m.role === "tool_call" && m.toolExpanded && (
-                  <pre className="mt-1 text-[10px] bg-surface-3 rounded p-1.5 overflow-x-auto max-h-24">
-                    {JSON.stringify(m.toolInputs, null, 2)}
-                  </pre>
-                )}
-                {m.role === "tool_result" && (
-                  <details className="text-[10px]">
-                    <summary className="cursor-pointer text-text-disabled">
-                      Result
-                    </summary>
-                    <pre className="mt-1 bg-surface-3 rounded p-1.5 overflow-x-auto max-h-24">
-                      {typeof m.toolResult === "string"
-                        ? m.toolResult.slice(0, 1000)
-                        : JSON.stringify(m.toolResult).slice(0, 1000)}
-                    </pre>
-                  </details>
-                )}
                 {m.role === "assistant" && (
                   <div className="prose prose-xs max-w-none">
                     {m.content ? (
@@ -278,6 +245,18 @@ export default function FloatingChat({ caseId, context, open, onClose }: Floatin
               </div>
             </div>
           ))}
+
+          {/* Working indicator */}
+          {chat.working && (
+            <div className="flex justify-start">
+              <div className="max-w-[90%] rounded-lg px-3 py-2 text-xs bg-surface-2 text-text-secondary">
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 size={12} className="animate-spin" />
+                  Working...
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Scroll-to-bottom button */}
           {showScrollBtn && (

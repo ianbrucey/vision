@@ -14,13 +14,9 @@ import {
 /* ------------------------------------------------------------------ */
 
 export interface UIMessage {
-  role: "user" | "assistant" | "tool_call" | "tool_result" | "system" | "error";
+  role: "user" | "assistant" | "system" | "error";
   content: string;
   sequence: number | null;
-  toolName?: string;
-  toolInputs?: unknown;
-  toolResult?: unknown;
-  toolExpanded?: boolean;
   timestamp: Date;
 }
 
@@ -47,6 +43,7 @@ export function useChatSession(caseId: number) {
   /* ---- input ---- */
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
+  const [working, setWorking] = useState(false);
   const streamCtrlRef = useRef<AbortController | null>(null);
 
   /* ---- persist active session ---- */
@@ -125,15 +122,14 @@ export function useChatSession(caseId: number) {
     getChatMessages(activeSessionId)
       .then((msgs: ChatMessage[]) => {
         if (cancelled) return;
-        const loaded: UIMessage[] = msgs.map((m) => ({
-          role: m.role,
-          content: m.content,
-          sequence: m.sequence ?? null,
-          toolName: m.tool_name || undefined,
-          toolInputs: m.tool_inputs || undefined,
-          toolResult: m.tool_result || undefined,
-          timestamp: new Date(m.created_at),
-        }));
+        const loaded: UIMessage[] = msgs
+          .filter((m) => m.role !== "tool_call" && m.role !== "tool_result")
+          .map((m) => ({
+            role: m.role as UIMessage["role"],
+            content: m.content,
+            sequence: m.sequence ?? null,
+            timestamp: new Date(m.created_at),
+          }));
         loaded.sort((a, b) => {
           const sa = a.sequence ?? Number.MAX_SAFE_INTEGER;
           const sb = b.sequence ?? Number.MAX_SAFE_INTEGER;
@@ -196,6 +192,7 @@ export function useChatSession(caseId: number) {
               }
               break;
             case "assistant":
+              setWorking(false);
               for (let i = copy.length - 1; i >= 0; i--) {
                 if (copy[i].role === "assistant" && copy[i].sequence === null) {
                   copy[i] = {
@@ -215,17 +212,10 @@ export function useChatSession(caseId: number) {
               }
               break;
             case "tool_call":
+              setWorking(true);
+              break;
             case "tool_result":
-              copy.push({
-                role: event.type as "tool_call" | "tool_result",
-                content: "",
-                sequence: event.sequence ?? null,
-                toolName: event.type === "tool_call" ? (event.name || "") : undefined,
-                toolInputs: event.type === "tool_call" ? event.inputs : undefined,
-                toolResult: event.type === "tool_result" ? event.content : undefined,
-                toolExpanded: false,
-                timestamp: new Date(),
-              });
+              // Silently skip — users don't need to see raw tool output.
               break;
             case "error":
               copy.push({
@@ -246,10 +236,12 @@ export function useChatSession(caseId: number) {
       },
       () => {
         setStreaming(false);
+        setWorking(false);
         loadSessions();
       },
       (err) => {
         setStreaming(false);
+        setWorking(false);
         setMessages((prev) => [
           ...prev,
           { role: "error", content: err, sequence: null, timestamp: new Date() },
@@ -261,18 +253,7 @@ export function useChatSession(caseId: number) {
   const handleCancel = () => {
     streamCtrlRef.current?.abort();
     setStreaming(false);
-  };
-
-  /* ---- toggle tool ---- */
-  const toggleTool = (idx: number) => {
-    setMessages((prev) => {
-      const copy = [...prev];
-      const msg = copy[idx];
-      if (msg?.role === "tool_call") {
-        copy[idx] = { ...msg, toolExpanded: !msg.toolExpanded };
-      }
-      return copy;
-    });
+    setWorking(false);
   };
 
   /* ---- derived ---- */
@@ -297,8 +278,8 @@ export function useChatSession(caseId: number) {
     input,
     setInput,
     streaming,
+    working,
     handleSend,
     handleCancel,
-    toggleTool,
   };
 }

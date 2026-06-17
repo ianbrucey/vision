@@ -190,9 +190,9 @@ export default function ChatTab({ caseId, grounded, onNavigate }: ChatTabProps) 
           messages={chat.messages}
           loading={chat.messagesLoading}
           streaming={chat.streaming}
+          working={chat.working}
           activeSession={chat.activeSession}
           grounded={grounded}
-          onToggleTool={chat.toggleTool}
         />
 
         {/* Input */}
