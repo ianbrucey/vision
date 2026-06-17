@@ -1,0 +1,292 @@
+{
+  "$description": "Calendar system fixtures — real-world legal case scenario. Covers all event categories, standalone + event-attached reminders, and all reminder statuses. Case ID 42 assumed.",
+  "case_id": 42,
+  "scenario": "Alhad v. Edmonds — Civil Litigation",
+
+  "calendar_events": [
+    {
+      "id": 1,
+      "case_id": 42,
+      "title": "Deposition — Jane Smith (Plaintiff)",
+      "description": "Remote deposition via Zoom. Prepare Exhibit A (medical records) and Exhibit C (expert report). Jane is the key witness on damages. Expect 3-4 hours.\n\nZoom link: https://zoom.us/j/123456789\nMeeting ID: 123 456 789\nPasscode: sent via email",
+      "start_time": "2026-07-15T09:00:00-04:00",
+      "end_time": "2026-07-15T13:00:00-04:00",
+      "all_day": false,
+      "category": "deposition",
+      "location": "Zoom — https://zoom.us/j/123456789",
+      "created_by": "agent",
+      "metadata": {
+        "witness": "Jane Smith",
+        "role": "Plaintiff",
+        "exhibits": ["Exhibit A — Medical Records", "Exhibit C — Expert Report"]
+      },
+      "created_at": "2026-06-10T14:30:00Z",
+      "updated_at": "2026-06-10T14:30:00Z"
+    },
+    {
+      "id": 2,
+      "case_id": 42,
+      "title": "Motion for Summary Judgment Hearing",
+      "description": "Oral argument before Judge Chen. Plaintiff filed MSJ on negligence per se. We must be prepared to argue genuine dispute of material fact on causation.\n\nCourtroom 4B, Fulton County Superior Court\n185 Central Ave SW, Atlanta, GA 30303",
+      "start_time": "2026-08-01T10:00:00-04:00",
+      "end_time": "2026-08-01T11:30:00-04:00",
+      "all_day": false,
+      "category": "hearing",
+      "location": "Courtroom 4B — Fulton County Superior Court, 185 Central Ave SW, Atlanta, GA 30303",
+      "created_by": "user",
+      "metadata": {
+        "judge": "Hon. Michael Chen",
+        "motion_type": "Summary Judgment",
+        "filed_by": "Plaintiff"
+      },
+      "created_at": "2026-06-15T09:00:00Z",
+      "updated_at": "2026-06-15T09:00:00Z"
+    },
+    {
+      "id": 3,
+      "case_id": 42,
+      "title": "Discovery Cutoff Deadline",
+      "description": "All discovery must be completed by this date. Outstanding items:\n- Interrogatories to Plaintiff (responses due 7/30)\n- Expert witness disclosures\n- Document production from third-party medical providers",
+      "start_time": "2026-09-15T17:00:00-04:00",
+      "end_time": null,
+      "all_day": true,
+      "category": "deadline",
+      "location": null,
+      "created_by": "user",
+      "metadata": {
+        "court_ordered": true,
+        "outstanding_items": [
+          "Interrogatories to Plaintiff",
+          "Expert witness disclosures",
+          "Third-party document production"
+        ]
+      },
+      "created_at": "2026-06-01T08:00:00Z",
+      "updated_at": "2026-06-12T16:00:00Z"
+    },
+    {
+      "id": 4,
+      "case_id": 42,
+      "title": "Client Strategy Meeting",
+      "description": "Weekly sync with the client to review case progress. Agenda:\n1. Deposition prep review\n2. MSJ opposition status\n3. Settlement discussion — plaintiff's latest offer\n4. Budget update for expert witnesses",
+      "start_time": "2026-06-20T14:00:00-04:00",
+      "end_time": "2026-06-20T15:00:00-04:00",
+      "all_day": false,
+      "category": "meeting",
+      "location": "Office — Conference Room A",
+      "created_by": "user",
+      "metadata": {
+        "recurring": "weekly",
+        "attendees": ["Client — Robert Alhad", "Lead Counsel", "Paralegal"]
+      },
+      "created_at": "2026-06-12T10:00:00Z",
+      "updated_at": "2026-06-12T10:00:00Z"
+    },
+    {
+      "id": 5,
+      "case_id": 42,
+      "title": "File Response to Plaintiff's Motion in Limine",
+      "description": "Plaintiff seeks to exclude our expert's testimony on industry standards. Must file opposition brief and supporting affidavit from Dr. Reeves. 25-page limit per local rules.",
+      "start_time": "2026-07-28T17:00:00-04:00",
+      "end_time": null,
+      "all_day": true,
+      "category": "deadline",
+      "location": null,
+      "created_by": "agent",
+      "metadata": {
+        "filing_type": "Opposition to Motion in Limine",
+        "page_limit": 25,
+        "supporting_documents": ["Affidavit of Dr. Reeves"]
+      },
+      "created_at": "2026-06-17T08:30:00Z",
+      "updated_at": "2026-06-17T08:30:00Z"
+    },
+    {
+      "id": 6,
+      "case_id": 42,
+      "title": "Mediation Session",
+      "description": "Court-ordered mediation with Judge Peterson (Ret.). Both parties to submit mediation statements by 8/20. Client must be present in person.\n\nJAMS Atlanta Resolution Center\n1201 W Peachtree St NW, Suite 2500\nAtlanta, GA 30309",
+      "start_time": "2026-08-25T09:30:00-04:00",
+      "end_time": "2026-08-25T16:00:00-04:00",
+      "all_day": true,
+      "category": "other",
+      "location": "JAMS Atlanta — 1201 W Peachtree St NW, Suite 2500, Atlanta, GA 30309",
+      "created_by": "user",
+      "metadata": {
+        "mediator": "Judge Laura Peterson (Ret.)",
+        "mediation_statement_deadline": "2026-08-20",
+        "required_attendees": ["Client — Robert Alhad", "Lead Counsel", "Insurance Adjuster"]
+      },
+      "created_at": "2026-06-05T11:00:00Z",
+      "updated_at": "2026-06-05T11:00:00Z"
+    }
+  ],
+
+  "reminders": [
+    {
+      "id": 1,
+      "case_id": 42,
+      "event_id": 1,
+      "title": "Prep for Jane Smith Deposition",
+      "description": "Review Exhibit A (medical records) and Exhibit C (expert report). Prepare cross-examination outline. Confirm Zoom link is working. Send calendar invite to client.",
+      "remind_at": "2026-07-14T09:00:00-04:00",
+      "category": "deposition",
+      "status": "pending",
+      "created_by": "agent",
+      "metadata": {},
+      "created_at": "2026-06-10T14:35:00Z",
+      "updated_at": "2026-06-10T14:35:00Z"
+    },
+    {
+      "id": 2,
+      "case_id": 42,
+      "event_id": 2,
+      "title": "Finalize MSJ Opposition Brief",
+      "description": "Complete final draft of opposition to summary judgment. Must be filed at least 5 days before hearing per local rules. Review statement of material facts for accuracy.",
+      "remind_at": "2026-07-25T09:00:00-04:00",
+      "category": "hearing",
+      "status": "pending",
+      "created_by": "user",
+      "metadata": {
+        "filing_deadline": "2026-07-27"
+      },
+      "created_at": "2026-06-15T09:05:00Z",
+      "updated_at": "2026-06-15T09:05:00Z"
+    },
+    {
+      "id": 3,
+      "case_id": 42,
+      "event_id": null,
+      "title": "Follow up on third-party medical records subpoena",
+      "description": "Subpoena served on Piedmont Hospital 30 days ago. No response yet. Call records custodian at (404) 555-0100. If no response, prepare motion to compel.",
+      "remind_at": "2026-06-22T10:00:00-04:00",
+      "category": "other",
+      "status": "pending",
+      "created_by": "agent",
+      "metadata": {
+        "subpoena_date": "2026-05-20",
+        "hospital": "Piedmont Hospital",
+        "contact": "Records Custodian — (404) 555-0100"
+      },
+      "created_at": "2026-06-17T10:00:00Z",
+      "updated_at": "2026-06-17T10:00:00Z"
+    },
+    {
+      "id": 4,
+      "case_id": 42,
+      "event_id": null,
+      "title": "Check statute of limitations for cross-claim",
+      "description": "Potential counterclaim for indemnification against co-defendant. Verify whether limitations period has run. If viable, draft and file before discovery cutoff on 9/15.",
+      "remind_at": "2026-07-01T08:00:00-04:00",
+      "category": "deadline",
+      "status": "pending",
+      "created_by": "user",
+      "metadata": {
+        "potential_claim": "Indemnification",
+        "against": "Co-defendant — XYZ Corp",
+        "limitations_period": "2 years from date of incident"
+      },
+      "created_at": "2026-06-17T09:45:00Z",
+      "updated_at": "2026-06-17T09:45:00Z"
+    },
+    {
+      "id": 5,
+      "case_id": 42,
+      "event_id": null,
+      "title": "Send engagement letter update to client",
+      "description": "Original engagement letter capped fees at $50K. We're approaching $42K. Send updated fee estimate for discovery phase (estimated additional $25-35K through trial). Must get signed acknowledgment.",
+      "remind_at": "2026-06-18T12:00:00-04:00",
+      "category": "meeting",
+      "status": "fired",
+      "created_by": "agent",
+      "metadata": {
+        "fee_cap_original": 50000,
+        "current_billed": 42000,
+        "estimated_additional": "25000-35000"
+      },
+      "created_at": "2026-06-16T15:00:00Z",
+      "updated_at": "2026-06-18T12:01:00Z"
+    },
+    {
+      "id": 6,
+      "case_id": 42,
+      "event_id": null,
+      "title": "Review plaintiff's settlement demand",
+      "description": "Plaintiff sent demand letter for $750K. Evaluate against our exposure analysis. Prepare counter-offer range for client discussion at next strategy meeting.",
+      "remind_at": "2026-06-15T14:00:00-04:00",
+      "category": "other",
+      "status": "dismissed",
+      "created_by": "user",
+      "metadata": {
+        "demand_amount": 750000,
+        "exposure_range": "250K-500K"
+      },
+      "created_at": "2026-06-14T09:00:00Z",
+      "updated_at": "2026-06-16T10:30:00Z"
+    },
+    {
+      "id": 7,
+      "case_id": 42,
+      "event_id": 6,
+      "title": "Submit Mediation Statement",
+      "description": "Prepare and submit confidential mediation statement to JAMS. Include: case summary, key evidence, settlement history, and negotiation position. 10-page limit.",
+      "remind_at": "2026-08-18T09:00:00-04:00",
+      "category": "other",
+      "status": "pending",
+      "created_by": "user",
+      "metadata": {
+        "deadline": "2026-08-20",
+        "submission_to": "JAMS Atlanta",
+        "page_limit": 10
+      },
+      "created_at": "2026-06-05T11:10:00Z",
+      "updated_at": "2026-06-05T11:10:00Z"
+    }
+  ],
+
+  "edge_cases": {
+    "_note": "The following scenarios are covered by the fixture data above:",
+    "all_day_event": {
+      "event_id": 3,
+      "description": "Discovery Cutoff — all_day=true, end_time is null. Renders as a full-day banner in month view, no time label. Date derived from start_time::DATE."
+    },
+    "timed_event_without_end": {
+      "event_id": 5,
+      "description": "File Response deadline — has start_time but end_time is null. Renders as a point-in-time event showing only the start time. Date derived from start_time::DATE."
+    },
+    "event_with_location": {
+      "event_id": 2,
+      "description": "MSJ Hearing — has a physical location string. Renders with location icon in event detail."
+    },
+    "event_with_virtual_location": {
+      "event_id": 1,
+      "description": "Deposition — location contains a Zoom URL. Renders as a clickable link."
+    },
+    "standalone_reminder": {
+      "reminder_id": 3,
+      "description": "Subpoena follow-up — event_id is null. Appears in reminder list without linking to any calendar event."
+    },
+    "event_attached_reminder": {
+      "reminder_id": 1,
+      "description": "Prep for deposition — event_id=1. Appears nested under the deposition event in event detail view."
+    },
+    "fired_reminder": {
+      "reminder_id": 5,
+      "description": "Engagement letter — status='fired'. Appears with 'fired' badge, no longer triggers notification."
+    },
+    "dismissed_reminder": {
+      "reminder_id": 6,
+      "description": "Settlement demand — status='dismissed'. User manually dismissed. Renders with strikethrough or muted style."
+    },
+    "agent_created": {
+      "event_ids": [1, 5],
+      "reminder_ids": [1, 3, 5],
+      "description": "Events/reminders with created_by='agent' were created by the agent via chat tools. UI displays 'Agent' as creator."
+    },
+    "user_created": {
+      "event_ids": [2, 3, 4, 6],
+      "reminder_ids": [2, 4, 6, 7],
+      "description": "Events/reminders with created_by='user' were created by a human user via the UI."
+    }
+  }
+}

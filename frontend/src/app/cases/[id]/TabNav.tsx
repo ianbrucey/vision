@@ -1,6 +1,7 @@
 "use client";
 
-import { Eye, MessageCircle, FolderOpen, FolderTree, PenLine, Mail, CheckSquare } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Eye, MessageCircle, FolderOpen, FolderTree, PenLine, Mail, CheckSquare, MoreHorizontal } from "lucide-react";
 
 export type TabId = "overview" | "chat" | "documents" | "drafts" | "workspace" | "correspondence" | "tasks";
 
@@ -9,7 +10,14 @@ interface TabNavProps {
   onTabChange: (tab: TabId) => void;
 }
 
-const TABS: { id: TabId; label: string; shortLabel: string; icon: typeof Eye }[] = [
+interface TabDef {
+  id: TabId;
+  label: string;
+  shortLabel: string;
+  icon: typeof Eye;
+}
+
+const TABS: TabDef[] = [
   { id: "overview", label: "Overview", shortLabel: "Overview", icon: Eye },
   { id: "chat", label: "Chat", shortLabel: "Chat", icon: MessageCircle },
   { id: "documents", label: "Documents", shortLabel: "Docs", icon: FolderOpen },
@@ -18,7 +26,29 @@ const TABS: { id: TabId; label: string; shortLabel: string; icon: typeof Eye }[]
   { id: "tasks", label: "Tasks", shortLabel: "Tasks", icon: CheckSquare },
 ];
 
+/** First 4 tabs are always visible on mobile */
+const PRIMARY_COUNT = 4;
+const primaryTabs = TABS.slice(0, PRIMARY_COUNT);
+const secondaryTabs = TABS.slice(PRIMARY_COUNT);
+
 export default function TabNav({ activeTab, onTabChange }: TabNavProps) {
+  /* ---- mobile "More" menu ---- */
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [moreOpen]);
+
+  const activeSecondary = secondaryTabs.some((t) => t.id === activeTab);
+
   return (
     <>
       {/* ================================================================ */}
@@ -63,15 +93,15 @@ export default function TabNav({ activeTab, onTabChange }: TabNavProps) {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-1 border-t border-border
                       flex items-stretch justify-around
                       h-14 pb-[env(safe-area-inset-bottom,0px)] z-30">
-        {TABS.map((tab) => {
+        {/* Primary tabs */}
+        {primaryTabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className="flex flex-col items-center justify-center gap-0.5 flex-1
-                         text-[10px] font-medium transition-colors
-                         min-h-0"
+                         text-[10px] font-medium transition-colors min-h-0"
               style={{ color: isActive ? "var(--color-brand)" : "var(--color-text-secondary)" }}
             >
               <tab.icon
@@ -82,6 +112,52 @@ export default function TabNav({ activeTab, onTabChange }: TabNavProps) {
             </button>
           );
         })}
+
+        {/* More tab */}
+        <div ref={moreRef} className="relative flex-1">
+          <button
+            onClick={() => setMoreOpen(!moreOpen)}
+            className="flex flex-col items-center justify-center gap-0.5 w-full h-full
+                       text-[10px] font-medium transition-colors min-h-0 relative"
+            style={{ color: activeSecondary ? "var(--color-brand)" : "var(--color-text-secondary)" }}
+          >
+            <div className="relative">
+              <MoreHorizontal
+                size={22}
+                strokeWidth={activeSecondary ? 2.5 : 2}
+              />
+              {activeSecondary && (
+                <span className="absolute -top-0.5 -right-1 size-2 rounded-full bg-danger" />
+              )}
+            </div>
+            More
+          </button>
+
+          {/* More menu */}
+          {moreOpen && (
+            <div className="absolute bottom-full right-0 mb-2 w-44 bg-surface-2 border border-border
+                            rounded-lg shadow-lg z-40 py-1">
+              {secondaryTabs.map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => { onTabChange(tab.id); setMoreOpen(false); }}
+                    className={`w-full text-left px-3 py-2.5 text-xs flex items-center gap-2.5
+                                transition-colors
+                                ${isActive
+                                  ? "bg-brand-bg text-brand"
+                                  : "text-text-secondary hover:bg-surface-3 hover:text-text-primary"
+                                }`}
+                  >
+                    <tab.icon size={16} />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </nav>
     </>
   );

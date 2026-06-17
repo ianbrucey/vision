@@ -1,0 +1,392 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vision Calendar API Contract v1",
+  "description": "REST API for per-case calendar events and reminders. Follows the same patterns as /api/tasks.",
+  "basePath": "/api",
+  "date": "2026-06-17",
+
+  "schemas": {
+    "CalendarEvent": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer", "description": "Primary key" },
+        "case_id": { "type": "integer", "description": "FK to cases.id" },
+        "workspace_id": { "type": ["integer", "null"], "description": "Optional FK to workspaces.id for sub-matter scoping (deferred)." },
+        "title": { "type": "string", "description": "Event title. Required." },
+        "description": { "type": ["string", "null"], "description": "Optional details." },
+        "start_time": { "type": "string", "format": "date-time", "description": "Event start (ISO 8601, TZ-aware). Required." },
+        "end_time": { "type": ["string", "null"], "format": "date-time", "description": "Event end. Null for point-in-time events." },
+        "all_day": { "type": "boolean", "description": "All-day event flag. Default false." },
+        "category": {
+          "type": "string",
+          "enum": ["hearing", "deposition", "deadline", "meeting", "other"],
+          "description": "Event category. Default 'other'."
+        },
+        "location": { "type": ["string", "null"], "description": "Optional location or link." },
+        "created_by": { "type": "string", "enum": ["user", "agent"], "description": "'user' = created via UI; 'agent' = created via chat tool." },
+        "metadata": { "type": "object", "description": "Extensible JSONB payload." },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "case_id", "title", "start_time", "all_day", "category"]
+    },
+
+    "Reminder": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer", "description": "Primary key" },
+        "case_id": { "type": "integer", "description": "FK to cases.id" },
+        "event_id": { "type": ["integer", "null"], "description": "FK to calendar_events.id. Null for standalone reminders." },
+        "title": { "type": "string", "description": "Reminder title. Required." },
+        "description": { "type": ["string", "null"], "description": "Optional details." },
+        "remind_at": { "type": "string", "format": "date-time", "description": "When to fire the reminder (ISO 8601, TZ-aware). Required." },
+        "category": {
+          "type": "string",
+          "enum": ["hearing", "deposition", "deadline", "meeting", "other"],
+          "description": "Same categories as events. Default 'other'."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "fired", "dismissed"],
+          "description": "Lifecycle status. Default 'pending'."
+        },
+        "created_by": { "type": "string", "enum": ["user", "agent"], "description": "'user' = created via UI; 'agent' = created via chat tool." },
+        "metadata": { "type": "object", "description": "Extensible JSONB payload." },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "case_id", "title", "remind_at", "category", "status"]
+    }
+  },
+
+  "requestBodies": {
+    "CreateCalendarEvent": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Event title." },
+        "description": { "type": "string", "description": "Optional details." },
+        "start_time": { "type": "string", "format": "date-time", "description": "Event start (ISO 8601). Required." },
+        "end_time": { "type": "string", "format": "date-time", "description": "Event end. Optional." },
+        "all_day": { "type": "boolean", "description": "All-day flag. Default false." },
+        "category": { "type": "string", "enum": ["hearing", "deposition", "deadline", "meeting", "other"], "description": "Default 'other'." },
+        "location": { "type": "string", "description": "Optional location." }
+      },
+      "required": ["title", "start_time"]
+    },
+
+    "UpdateCalendarEvent": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "start_time": { "type": "string", "format": "date-time" },
+        "end_time": { "type": "string", "format": "date-time" },
+        "all_day": { "type": "boolean" },
+        "category": { "type": "string", "enum": ["hearing", "deposition", "deadline", "meeting", "other"] },
+        "location": { "type": "string" }
+      },
+      "description": "All fields optional. Only provided fields are updated."
+    },
+
+    "CreateReminder": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Reminder title." },
+        "description": { "type": "string", "description": "Optional details." },
+        "remind_at": { "type": "string", "format": "date-time", "description": "When to fire (ISO 8601). Required." },
+        "category": { "type": "string", "enum": ["hearing", "deposition", "deadline", "meeting", "other"], "description": "Default 'other'." },
+        "event_id": { "type": "integer", "description": "Optional FK to calendar_events.id for event-attached reminders." }
+      },
+      "required": ["title", "remind_at"]
+    },
+
+    "UpdateReminder": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "remind_at": { "type": "string", "format": "date-time" },
+        "category": { "type": "string", "enum": ["hearing", "deposition", "deadline", "meeting", "other"] },
+        "status": { "type": "string", "enum": ["pending", "fired", "dismissed"] }
+      },
+      "description": "All fields optional. Only provided fields are updated."
+    }
+  },
+
+  "endpoints": {
+    "calendar_events_list": {
+      "method": "GET",
+      "path": "/cases/{case_id}/calendar/events",
+      "summary": "List calendar events for a case",
+      "parameters": {
+        "path": {
+          "case_id": { "type": "integer", "description": "Case ID" }
+        },
+        "query": {
+          "start_date": { "type": "string", "format": "date", "description": "Filter: events from this date (inclusive)." },
+          "end_date": { "type": "string", "format": "date", "description": "Filter: events until this date (inclusive)." },
+          "category": { "type": "string", "enum": ["hearing", "deposition", "deadline", "meeting", "other"], "description": "Filter by category." },
+          "limit": { "type": "integer", "description": "Max results. Default 100." }
+        }
+      },
+      "authentication": "Bearer token required",
+      "responses": {
+        "200": {
+          "description": "Event list",
+          "body": {
+            "type": "object",
+            "properties": {
+              "count": { "type": "integer" },
+              "events": { "type": "array", "items": { "$ref": "#/schemas/CalendarEvent" } }
+            }
+          }
+        }
+      }
+    },
+
+    "calendar_events_create": {
+      "method": "POST",
+      "path": "/cases/{case_id}/calendar/events",
+      "summary": "Create a calendar event",
+      "requestBody": { "$ref": "#/requestBodies/CreateCalendarEvent" },
+      "authentication": "Bearer token required",
+      "responses": {
+        "201": {
+          "description": "Created event",
+          "body": {
+            "type": "object",
+            "properties": {
+              "event": { "$ref": "#/schemas/CalendarEvent" }
+            }
+          }
+        },
+        "400": { "description": "Validation error — missing required fields" }
+      }
+    },
+
+    "calendar_events_get": {
+      "method": "GET",
+      "path": "/calendar/events/{event_id}",
+      "summary": "Get a single calendar event by ID",
+      "parameters": {
+        "path": {
+          "event_id": { "type": "integer", "description": "Calendar event ID" }
+        }
+      },
+      "authentication": "Bearer token required",
+      "responses": {
+        "200": {
+          "description": "Event detail",
+          "body": {
+            "type": "object",
+            "properties": {
+              "event": { "$ref": "#/schemas/CalendarEvent" },
+              "reminders": {
+                "type": "array",
+                "items": { "$ref": "#/schemas/Reminder" },
+                "description": "Reminders attached to this event (event_id = this event)"
+              }
+            }
+          }
+        },
+        "404": { "description": "Event not found" }
+      }
+    },
+
+    "calendar_events_update": {
+      "method": "PATCH",
+      "path": "/calendar/events/{event_id}",
+      "summary": "Update a calendar event",
+      "requestBody": { "$ref": "#/requestBodies/UpdateCalendarEvent" },
+      "authentication": "Bearer token required",
+      "responses": {
+        "200": {
+          "description": "Updated event",
+          "body": {
+            "type": "object",
+            "properties": {
+              "event": { "$ref": "#/schemas/CalendarEvent" }
+            }
+          }
+        },
+        "400": { "description": "No fields to update" },
+        "404": { "description": "Event not found" }
+      }
+    },
+
+    "calendar_events_delete": {
+      "method": "DELETE",
+      "path": "/calendar/events/{event_id}",
+      "summary": "Delete a calendar event (cascades to attached reminders)",
+      "parameters": {
+        "path": {
+          "event_id": { "type": "integer", "description": "Calendar event ID" }
+        }
+      },
+      "authentication": "Bearer token required",
+      "responses": {
+        "200": {
+          "description": "Deleted confirmation",
+          "body": {
+            "type": "object",
+            "properties": {
+              "deleted": { "type": "boolean" }
+            }
+          }
+        },
+        "404": { "description": "Event not found" }
+      },
+      "notes": "ON DELETE CASCADE on event_id FK means attached reminders are deleted with the event."
+    },
+
+    "reminders_list": {
+      "method": "GET",
+      "path": "/cases/{case_id}/calendar/reminders",
+      "summary": "List reminders for a case",
+      "parameters": {
+        "path": {
+          "case_id": { "type": "integer", "description": "Case ID" }
+        },
+        "query": {
+          "status": { "type": "string", "enum": ["pending", "fired", "dismissed"], "description": "Filter by status." },
+          "category": { "type": "string", "enum": ["hearing", "deposition", "deadline", "meeting", "other"], "description": "Filter by category." },
+          "event_id": { "type": "integer", "description": "Filter: reminders attached to a specific event." },
+          "limit": { "type": "integer", "description": "Max results. Default 100." }
+        }
+      },
+      "authentication": "Bearer token required",
+      "responses": {
+        "200": {
+          "description": "Reminder list",
+          "body": {
+            "type": "object",
+            "properties": {
+              "count": { "type": "integer" },
+              "reminders": { "type": "array", "items": { "$ref": "#/schemas/Reminder" } }
+            }
+          }
+        }
+      }
+    },
+
+    "reminders_create": {
+      "method": "POST",
+      "path": "/cases/{case_id}/calendar/reminders",
+      "summary": "Create a reminder (standalone or event-attached)",
+      "requestBody": { "$ref": "#/requestBodies/CreateReminder" },
+      "authentication": "Bearer token required",
+      "responses": {
+        "201": {
+          "description": "Created reminder",
+          "body": {
+            "type": "object",
+            "properties": {
+              "reminder": { "$ref": "#/schemas/Reminder" }
+            }
+          }
+        },
+        "400": { "description": "Validation error — missing required fields, or event_id references non-existent event" }
+      }
+    },
+
+    "reminders_get": {
+      "method": "GET",
+      "path": "/calendar/reminders/{reminder_id}",
+      "summary": "Get a single reminder by ID",
+      "parameters": {
+        "path": {
+          "reminder_id": { "type": "integer", "description": "Reminder ID" }
+        }
+      },
+      "authentication": "Bearer token required",
+      "responses": {
+        "200": {
+          "description": "Reminder detail",
+          "body": {
+            "type": "object",
+            "properties": {
+              "reminder": { "$ref": "#/schemas/Reminder" }
+            }
+          }
+        },
+        "404": { "description": "Reminder not found" }
+      }
+    },
+
+    "reminders_update": {
+      "method": "PATCH",
+      "path": "/calendar/reminders/{reminder_id}",
+      "summary": "Update a reminder (title, time, status, etc.)",
+      "requestBody": { "$ref": "#/requestBodies/UpdateReminder" },
+      "authentication": "Bearer token required",
+      "responses": {
+        "200": {
+          "description": "Updated reminder",
+          "body": {
+            "type": "object",
+            "properties": {
+              "reminder": { "$ref": "#/schemas/Reminder" }
+            }
+          }
+        },
+        "400": { "description": "No fields to update" },
+        "404": { "description": "Reminder not found" }
+      }
+    },
+
+    "reminders_delete": {
+      "method": "DELETE",
+      "path": "/calendar/reminders/{reminder_id}",
+      "summary": "Delete a reminder",
+      "parameters": {
+        "path": {
+          "reminder_id": { "type": "integer", "description": "Reminder ID" }
+        }
+      },
+      "authentication": "Bearer token required",
+      "responses": {
+        "200": {
+          "description": "Deleted confirmation",
+          "body": {
+            "type": "object",
+            "properties": {
+              "deleted": { "type": "boolean" }
+            }
+          }
+        },
+        "404": { "description": "Reminder not found" }
+      }
+    }
+  },
+
+  "errorResponses": {
+    "401": {
+      "description": "Unauthorized — missing or invalid Bearer token",
+      "body": { "detail": "Not authenticated" }
+    },
+    "404": {
+      "description": "Resource not found",
+      "body": { "detail": "Event not found" }
+    },
+    "422": {
+      "description": "Validation error — request body failed Pydantic validation",
+      "body": {
+        "detail": [
+          {
+            "loc": ["body", "title"],
+            "msg": "field required",
+            "type": "value_error.missing"
+          }
+        ]
+      }
+    }
+  },
+
+  "designNotes": {
+    "timezonePolicy": "All times stored and returned as ISO 8601 with timezone offset. PostgreSQL TIMESTAMPTZ handles conversion. Client displays in user's local timezone.",
+    "allDayHandling": "When all_day=true, event_date is set from start_time::DATE. start_time is set to 00:00:00 in UTC. end_time is set to NULL or 23:59:59.999. Queries filtering by date range should use event_date for all-day events and start_time for timed events.",
+    "cascadeDelete": "Deleting a calendar_event cascades to delete all reminders WHERE event_id = that event. Standalone reminders (event_id IS NULL) are unaffected.",
+    "reminderFiring": "The frontend polls GET /cases/{case_id}/calendar/reminders?status=pending every 30 seconds. Reminders with remind_at <= now() are fired (status → fired) and trigger UI notification. Server does not push — client polls.",
+    "agentCreatedBy": "Agent-created events and reminders have created_by = NULL. The UI displays 'Agent' for NULL created_by values."
+  }
+}
