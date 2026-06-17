@@ -177,6 +177,46 @@ def ensure_correspondence_schema() -> list[str]:
     return [str(sql_path)]
 
 
+# ---------------------------------------------------------------------------
+# Workspace management
+# ---------------------------------------------------------------------------
+
+def ensure_default_workspace(conn: connection, case_id: int) -> int:
+    """Ensure a 'Main' workspace exists for the given case. Returns the workspace id.
+    If one already exists, returns the first workspace found. Idempotent.
+    """
+    import psycopg2.extras
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            "SELECT id FROM workspaces WHERE case_id = %s ORDER BY id LIMIT 1",
+            (case_id,),
+        )
+        row = cur.fetchone()
+        if row:
+            return row["id"]
+        cur.execute(
+            """INSERT INTO workspaces (case_id, name, phase, status)
+               VALUES (%s, 'Main', 'other', 'active')
+               RETURNING id""",
+            (case_id,),
+        )
+        return cur.fetchone()["id"]
+
+
+def list_workspaces(conn: connection, case_id: int) -> list[dict]:
+    """List all workspaces for a case."""
+    import psycopg2.extras
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            """SELECT id, case_id, name, phase, description, parent_id, status,
+                      metadata, created_at, updated_at
+               FROM workspaces WHERE case_id = %s
+               ORDER BY created_at""",
+            (case_id,),
+        )
+        return [dict(row) for row in cur.fetchall()]
+
+
 def ensure_journal_schema() -> list[str]:
     """Apply the journal entries schema.
 
@@ -556,16 +596,17 @@ def insert_draft(
     status: str = "draft",
     file_type: str = "structured_draft",
     folder: str = "artifacts",
+    workspace_id: int | None = None,
 ) -> int:
     with conn.cursor() as cur:
         cur.execute(
             """INSERT INTO drafts (case_id, name, document_type, content,
-               created_by, status, file_type, folder)
-               VALUES (%s, %s, %s, %s::jsonb, %s, %s, %s, %s)
+               created_by, status, file_type, folder, workspace_id)
+               VALUES (%s, %s, %s, %s::jsonb, %s, %s, %s, %s, %s)
                RETURNING id""",
             (case_id, name, document_type,
              json.dumps(content if content is not None else []),
-             created_by, status, file_type, folder),
+             created_by, status, file_type, folder, workspace_id),
         )
         return cur.fetchone()[0]
 
@@ -614,44 +655,37 @@ def get_draft(conn: connection, draft_id: int) -> dict | None:
         return dict(row) if row else None
 
 
-def list_drafts(conn: connection, case_id: int, folder: str | None = None) -> list[dict]:
+def list_drafts(
+    conn: connection,
+    case_id: int,
+    folder: str | None = None,
+    workspace_id: int | None = None,
+) -> list[dict]:
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        base_sql = """SELECT id, case_id, name, document_type, file_type, folder,
+                             status, created_by, workspace_id,
+                             CASE
+                               WHEN jsonb_typeof(content) = 'array'
+                                 THEN jsonb_array_length(content)
+                               WHEN jsonb_typeof(content) = 'object' AND content ? 'views'
+                                 THEN jsonb_array_length(content->'views')
+                               WHEN jsonb_typeof(content) = 'object'
+                                 THEN 1
+                               ELSE 0
+                             END AS block_count,
+                             created_at, updated_at
+                      FROM drafts WHERE case_id = %s"""
+        params: list = [case_id]
+
         if folder is not None:
-            cur.execute(
-                """SELECT id, case_id, name, document_type, file_type, folder,
-                          status, created_by,
-                          CASE
-                            WHEN jsonb_typeof(content) = 'array'
-                              THEN jsonb_array_length(content)
-                            WHEN jsonb_typeof(content) = 'object' AND content ? 'views'
-                              THEN jsonb_array_length(content->'views')
-                            WHEN jsonb_typeof(content) = 'object'
-                              THEN 1
-                            ELSE 0
-                          END AS block_count,
-                          created_at, updated_at
-                   FROM drafts WHERE case_id = %s AND folder = %s
-                   ORDER BY updated_at DESC""",
-                (case_id, folder),
-            )
-        else:
-            cur.execute(
-                """SELECT id, case_id, name, document_type, file_type, folder,
-                          status, created_by,
-                          CASE
-                            WHEN jsonb_typeof(content) = 'array'
-                              THEN jsonb_array_length(content)
-                            WHEN jsonb_typeof(content) = 'object' AND content ? 'views'
-                              THEN jsonb_array_length(content->'views')
-                            WHEN jsonb_typeof(content) = 'object'
-                              THEN 1
-                            ELSE 0
-                          END AS block_count,
-                          created_at, updated_at
-                   FROM drafts WHERE case_id = %s
-                   ORDER BY updated_at DESC""",
-                (case_id,),
-            )
+            base_sql += " AND folder = %s"
+            params.append(folder)
+        if workspace_id is not None:
+            base_sql += " AND workspace_id = %s"
+            params.append(workspace_id)
+
+        base_sql += " ORDER BY updated_at DESC"
+        cur.execute(base_sql, tuple(params))
         return [dict(row) for row in cur.fetchall()]
 
 
@@ -1072,4 +1106,5 @@ __all__ = [
     "list_vault_items", "delete_vault_item",
     "attach_vault_documents", "detach_vault_document",
     "ensure_journal_schema", "insert_journal_entry", "list_journal_entries",
+    "ensure_default_workspace", "list_workspaces",
 ]

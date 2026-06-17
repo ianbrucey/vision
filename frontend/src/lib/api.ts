@@ -147,6 +147,19 @@ export const deleteDraft = (draftId: number): Promise<{ deleted: boolean }> =>
 // Workspace
 export type FileType = "markdown" | "structured_draft" | "html" | "json_view";
 
+export interface Workspace {
+  id: number;
+  case_id: number;
+  name: string;
+  phase: string | null;
+  description: string | null;
+  parent_id: number | null;
+  status: string;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface WorkspaceItemSummary {
   id: number;
   case_id: number;
@@ -156,6 +169,7 @@ export interface WorkspaceItemSummary {
   folder: string;
   status: string;
   created_by: string;
+  workspace_id: number | null;
   block_count: number;
   created_at: string;
   updated_at: string;
@@ -165,6 +179,12 @@ export interface WorkspaceItemFull extends WorkspaceItemSummary {
   content: unknown;
   metadata: Record<string, unknown> | null;
 }
+
+export const listWorkspaces = (caseId: number): Promise<{ workspaces: Workspace[] }> =>
+  fetchAPI(`/api/cases/${caseId}/workspaces`);
+
+export const createWorkspace = (caseId: number, name: string, description?: string): Promise<{ id: number; name: string }> =>
+  fetchAPI("/api/workspaces", { method: "POST", body: JSON.stringify({ case_id: caseId, name, description }) });
 
 export const listWorkspaceItems = (
   caseId: number,
@@ -187,6 +207,7 @@ export const createWorkspaceItem = (data: {
   document_type?: string;
   folder?: string;
   content?: unknown;
+  workspace_id?: number | null;
 }): Promise<{ item: WorkspaceItemFull }> =>
   fetchAPI("/api/workspace", { method: "POST", body: JSON.stringify(data) });
 

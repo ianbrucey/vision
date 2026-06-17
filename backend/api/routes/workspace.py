@@ -19,6 +19,7 @@ from core.db import (
     update_draft as _update_draft,
     delete_draft as _delete_draft,
     update_block as _update_block,
+    list_workspaces as _list_workspaces,
 )
 from schemas.view_envelope import validate_view_envelope
 
@@ -36,6 +37,7 @@ class CreateWorkspaceItemRequest(BaseModel):
     document_type: str = "other"
     folder: str = "freestyle"
     content: list | dict = []
+    workspace_id: int | None = None
 
 
 class UpdateWorkspaceItemRequest(BaseModel):
@@ -54,6 +56,49 @@ class UpdateBlockRequest(BaseModel):
 # ---------------------------------------------------------------------------
 # List + Get
 # ---------------------------------------------------------------------------
+
+class CreateWorkspaceRequest(BaseModel):
+    case_id: int
+    name: str
+    description: str | None = None
+    phase: str | None = None
+
+
+@router.post("/workspaces")
+def create_workspace_endpoint(
+    body: CreateWorkspaceRequest,
+    user: dict = Depends(get_current_user),
+):
+    """Create a new workspace for a case."""
+    conn = connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO workspaces (case_id, name, phase, description, status)
+                   VALUES (%s, %s, %s, %s, 'active')
+                   RETURNING id""",
+                (body.case_id, body.name, body.phase or "other", body.description),
+            )
+            ws_id = cur.fetchone()[0]
+        conn.commit()
+    finally:
+        conn.close()
+    return {"id": ws_id, "name": body.name}
+
+
+@router.get("/cases/{case_id}/workspaces")
+def list_workspaces_endpoint(
+    case_id: int,
+    user: dict = Depends(get_current_user),
+):
+    """List all workspaces for a case."""
+    conn = connect()
+    try:
+        workspaces = _list_workspaces(conn, case_id)
+    finally:
+        conn.close()
+    return {"workspaces": workspaces}
+
 
 @router.get("/cases/{case_id}/workspace")
 def list_workspace_items_endpoint(
@@ -117,6 +162,7 @@ def create_workspace_item_endpoint(
             created_by="user",
             file_type=body.file_type,
             folder=body.folder,
+            workspace_id=body.workspace_id,
         )
         item = _get_draft(conn, item_id)
     return {"item": item}

@@ -694,3 +694,11 @@ CREATE INDEX IF NOT EXISTS idx_vault_docs_document ON vault_documents (document_
 
 INSERT INTO schema_migrations (version, name) VALUES (12, 'add_business_vault')
 ON CONFLICT (version) DO NOTHING;
+
+-- Add workspace_id to drafts (migration v14 — v13 is in 005_journal.sql)
+ALTER TABLE drafts ADD COLUMN IF NOT EXISTS workspace_id INTEGER
+    REFERENCES workspaces(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_drafts_workspace ON drafts (workspace_id);
+
+INSERT INTO schema_migrations (version, name) VALUES (14, 'add_drafts_workspace_id')
+ON CONFLICT (version) DO NOTHING;

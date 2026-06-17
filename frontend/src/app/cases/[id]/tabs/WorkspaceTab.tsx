@@ -2,14 +2,17 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { FileText, Plus, Loader2, Trash2, Pencil } from "lucide-react";
+import { FileText, FilePlus, Plus, Check, X, Loader2, Trash2, Pencil } from "lucide-react";
 import {
+  listWorkspaces,
+  createWorkspace,
   listWorkspaceItems,
   getWorkspaceItem,
   createWorkspaceItem,
   updateWorkspaceItem,
   updateWorkspaceBlock,
   deleteWorkspaceItem,
+  type Workspace,
   type WorkspaceItemSummary,
   type WorkspaceItemFull,
   type FileType,
@@ -33,7 +36,7 @@ interface WorkspaceTabProps {
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
 
-/** Sync workspace state (item, folder) to URL without clobbering other params. */
+/** Sync workspace state (item, folder, workspace) to URL without clobbering other params. */
 function useWorkspaceUrl() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -41,9 +44,10 @@ function useWorkspaceUrl() {
 
   const itemParam = searchParams.get("item");
   const folderParam = searchParams.get("folder");
+  const wsParam = searchParams.get("ws");
 
   const setUrlParams = useCallback(
-    (updates: { item?: number | null; folder?: string | null }) => {
+    (updates: { item?: number | null; folder?: string | null; ws?: number | null }) => {
       const params = new URLSearchParams(searchParams.toString());
       if (updates.item !== undefined) {
         if (updates.item !== null) params.set("item", String(updates.item));
@@ -52,6 +56,10 @@ function useWorkspaceUrl() {
       if (updates.folder !== undefined) {
         if (updates.folder !== null) params.set("folder", updates.folder);
         else params.delete("folder");
+      }
+      if (updates.ws !== undefined) {
+        if (updates.ws !== null) params.set("ws", String(updates.ws));
+        else params.delete("ws");
       }
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
@@ -62,6 +70,7 @@ function useWorkspaceUrl() {
   return {
     initialItemId: itemParam ? Number(itemParam) : null,
     initialFolder: folderParam || null,
+    initialWsId: wsParam ? Number(wsParam) : null,
     setUrlParams,
   };
 }
@@ -129,8 +138,10 @@ const formatDate = (iso: string) =>
 /* ------------------------------------------------------------------ */
 
 export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
-  const { initialItemId, initialFolder, setUrlParams } = useWorkspaceUrl();
+  const { initialItemId, initialFolder, initialWsId, setUrlParams } = useWorkspaceUrl();
 
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<number | null>(initialWsId);
   const [items, setItems] = useState<WorkspaceItemSummary[]>([]);
   const [activeItem, setActiveItem] = useState<WorkspaceItemFull | null>(null);
   const [loading, setLoading] = useState(true);
@@ -141,21 +152,34 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(initialFolder);
   const [showNewFileMenu, setShowNewFileMenu] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [creatingWorkspace, setCreatingWorkspace] = useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = useState("");
 
   /* ---- fetch ---- */
 
   const refreshList = useCallback(async () => {
     try {
-      // Always fetch ALL items — folder filtering is visual only (in FileExplorer)
-      const res = await listWorkspaceItems(caseId);
-      setItems(res.items);
+      const [wsRes, itemRes] = await Promise.all([
+        listWorkspaces(caseId),
+        listWorkspaceItems(caseId),
+      ]);
+      setWorkspaces(wsRes.workspaces);
+      // Restore from URL or default to first workspace
+      if (!activeWorkspaceId && wsRes.workspaces.length > 0) {
+        const restored = initialWsId && wsRes.workspaces.some(w => w.id === initialWsId)
+          ? initialWsId
+          : wsRes.workspaces[0].id;
+        setActiveWorkspaceId(restored);
+        setUrlParams({ ws: restored });
+      }
+      setItems(itemRes.items);
       setError(null);
-      return res.items;
+      return itemRes.items;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load workspace items");
       return [];
     }
-  }, [caseId]);
+  }, [caseId, activeWorkspaceId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -210,6 +234,7 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
         file_type: fileType,
         folder,
         content,
+        workspace_id: activeWorkspaceId,
       });
       await refreshList();
       setActiveItem(res.item);
@@ -385,7 +410,7 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
             onClick={() => setShowNewFileMenu(showNewFileMenu ? null : "mobile")}
             className="text-brand p-1"
           >
-            <Plus size={18} />
+            <FilePlus size={18} />
           </button>
           {showNewFileMenu === "mobile" && (
             <div className="absolute right-0 top-full mt-1 w-44 bg-surface-2 border border-border
@@ -413,18 +438,71 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
           className={`w-[260px] flex-shrink-0 bg-surface-1 border-r border-border flex flex-col
                       overflow-hidden ${mobileView === "preview" ? "max-md:hidden" : "max-md:w-full max-md:border-r-0"}`}
         >
-          {/* Desktop "New File" button */}
-          <div className="hidden md:flex items-center justify-between px-4 py-3 border-b border-border">
-            <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Workspace
-            </h3>
-            <div className="relative">
+          {/* Desktop: workspace selector + New File button */}
+          <div className="hidden md:flex items-center justify-between px-4 py-3 border-b border-border gap-2">
+            {creatingWorkspace ? (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!newWorkspaceName.trim()) return;
+                  try {
+                    const result = await createWorkspace(caseId, newWorkspaceName.trim());
+                    setNewWorkspaceName("");
+                    setCreatingWorkspace(false);
+                    setActiveWorkspaceId(result.id);
+                    setUrlParams({ ws: result.id });
+                    await refreshList();
+                  } catch { /* silent */ }
+                }}
+                className="flex items-center gap-1 min-w-0 flex-1"
+              >
+                <input
+                  type="text"
+                  value={newWorkspaceName}
+                  onChange={(e) => setNewWorkspaceName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Escape") setCreatingWorkspace(false); }}
+                  placeholder="Workspace name..."
+                  className="text-xs bg-surface-2 border border-border rounded px-2 py-1 w-full text-text-primary placeholder:text-text-disabled outline-none focus:border-brand"
+                  autoFocus
+                />
+                <button type="submit" className="text-success hover:text-green-700 p-0.5" title="Create">
+                  <Check size={14} />
+                </button>
+                <button type="button" onClick={() => { setCreatingWorkspace(false); setNewWorkspaceName(""); }} className="text-text-disabled hover:text-text-secondary p-0.5" title="Cancel">
+                  <X size={14} />
+                </button>
+              </form>
+            ) : (
+              <div className="flex items-center gap-1 min-w-0">
+                <select
+                  value={activeWorkspaceId ?? ""}
+                  onChange={(e) => {
+                    const id = e.target.value ? Number(e.target.value) : null;
+                    setActiveWorkspaceId(id);
+                    setUrlParams({ ws: id });
+                  }}
+                  className="text-xs font-semibold bg-transparent border-none text-text-secondary uppercase tracking-wider cursor-pointer min-w-0 truncate"
+                >
+                  {workspaces.map((ws) => (
+                    <option key={ws.id} value={ws.id}>{ws.name}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => setCreatingWorkspace(true)}
+                  className="text-text-disabled hover:text-text-secondary p-0.5 shrink-0"
+                  title="New workspace"
+                >
+                  <Plus size={12} />
+                </button>
+              </div>
+            )}
+            <div className="relative shrink-0">
               <button
                 onClick={() => setShowNewFileMenu(showNewFileMenu === "desktop" ? null : "desktop")}
-                className="text-brand hover:text-brand-hover p-1"
+                className="text-brand hover:text-brand-hover p-1 flex items-center gap-1"
                 title="New file"
               >
-                <Plus size={16} />
+                <FilePlus size={16} />
               </button>
               {showNewFileMenu === "desktop" && (
                 <div className="absolute right-0 top-full mt-1 w-48 bg-surface-2 border border-border
@@ -452,7 +530,7 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
           </div>
 
           <FileExplorer
-            items={items}
+            items={items.filter((i) => i.workspace_id === activeWorkspaceId || i.workspace_id === null)}
             activeItemId={activeItem?.id ?? null}
             selectedFolder={selectedFolder}
             onSelectItem={selectItem}

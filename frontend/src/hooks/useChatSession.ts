@@ -45,6 +45,7 @@ export function useChatSession(caseId: number) {
   const [streaming, setStreaming] = useState(false);
   const [working, setWorking] = useState(false);
   const streamCtrlRef = useRef<AbortController | null>(null);
+  const sendingRef = useRef(false);
 
   /* ---- persist active session ---- */
   const setActiveSessionId = useCallback((id: number | null) => {
@@ -117,6 +118,7 @@ export function useChatSession(caseId: number) {
   /* ---- load messages ---- */
   useEffect(() => {
     if (!activeSessionId) return;
+    if (sendingRef.current) return; // don't clobber during active send
     let cancelled = false;
     setMessagesLoading(true);
     getChatMessages(activeSessionId)
@@ -152,13 +154,14 @@ export function useChatSession(caseId: number) {
   const handleSend = async (text: string) => {
     if (!text.trim() || streaming) return;
 
+    sendingRef.current = true;
+
     let sid = activeSessionId;
     if (!sid) {
       try {
         const { session_id } = await createChatSession(caseId);
         sid = session_id;
         setActiveSessionId(sid);
-        await loadSessions();
       } catch {
         return;
       }
@@ -235,11 +238,13 @@ export function useChatSession(caseId: number) {
         });
       },
       () => {
+        sendingRef.current = false;
         setStreaming(false);
         setWorking(false);
         loadSessions();
       },
       (err) => {
+        sendingRef.current = false;
         setStreaming(false);
         setWorking(false);
         setMessages((prev) => [
@@ -252,6 +257,7 @@ export function useChatSession(caseId: number) {
 
   const handleCancel = () => {
     streamCtrlRef.current?.abort();
+    sendingRef.current = false;
     setStreaming(false);
     setWorking(false);
   };

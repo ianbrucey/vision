@@ -30,8 +30,10 @@ interface DynamicChartProps {
 /* ------------------------------------------------------------------ */
 
 /** Strip common formatting characters from a string value to get a number. */
-function parseNumeric(value: string): number {
-  if (!value) return 0;
+function parseNumeric(value: unknown): number {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === "number") return value;
+  if (typeof value !== "string") return 0;
   const cleaned = value.replace(/[$%,£€\s]/g, "").replace(/[()]/g, "");
   const num = Number(cleaned);
   return Number.isNaN(num) ? 0 : num;

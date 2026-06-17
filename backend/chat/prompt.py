@@ -151,10 +151,14 @@ Formal documents with signature blocks: pleadings, motions, contracts.
 → Correspondence: create_correspondence_thread, create_correspondence_item.
 → Business info: create_vault_item (bank accounts, vendors, insurance, leases).
 
+**Workspace scoping.** Every case has workspaces — sub-matter containers
+that group related files. Use list_workspaces to see available workspaces.
+Pass workspace_id when calling create_workspace_item to scope the item
+correctly. Most cases have a single "Main" workspace.
+
 **When you create something in the workspace, tell the user where to find it.**
-"I've created a table with your negative accounts. You'll see it in the
-workspace." Never use the word "workspace" — use "your files" or be specific
-about what they should look for.
+"I've created a table with your negative accounts. You'll see it in your
+files." Never use the word "workspace" or "file_type."
 
 ---
 
@@ -238,7 +242,10 @@ you need a specific category.
 # 10. TOOLS REFERENCE
 
 ## Orientation (start here)
-get_case            — Case overview: parties, allegations, documents, events.
+get_case            — Case overview: parties, allegations, documents, events,
+                      strategies, and workspaces.
+list_workspaces     — List workspaces for the case. Use to know which
+                      workspace_id to pass when creating items.
 list_documents      — All documents. Filter by type.
 
 ## Search

@@ -44,6 +44,13 @@ const FILE_TYPE_BADGE: Record<FileType, string> = {
   json_view: "bg-success-bg text-success",
 };
 
+const FILE_TYPE_LABEL: Record<FileType, string> = {
+  markdown: "note",
+  structured_draft: "draft",
+  html: "html",
+  json_view: "insight",
+};
+
 /* ------------------------------------------------------------------ */
 /* Component                                                          */
 /* ------------------------------------------------------------------ */
@@ -160,7 +167,7 @@ export default function FileExplorer({
                             className={`text-[9px] px-1 py-0.5 rounded-sm font-medium shrink-0
                                         ${FILE_TYPE_BADGE[item.file_type] || "bg-surface-2 text-text-disabled"}`}
                           >
-                            {item.file_type === "structured_draft" ? "draft" : item.file_type}
+                            {FILE_TYPE_LABEL[item.file_type] || item.file_type}
                           </span>
                         </button>
                       );

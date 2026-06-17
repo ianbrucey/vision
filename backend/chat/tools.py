@@ -157,9 +157,73 @@ def create_vision_server(case_id: int):
     # -- Layer 1: Orientation ------------------------------------------------
 
     @tool(
+        "list_workspaces",
+        "List all workspaces for the current case. Workspaces scope "
+        "drafts, views, and documents to a specific sub-matter within "
+        "a case (e.g. 'RFP Response', 'Motion to Dismiss'). "
+        "Use this to see what workspaces exist and which is active.",
+        {},
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def list_workspaces(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import list_workspaces as _list_ws
+                rows = _list_ws(conn, case_id)
+            finally:
+                conn.close()
+            return _result({"count": len(rows), "workspaces": rows})
+        except Exception as exc:
+            return _error(f"list_workspaces failed: {exc}")
+
+    @tool(
+        "create_workspace",
+        "Create a new workspace for the current case. Workspaces scope "
+        "drafts, views, and documents to a specific sub-matter (e.g. "
+        "'RFP Response', 'Credit Dispute', 'Motion to Dismiss'). "
+        "Use when the user starts a new sub-matter or asks to organize "
+        "work separately.",
+        {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Workspace name. Be descriptive: 'RFP Response — VA T4NG', "
+                    "'Motion to Dismiss — Smith v. Jones'.",
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Optional: what this workspace is for.",
+                },
+            },
+            "required": ["name"],
+        },
+    )
+    async def create_workspace(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                import psycopg2.extras
+                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                    cur.execute(
+                        """INSERT INTO workspaces (case_id, name, phase, description, status)
+                           VALUES (%s, %s, 'other', %s, 'active')
+                           RETURNING id, name""",
+                        (case_id, args["name"], args.get("description")),
+                    )
+                    row = dict(cur.fetchone())
+            finally:
+                conn.close()
+            return _result({"workspace": row})
+        except Exception as exc:
+            return _error(f"create_workspace failed: {exc}")
+
+    @tool(
         "get_case",
         "Complete overview of the current case: metadata, parties, "
-        "allegations, documents list, events timeline, and strategies. "
+        "allegations, documents list, events timeline, strategies, "
+        "and workspaces. "
         "Use this FIRST to understand what you're working with before "
         "searching.",
         {},
@@ -200,6 +264,13 @@ def create_vision_server(case_id: int):
                           status, objective, filing_deadline, created_at
                    FROM strategies WHERE case_id = %s
                    ORDER BY created_at DESC""",
+                (case_id,),
+            )
+            case["workspaces"] = _query(
+                """SELECT id, name, phase, description, status,
+                          created_at, updated_at
+                   FROM workspaces WHERE case_id = %s
+                   ORDER BY created_at""",
                 (case_id,),
             )
             case.pop("narrative", None)
@@ -1247,6 +1318,12 @@ def create_vision_server(case_id: int):
                     "For json_view: a direct object {documentMetadata, views[]}. "
                     "For all other types: array-wrapped.",
                 },
+                "workspace_id": {
+                    "type": "integer",
+                    "description": "Workspace ID to scope this item to (optional). "
+                    "If omitted, uses the default workspace. Use list_workspaces "
+                    "to see available workspaces.",
+                },
             },
             "required": ["name", "file_type", "folder", "content"],
         },
@@ -1278,6 +1355,7 @@ def create_vision_server(case_id: int):
                     created_by="agent",
                     file_type=args["file_type"],
                     folder=args["folder"],
+                    workspace_id=args.get("workspace_id"),
                 )
             finally:
                 conn.close()
@@ -2978,6 +3056,8 @@ def create_vision_server(case_id: int):
         version="1.0.0",
         tools=[
             get_case,
+            list_workspaces,
+            create_workspace,
             list_documents,
             search_blocks,
             semantic_search,
