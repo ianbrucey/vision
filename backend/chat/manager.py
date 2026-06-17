@@ -17,7 +17,7 @@ from typing import AsyncIterator
 
 import psycopg2.extras
 
-from chat.prompt import WAR_ROOM_SYSTEM_PROMPT
+from chat.prompt import VISION_SYSTEM_PROMPT
 from chat.session_store import PostgresSessionStore
 from chat.tools import create_vision_server
 from chat.external_tools import create_external_tools_server
@@ -71,7 +71,9 @@ class AgentSession:
             allowed_tools=["mcp__vision__*",
                            "mcp__legal_hub__*",
                            "Read", "Grep", "Write", "Edit",
-                           "WebSearch", "WebFetch"],
+                           "WebSearch", "WebFetch",
+                           "Skill", "Agent"],
+            skills="all",
             session_store=store,
             setting_sources=["project"],
             cwd=str(sdk_workdir),
@@ -189,7 +191,7 @@ class ChatManager:
         self, case_id: int, system_prompt: str | None = None
     ) -> dict:
         """Create a new chat session row. AgentSession is lazily created on first message."""
-        prompt = system_prompt or WAR_ROOM_SYSTEM_PROMPT
+        prompt = system_prompt or VISION_SYSTEM_PROMPT
         project_key = f"case_{case_id}"
 
         conn = self._conn_factory()
@@ -413,7 +415,7 @@ class ChatManager:
             agent = AgentSession(
                 session_id=session_id,
                 case_id=session["case_id"],
-                system_prompt=session["system_prompt"] or WAR_ROOM_SYSTEM_PROMPT,
+                system_prompt=session["system_prompt"] or VISION_SYSTEM_PROMPT,
             )
             self._sessions[session_id] = agent
 

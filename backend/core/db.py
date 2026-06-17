@@ -177,6 +177,78 @@ def ensure_correspondence_schema() -> list[str]:
     return [str(sql_path)]
 
 
+def ensure_journal_schema() -> list[str]:
+    """Apply the journal entries schema.
+
+    Creates the journal_entries table for cross-session agent continuity.
+    Idempotent — uses IF NOT EXISTS.
+    """
+    sql_path = _SCHEMA_DIR / "005_journal.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Journal schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+# ---------------------------------------------------------------------------
+# Journal CRUD
+# ---------------------------------------------------------------------------
+
+def insert_journal_entry(
+    conn: connection,
+    case_id: int,
+    entry_type: str,
+    content: str,
+    title: str | None = None,
+    metadata: dict | None = None,
+) -> int:
+    """Insert a journal entry. Returns the new entry ID."""
+    import json as _json
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO journal_entries (case_id, entry_type, title, content, metadata)
+               VALUES (%s, %s, %s, %s, %s::jsonb)
+               RETURNING id""",
+            (case_id, entry_type, title, content,
+             _json.dumps(metadata or {})),
+        )
+        return cur.fetchone()[0]
+
+
+def list_journal_entries(
+    conn: connection,
+    case_id: int,
+    limit: int = 20,
+    entry_type: str | None = None,
+) -> list[dict]:
+    """List journal entries for a case, newest first. Optionally filter by type."""
+    import psycopg2.extras
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        if entry_type:
+            cur.execute(
+                """SELECT id, case_id, entry_type, title, content, metadata, created_at
+                   FROM journal_entries
+                   WHERE case_id = %s AND entry_type = %s
+                   ORDER BY created_at DESC
+                   LIMIT %s""",
+                (case_id, entry_type, limit),
+            )
+        else:
+            cur.execute(
+                """SELECT id, case_id, entry_type, title, content, metadata, created_at
+                   FROM journal_entries
+                   WHERE case_id = %s
+                   ORDER BY created_at DESC
+                   LIMIT %s""",
+                (case_id, limit),
+            )
+        return [dict(row) for row in cur.fetchall()]
+
+
 def drop_schema() -> None:
     """Drop all vision tables. DESTRUCTIVE — for development only."""
     with tx() as conn:
@@ -999,4 +1071,5 @@ __all__ = [
     "insert_vault_item", "update_vault_item", "get_vault_item",
     "list_vault_items", "delete_vault_item",
     "attach_vault_documents", "detach_vault_document",
+    "ensure_journal_schema", "insert_journal_entry", "list_journal_entries",
 ]

@@ -24,6 +24,7 @@ from core.db import (
     ensure_strategy_schema,
     ensure_chat_schema,
     ensure_correspondence_schema,
+    ensure_journal_schema,
 )
 
 # ---------------------------------------------------------------------------
@@ -124,6 +125,10 @@ def main() -> int:
         corr = ensure_correspondence_schema()
         for path in corr:
             print(f"  Corr:     {path}")
+
+        journal = ensure_journal_schema()
+        for path in journal:
+            print(f"  Journal:  {path}")
     except Exception as e:
         print(f"  ERROR applying schemas: {e}", file=sys.stderr)
         return 1
@@ -164,6 +169,8 @@ def main() -> int:
         # 004_correspondence.sql
         "correspondence_threads", "correspondence_items",
         "correspondence_attachments",
+        # 005_journal.sql
+        "journal_entries",
     }
     actual = set(tables)
     missing = expected - actual

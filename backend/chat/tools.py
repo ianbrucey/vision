@@ -2861,6 +2861,116 @@ def create_vision_server(case_id: int):
         except Exception as exc:
             return _error(f"attach_vault_documents failed: {exc}")
 
+    # -- Layer 12: Journal ----------------------------------------------------
+
+    @tool(
+        "list_journal_entries",
+        "List journal entries for the current case, newest first. "
+        "The journal tracks session starts, milestones, decisions, and "
+        "findings across sessions. Use this at the START of every session "
+        "to understand what was previously worked on. "
+        "Optionally filter by entry_type.",
+        {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "description": "Max entries to return (default 20, max 50).",
+                },
+                "entry_type": {
+                    "type": "string",
+                    "enum": [
+                        "session_start", "session_end",
+                        "milestone", "decision", "phase_change",
+                        "finding", "note",
+                    ],
+                    "description": "Filter to a specific entry type (optional).",
+                },
+            },
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def list_journal_entries(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            limit = min(args.get("limit", 20), 50)
+            entry_type = args.get("entry_type")
+            conn = _conn()
+            try:
+                from core.db import list_journal_entries as _list_journal
+                rows = _list_journal(conn, case_id, limit=limit, entry_type=entry_type)
+            finally:
+                conn.close()
+            return _result({"count": len(rows), "entries": rows})
+        except Exception as exc:
+            return _error(f"list_journal_entries failed: {exc}")
+
+    @tool(
+        "create_journal_entry",
+        "Write an entry to the case journal. Use this to record session "
+        "starts/ends, milestones reached, decisions made, phase changes, "
+        "findings discovered, or general notes. The journal provides "
+        "cross-session continuity — the next session reads it to understand "
+        "where things stand.\n\n"
+        "Entry types:\n"
+        "  session_start  — Beginning of a work session\n"
+        "  session_end    — End of a work session (summary + next steps)\n"
+        "  milestone      — Key accomplishment reached\n"
+        "  decision       — Strategic choice and the reasoning behind it\n"
+        "  phase_change   — Moving from one stage of work to another\n"
+        "  finding        — Discovery worth remembering\n"
+        "  note           — General observation",
+        {
+            "type": "object",
+            "properties": {
+                "entry_type": {
+                    "type": "string",
+                    "enum": [
+                        "session_start", "session_end",
+                        "milestone", "decision", "phase_change",
+                        "finding", "note",
+                    ],
+                    "description": "Type of journal entry.",
+                },
+                "content": {
+                    "type": "string",
+                    "description": "Markdown body of the entry. Use headers, "
+                    "bullet lists, and structured formatting as appropriate. "
+                    "For session_start: note what case/matter, what was "
+                    "previously accomplished, what's planned this session. "
+                    "For session_end: summarize accomplishments and list "
+                    "concrete next steps.",
+                },
+                "title": {
+                    "type": "string",
+                    "description": "Optional one-line title summarizing the entry.",
+                },
+            },
+            "required": ["entry_type", "content"],
+        },
+    )
+    async def create_journal_entry(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import insert_journal_entry as _insert_journal
+                entry_id = _insert_journal(
+                    conn,
+                    case_id=case_id,
+                    entry_type=args["entry_type"],
+                    content=args["content"],
+                    title=args.get("title"),
+                )
+            finally:
+                conn.close()
+            return _result({
+                "entry_id": entry_id,
+                "entry_type": args["entry_type"],
+                "title": args.get("title"),
+            })
+        except Exception as exc:
+            return _error(f"create_journal_entry failed: {exc}")
+
     # -- Build server --------------------------------------------------------
 
     return create_sdk_mcp_server(
@@ -2910,5 +3020,7 @@ def create_vision_server(case_id: int):
             create_vault_item,
             update_vault_item,
             attach_vault_documents,
+            list_journal_entries,
+            create_journal_entry,
         ],
     )
