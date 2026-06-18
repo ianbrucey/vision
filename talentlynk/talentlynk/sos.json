@@ -1,0 +1,2222 @@
+{
+  "log": {
+    "version": "1.2",
+    "creator": {
+      "name": "Firefox",
+      "version": "151.0.4"
+    },
+    "browser": {
+      "name": "Firefox",
+      "version": "151.0.4"
+    },
+    "pages": [
+      {
+        "id": "page_1",
+        "pageTimings": {
+          "onContentLoad": 346,
+          "onLoad": 510
+        },
+        "startedDateTime": "2026-06-18T05:20:08.176-04:00",
+        "title": "https://ecorp.sos.ga.gov/BusinessSearch/BusinessInformation?businessId=4540046&businessType=Domestic%20Limited%20Liability%20Company&fromSearch=True"
+      }
+    ],
+    "entries": [
+      {
+        "startedDateTime": "2026-06-18T05:20:08.176-04:00",
+        "request": {
+          "bodySize": 88,
+          "method": "POST",
+          "url": "https://ecorp.sos.ga.gov/BusinessSearch",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "Host",
+              "value": "ecorp.sos.ga.gov"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br, zstd"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            },
+            {
+              "name": "Content-Length",
+              "value": "88"
+            },
+            {
+              "name": "Origin",
+              "value": "https://ecorp.sos.ga.gov"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "Referer",
+              "value": "https://ecorp.sos.ga.gov/BusinessSearch"
+            },
+            {
+              "name": "Cookie",
+              "value": "ASP.NET_SessionId=qw250enqcibggnvh5biy5jsd; __cflb=02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2; cf_clearance=hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w; __RequestVerificationToken=xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2; userCookie="
+            },
+            {
+              "name": "Upgrade-Insecure-Requests",
+              "value": "1"
+            },
+            {
+              "name": "Sec-Fetch-Dest",
+              "value": "document"
+            },
+            {
+              "name": "Sec-Fetch-Mode",
+              "value": "navigate"
+            },
+            {
+              "name": "Sec-Fetch-Site",
+              "value": "same-origin"
+            },
+            {
+              "name": "Sec-Fetch-User",
+              "value": "?1"
+            },
+            {
+              "name": "Priority",
+              "value": "u=0, i"
+            }
+          ],
+          "cookies": [
+            {
+              "name": "ASP.NET_SessionId",
+              "value": "qw250enqcibggnvh5biy5jsd"
+            },
+            {
+              "name": "__cflb",
+              "value": "02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2"
+            },
+            {
+              "name": "cf_clearance",
+              "value": "hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w"
+            },
+            {
+              "name": "__RequestVerificationToken",
+              "value": "xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2"
+            },
+            {
+              "name": "userCookie",
+              "value": ""
+            }
+          ],
+          "queryString": [],
+          "headersSize": 1348,
+          "postData": {
+            "mimeType": "application/x-www-form-urlencoded",
+            "params": [
+              {
+                "name": "search.SearchType",
+                "value": "BusinessName"
+              },
+              {
+                "name": "search.SearchValue",
+                "value": "funlynk"
+              },
+              {
+                "name": "search.SearchCriteria",
+                "value": "Contains"
+              }
+            ],
+            "text": "search.SearchType=BusinessName&search.SearchValue=funlynk&search.SearchCriteria=Contains"
+          }
+        },
+        "response": {
+          "status": 200,
+          "statusText": "",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "date",
+              "value": "Thu, 18 Jun 2026 09:20:09 GMT"
+            },
+            {
+              "name": "content-type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "name": "cache-control",
+              "value": "private"
+            },
+            {
+              "name": "vary",
+              "value": "Accept-Encoding"
+            },
+            {
+              "name": "server",
+              "value": "cloudflare"
+            },
+            {
+              "name": "x-aspnetmvc-version",
+              "value": "4.0"
+            },
+            {
+              "name": "x-aspnet-version",
+              "value": "4.0.30319"
+            },
+            {
+              "name": "x-powered-by",
+              "value": "ASP.NET"
+            },
+            {
+              "name": "x-frame-options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "name": "cf-cache-status",
+              "value": "DYNAMIC"
+            },
+            {
+              "name": "content-encoding",
+              "value": "br"
+            },
+            {
+              "name": "cf-ray",
+              "value": "a0d937638e6a9613-ATL"
+            },
+            {
+              "name": "X-Firefox-Spdy",
+              "value": "h2"
+            }
+          ],
+          "cookies": [],
+          "content": {
+            "mimeType": "text/html; charset=utf-8",
+            "size": 32006,
+            "text": "<!DOCTYPE html>\r\n\r\n<html>\r\n<head>\r\n    <meta name=\"viewport\" content=\"width=device-width\" />\r\n    <title>GEORGIA</title>\r\n    <link href=\"/Themes/CSS/Styles?v=Zg5mvax9ru3G0Vr5izUJdPH0jjJ6wtthi2dPqDAi_201\" rel=\"stylesheet\"/>\r\n\r\n    <script src=\"/Scripts/Script?v=8X2IDPh1LaRe4erLuQcGu5zpE8N1cVf-nEWZkD0RhvQ1\"></script>\r\n\r\n\r\n    \r\n    \r\n<script type=\"text/javascript\">\r\n    $helper = function ()\r\n    {\r\n        var config =\r\n        {\r\n            commerceHubSettings:\r\n            {\r\n                environment: 'PROD',\r\n                baseUrl: 'https://connect.fiservapis.com/ch/',\r\n                merchantId: '100106000000137',\r\n                terminalId: '10000001',\r\n                apiKey: '3hOZxA5DyeaQinHppt4nA4a6s8BAPzHFIXgM5Ium6RpKZjGw',\r\n                apiSecret: 'IAqcGUCXJwaT4JxkvyQSrlsrm2q1RHQVcRwY6GrA5BR06ARxuwqk13MnasbCsxEE',\r\n                domainWhiteList: 'http://localhost:51351/,https://localhost:51351/',\r\n                pageId: '2fa919c0-1edf-429a-903e-56decac5b1ac',\r\n                pageVersion: '1',\r\n                showGenericError: 'false'.toString().toLowerCase(),\r\n                genericError: 'Something went wrong while authorizing your card. You may want to try again or use a different payment method.'\r\n            }\r\n        };\r\n\r\n        return {\r\n            config: config\r\n        };\r\n    }();\r\n</script>   \r\n\r\n    <script type=\"text/javascript\">\r\n        $v.messagebox = function (msg) {\r\n            errorDialog(msg, true);\r\n        };\r\n\r\n        $(function () {\r\n            if ($(\"#_errorElement_\").val() != \"\") {\r\n                errorDialog($(\"#_errorElement_\").val());\r\n            }\r\n        });\r\n\r\n    </script>\r\n    <style type=\"text/css\">\r\n        .scrollingtext {\r\n            color: #535B62;\r\n            font-weight: bold;\r\n            white-space: nowrap;\r\n            position: absolute;\r\n            font-size: 12px;\r\n        }\r\n\r\n        .menuBackGround {\r\n            background: url(\"../Themes/CRDBase/Images/footerBG.jpg\") repeat;\r\n        }\r\n\r\n\r\n        .uatBg {\r\n            background: #2d2d2f url('../../Themes/base/Images/ga_uat.png') repeat 100% !important; /*#36598a*/\r\n        }\r\n    </style>\r\n    <script src=\"/Scripts/jquery.loadmask.js\"></script>\r\n    <script src=\"/Scripts/DateValidation.js\"></script>\r\n</head>\r\n<body class=\"loginbody\" oncontextmenu=\"return false\">\r\n    <input type=\"hidden\" id=\"_errorElement_\" value=\"\" />\r\n    <table class=\"header_color\" width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"8\">\r\n        <tbody>\r\n            <tr>\r\n                <td>\r\n                    <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\r\n                        <tbody>\r\n                            <tr>\r\n                                <td width=\"100\" align=\"center\" valign=\"middle\">\r\n                                    <img src=\"/Themes/base/images/sos-logo.PNG\">\r\n                                </td>\r\n                                <td valign=\"middle\" class=\"header_left\">\r\n                                    <div class=\"header_txt\">\r\n                                        Georgia<br>\r\n                                        Corporations Division \r\n                                    </div>\r\n                                </td>\r\n                                <td align=\"right\">\r\n                                    <span class=\"header_small_title\">GEORGIA SECRETARY OF STATE</span><br>\r\n                                    <span class=\"header_txt\">BRAD RAFFENSPERGER</span>\r\n                                </td>\r\n                            </tr>\r\n                        </tbody>\r\n                    </table>\r\n                </td>\r\n            </tr>\r\n        </tbody>\r\n    </table>\r\n\r\n    <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\r\n        <tr>\r\n            <td>\r\n                <div class=\"navbg\" id=\"divMain\">\r\n    <ul id=\"nav\">\r\n        <li class=\"top\">\r\n            <a href=\"/DashBoard/Home\" class=\"top_link\">\r\n                <img src=\"/Themes/CRDBase/images/home.png\" align=\"left\"><span class=\"down\">Home</span>\r\n            </a>\r\n        </li>\r\n        <li class=\"top\">\r\n            <a href=\"/DashBoard\" class=\"top_link\">\r\n                <img src=\"/Themes/CRDBase/images/dashboard.png\" align=\"left\"><span class=\"down\">Dashboard</span>\r\n            </a>\r\n        </li>\r\n        <li class=\"top\">\r\n            <a href=\"#\" class=\"top_link\">\r\n                <img src=\"/Themes/CRDBase/images/magnifier.png\" align=\"left\"><span class=\"down\">Search</span><img src=\"/Themes/CRDBase/images/downarrow.png\" alt=\"\" class=\"vtop\">\r\n            </a>\r\n            <div>\r\n                <ul class=\"sub\">\r\n                    <li><a href=\"#\" onclick=\"submitpage('/BusinessSearch')\">Business Search</a></li>\r\n                </ul>\r\n            </div>\r\n        </li>\r\n        <li class=\"top\">\r\n            <a href=\"#\" class=\"top_link\">\r\n                <img src=\"/Themes/CRDBase/images/monitor.png\" align=\"left\"><span class=\"down\">Online Services</span><img src=\"/Themes/CRDBase/images/downarrow.png\" alt=\"\" class=\"vtop\">\r\n            </a>\r\n\r\n            <div class=\"double tabResponsiveMarginLeft\" style=\"display: flex; padding-top:0; padding-bottom:0;\">\r\n                <ul class=\"sub\" style=\"margin:0; padding: 4px 0;\">\r\n                    <li><a href=\"#\" onclick=\"submitpage('/BusinessFormation')\">Create or Register a Business</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/NameReservation')\">Name Reservation</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/BusinessAmendment')\">Business Amendment - Name Change Only</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/Reinstatement')\">Reinstate an Entity</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/ReActivate')\">Reactivate LP or LLLP</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/EmailSubscription')\">E-Notifications</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/NAICS')\">NAICS Code Update</a></li>\r\n                </ul>\r\n                <ul class=\"sub\" style=\"margin:0; padding: 4px 0;\">\r\n                    <li><a href=\"#\" onclick=\"submitpage('/AnnualReport')\">File Annual Registration</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/OneClickAR')\">One Click Annual Registration (No Changes)</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/BulkOneClickAR')\">Bulk One Click Annual Registration (No Changes)</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/ARForm')\">Print Annual Registration Form</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/AmendedAR')\">Amended Annual Registration</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/CertificateOfExistence')\">Certificate Of Existence</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/certifiedcopyrequest')\">Certified Copies</a></li>\r\n                </ul>\r\n                <ul class=\"sub\" style=\"margin:0; padding: 4px 0;\">\r\n                    <li><a href=\"#\" onclick=\"submitpage('/IntentToDissolve')\">Notice of Intent to Dissolve</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/Dissolution')\">Voluntary Dissolution</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/WindingUp')\">Winding Up</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/BusinessTermination')\">Termination</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/BusinessCancellation')\">Cancellation</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/BusinessWithDrawal')\">Withdrawal</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/RegisteredAgentResignation')\">Registered Agent Resignation</a></li>\r\n                </ul>\r\n                <ul class=\"sub\" style=\"margin:0; padding: 4px 0;\">\r\n                    <li><a href=\"#\" onclick=\"submitpage('/RegisteredOfficeAddressChange')\">Registered Office Address Change</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/PaperApplication/paperfilingtype')\">Submit Paper Filing Online</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/CableVideoFranchiseApplication/franchisefilingtype')\">Cable/Video Franchise</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/SOP')\">Service of Process</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/Trademarks')\">Trademarks/Service Marks</a></li>\r\n                    \r\n                </ul>\r\n            </div>\r\n        </li>\r\n\r\n        \r\n        <li class=\"top\">\r\n            <a href=\"http://sos.ga.gov/corporations/acrobat/applications/Reference%20-%20Filing%20Fees.pdf\" class=\"top_link\" target=\"_blank\">\r\n                <img src=\"/Themes/CRDBase/images/form3.png\" align=\"left\"><span class=\"down\">Fees</span>\r\n            </a>\r\n        </li>\r\n        <li class=\"top\">\r\n            <a href=\"#\" class=\"top_link\">\r\n                <img src=\"/Themes/CRDBase/images/whatsnew.png\" align=\"left\"><span class=\"down\">What's New?</span>\r\n            </a>\r\n        </li>\r\n        <li class=\"top\">\r\n            <a href=\"https://sos.ga.gov/page/business-division-faq\" class=\"top_link\" target=\"_blank\">\r\n                <img src=\"/Themes/CRDBase/images/form3.png\" align=\"left\"><span class=\"down\">FAQs</span>\r\n            </a>\r\n        </li>\r\n\r\n        <li class=\"top\">\r\n            <a href=\"#\" class=\"top_link\">\r\n                <img src=\"/Themes/CRDBase/images/personalization.png\" align=\"left\"><span class=\"down\">Personalization</span><img src=\"/Themes/CRDBase/images/downarrow.png\" alt=\"\" class=\"vtop\">\r\n            </a><div>\r\n                <ul class=\"sub\">\r\n                    <li><a href=\"#\" onclick=\"submitpage('/Account/accountmaintenance')\">Change Account Information</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/Account/changepassword')\">Change Password</a></li>\r\n                    <li id=\"linkUserCreation\"><a href=\"#\" onclick=\"submitpage('/UserCreation/usercreation')\">Create/Manage Sub Account</a></li>\r\n                    <li id=\"linkManageAcc\"><a href=\"#\" onclick=\"submitpage('/ReplenishPrePaidAccount')\">Replenish Pre-Paid Account</a></li>\r\n                    <li id=\"linkChangePin\"><a href=\"#\" onclick=\"submitpage('/ReplenishPrePaidAccount/resetpin')\">Reset PIN</a></li>\r\n                    <li id=\"linkSummaryReport\"><a href=\"#\" onclick=\"submitpage('/ReplenishPrePaidAccount/filerreconcillationdetails')\">Pre-Paid Account Statement</a></li>\r\n                </ul>\r\n            </div>\r\n        </li>\r\n        <li class=\"top\" style=\"float: right;\" id=\"logout\"><a href=\"/\" class=\"top_link\" onclick=\"CallLocalStorage()\"><span class=\"down\">Logout</span></a></li>\r\n    </ul>\r\n</div>\r\n<div class=\"navbg\" id=\"divMain2\" style=\"display: none\">\r\n    <ul id=\"nav\">\r\n        <li class=\"top\" style=\"float: right;\" id=\"logout\"><a href=\"/\" class=\"top_link\" onclick=\"CallLocalStorage()\"><span class=\"down\">Logout</span></a></li>\r\n    </ul>\r\n</div>\r\n<script type=\"text/javascript\">\r\n\r\n\r\n\r\n\r\n    function submitpage(url, type) {\r\n        window.location.href = url;\r\n    }\r\n\r\n\r\n    $(function () {\r\n        //disable mouse roll button click\r\n        $(document).bind(\"click\", function (e) {\r\n            if (e.button == 1) {\r\n                //e.preventDefault();\r\n                return false;\r\n            }\r\n        });\r\n        //Disables Cntrl+Mouse left click on all links\r\n        $('a').click(function (e) {\r\n            if (e.ctrlKey) {\r\n                return false;\r\n            }\r\n        });\r\n    });\r\n\r\n\r\n    //Need to set localStorage  popup_show value to false to Display multi tab message on login page for every login.\r\n    function CallLocalStorage() {\r\n        SetLocalStoragetoFalse();\r\n    }\r\n</script>\r\n\r\n\r\n                <div class=\"welcome_data\">\r\n                    <table width=\"100%\" border=\"0\" align=\"center\" cellspacing=\"0\" cellpadding=\"0\">\r\n                        <tbody>\r\n                            <tr>\r\n                                    <td width=\"32%\">\r\n                                        <div class=\"welcomeinner\"><span class=\"lastlogin\">Welcome IAN ISAIAH ENOCH BRUCE &nbsp;</span></div>\r\n                                    </td>\r\n                                        <td width=\"33%\" align=\"center\"><strong>Last Login:</strong>&nbsp;&nbsp;6/17/2026 11:15:28 AM&nbsp;&nbsp;</td>\r\n                                <td align=\"right\">Thursday, June 18, 2026</td>\r\n                            </tr>\r\n                        </tbody>\r\n                    </table>\r\n                </div>\r\n                <div id=\"scroller\">\r\n                    <div class=\"scrollingtext\">\r\n                    </div>\r\n                </div>\r\n                <div class=\"right_content\">\r\n                    \r\n\r\n\r\n<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\r\n    <tr>\r\n        <td class=\"border_pagetitle\">\r\n            <div class=\"pagetitle\">\r\n                <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\r\n                    <tr>\r\n                        <td class=\"title_bg\">BUSINESS Search Results</td>\r\n                        <td align=\"left\">\r\n                            <img src=\"/Themes/CRDBase/images/corver.png\" width=\"27\" height=\"30\" />\r\n                        </td>\r\n                    </tr>\r\n                </table>\r\n            </div>\r\n        </td>\r\n    </tr>\r\n    <tr>\r\n        <td>\r\n            <div class=\"data_pannel\" id=\"businessSearchResult\">\r\n                <table   style='width:100%' border='0' cellpadding='4' cellspacing='5' class='gridstyle grid_layout' id='grid_businessList' ><thead ><tr align='left' class='grid_headerbg' id='Listrow_grid_businessList'  ><th  ><span style='cursor:pointer;text-align:left'>Business Name</span></th><th   onclick=\"businessGrid.sorting(1, 'Control&nbsp;Number') \"><span style='cursor:pointer;text-align:left'>Control&nbsp;Number</span></th><th   onclick=\"businessGrid.sorting(2, 'Business Type') \"><span style='cursor:pointer;text-align:left'>Business Type</span></th><th   onclick=\"businessGrid.sorting(3, 'Principal Office Address') \"><span style='cursor:pointer;text-align:left'>Principal Office Address</span></th><th   onclick=\"businessGrid.sorting(4, 'Registered / Designated Agent Name') \"><span style='cursor:pointer;text-align:left'>Registered / Designated Agent Name</span></th><th   onclick=\"businessGrid.sorting(5, 'Status') \"><span style='cursor:pointer;text-align:left'>Status</span></th></tr></thead><tbody ><tr align='left' class='bgwhite' ><td ><a href='/BusinessSearch/BusinessInformation?businessId=4540046&businessType=Domestic%20Limited%20Liability%20Company&fromSearch=True'>FUNLYNK LLC</a></td><td >25132191</td><td >Domestic Limited Liability Company</td><td >1410 Comet Ives lane, lawrenceville, GA, 30045, USA</td><td >ian bruce</td><td >Active/Compliance</td></tr></tbody></table><table border=0 style='width:100%' align='center'  class='borderFooter' cellspacing=0 cellpadding=0><tr><td class='bgfooter' align='right'><div id='pagination-digg-outer' border='2px' style='width:auto;' align='right'><ul style='width:auto' id='pagination-digg' ><li class='pageinfo'>Page 1 of 1, records 1 to 1 of 1</li></ul><input type=hidden name=hdnTotalPgCount id=hdnTotalPgCount value='1' /></div></td></tr></table>\r\n\r\n                </div>\r\n                </td>\r\n        </tr>\r\n    <tr>\r\n    <td>\r\n         <input type=\"button\" name=\"\" value=\"Back\" class=\"button\" onclick=\"submitBack()\"/>\r\n    </td>\r\n</tr>\r\n    </table>\r\n        \r\n<br /><br />\r\n\r\n<script type=\"text/javascript\">\r\n    function submitBack() {\r\n       // $.submitForm('/BusinessSearch', {isBack : true});\r\n       window.location.href = '/BusinessSearch';\r\n    }\r\n\r\n    // pager\r\n    var businessGrid = new XHtmlGrid();\r\n    businessGrid.init({\r\n        url: '/BusinessSearch',\r\n        sortBy: '',\r\n        sortType: \"a\",\r\n        nodeNum: -1,\r\n        pageIdx: 1,\r\n        local: false,\r\n        headerRowId: \"ListRow_xhtml_grid\",\r\n        updateTargetId: \"businessSearchResult\",\r\n        //data: {\r\n        //    SearchType: function () { return $(\"[name='Criteria']:checked\").val(); },\r\n        //    SearchValue: function () { return $(\"#txtSearchValue\").val(); }\r\n        //}\r\n    });\r\n\r\n    businessGrid.callback = function (data) {\r\n\r\n    };\r\n</script>\r\n                </div>\r\n            </td>\r\n        </tr>\r\n    </table>\r\n    <input type=\"hidden\" id=\"hdnIsChildFiler\" value=\"FALSE\" />\r\n    <div class=\"container-fluid\">\r\n        <div class=\"row\">\r\n            <div class=\"footer\">\r\n                Office of the Georgia Secretary of State Attn: 2 MLK, Jr. Dr. Suite 313, Floyd West Tower Atlanta, GA 30334-1530, Phone: (404) 656-2817 Toll-free: (844) 753-7825, WEBSITE: https://sos.ga.gov/\r\n                <br />\r\n                © 2015 PCC Technology Group. All Rights Reserved. Version 6.2.19\r\n                <span style=\"float: right; padding-right: 10px\"><a href=\"javascript:void(0);\" onclick=\"javascript:return ShowReportDialog();\" style=\"color: #FFF; font-weight: bold; font-size: 8pt\">Report a Problem?</a></span>\r\n            </div>\r\n        </div>\r\n    </div>\r\n    <div id=\"divError\" style=\"font-family: ebrima; font-size: 13px; text-align: left;\"></div>    \r\n</body>\r\n</html>\r\n<script type=\"text/javascript\">\r\n    $(\"document\").ready(function () {      \r\n\r\n\r\n\r\n        //get account balance\r\n        if (('FI' == 'PA' && 'FALSE' == 'TRUE') || ('FALSE' == 'TRUE')) {\r\n            $.ajax({\r\n                type: \"POST\",\r\n                url: '/Dashboard/GetFilerAccountBalance',\r\n                dataType: \"json\",\r\n                success: function (response, status, xhr) {\r\n                    var accountBal = response.AccountBalance;\r\n                    $('#spnAccountBalance').text(accountBal);\r\n                },\r\n                error: function (response, status, xhr) {\r\n                    errorDialog(xhr.status + \" \" + xhr.statusText);\r\n                    return false;\r\n                }\r\n            });\r\n        }\r\n\r\n        if ('FALSE' != 'TRUE') {\r\n            $(\"#linkUserCreation,#linkManageAcc,#linkChangePin,#linkSummaryReport\").hide();\r\n        }\r\n\r\n        var id = $(\"#Form_ChangePassword\").attr(\"id\");\r\n        if ($(\"#hdnIsChildFiler\").val() == 'TRUE' && 'ryan' == \"\" && 'FALSE' == 'TRUE') {\r\n            $(\"#divMain\").hide();\r\n            $(\"#divMain2\").show();\r\n        }\r\n        else if ('ryan' == \"\" && 'FALSE' == 'TRUE') {\r\n            $(\"#divMain\").hide();\r\n            $(\"#divMain2\").show();\r\n        }\r\n        else if ($(\"#hdnIsChildFiler\").val() == 'TRUE' && 'FALSE' == 'TRUE') {\r\n            $(\"#divMain\").hide();\r\n            $(\"#divMain2\").show();\r\n        }\r\n        else if ('FALSE' != 'TRUE' && 'ryan' == \"\") {\r\n            $(\"#divMain\").hide();\r\n            $(\"#divMain2\").show();\r\n        }\r\n        else if ('FI' == 'PA' && 'FALSE' == 'TRUE' && 'FALSE' == 'TRUE') {\r\n            $(\"#divMain\").hide();\r\n            $(\"#divMain2\").show();\r\n        }\r\n        else {\r\n            $(\"#divMain\").show();\r\n            $(\"#divMain2\").hide();\r\n        }\r\n        if (!id) {\r\n            if ($(\"#hdnIsChildFiler\").val() == 'TRUE' && 'ryan' == \"\" && 'FALSE' == 'TRUE') {\r\n                window.location.href = '/Account/ChangePassword';\r\n            }\r\n            else if ($(\"#hdnIsChildFiler\").val() == 'TRUE' && 'FALSE' == 'TRUE') {\r\n                window.location.href = '/Account/ChangePassword';\r\n            }\r\n            else if ('FI' == 'PA' && 'FALSE' == 'TRUE') {\r\n                window.location.href = '/Account/ChangePassword';\r\n            }\r\n}\r\n\r\n        if ('FALSE' != 'TRUE') {\r\n            // Check if current page is OneClickAR - skip validation only for unauthenticated AR filing\r\n            var currentController = 'BusinessSearch'.toLowerCase();\r\n            var isOneClickAR = currentController === 'oneclickar';\r\n\r\n            if (!isOneClickAR) {\r\n                if ($(\"#hdnIsChildFiler\").val() == 'TRUE') {\r\n                    $(\"#linkUserCreation,#linkManageAcc,#linkSummaryReport\").hide();\r\n                    var changeacccountid = $(\"#frm_UserAccountMaintenance\").attr(\"id\");\r\n                    if (!changeacccountid) {\r\n                        if ('ryan' == \"\") {\r\n                            window.location.href = '/Account/AccountMaintenance';\r\n                        }\r\n                    }\r\n                }\r\n                else {\r\n                    var changeacccountid = $(\"#frm_UserAccountMaintenance\").attr(\"id\");\r\n                    if (!changeacccountid) {\r\n                        if ('ryan' == \"\") {\r\n                            window.location.href = '/Account/AccountMaintenance';\r\n                        }\r\n                    }\r\n                }\r\n            }\r\n        }\r\n\r\n    });\r\n    function ChangeAccountInfo() {\r\n        window.location.href = '/Account/AccountMaintenance';\r\n    };\r\n    function ShowChangePasswordDialog(message) {\r\n        if (message != \"\") {\r\n\r\n            $(\"#divError\").html(\"\");\r\n            $(\"#divError\").append(\"<span style='font-size:14px;'>\" + message + \"</span>\");\r\n            $(\"#divError\").dialog(\r\n                      {\r\n                          modal: true,\r\n                          resizable: false,\r\n                          width: 670,\r\n                          height: 150,\r\n                          closeOnEscape: false,\r\n                      });\r\n            $('.ui-dialog :button').blur();\r\n            $(\".ui-dialog-titlebar\").html(\"\");\r\n            $(\".ui-dialog-titlebar\").append(\"<span style='font-weight:bold;margin-left:0px;font-size:16px;color:white;font-family:ebrima'>Welcome Back!</span>\");\r\n            $(\".ui-dialog-titlebar\").css(\"background\", \"#28292B\");//00B0F0\r\n            $('.ui-dialog').css(\"font-weight\", \"bold\");\r\n            $('.ui-dialog').css(\"border-radius\", \"13px\");\r\n            $('.ui-dialog').css(\"font-family\", \"ebrima\");\r\n            $('.ui-widget-header').css(\"border-radius\", \"13px\");\r\n\r\n\r\n            message = \"\";\r\n            // return false;\r\n        }\r\n    }\r\n    function ChildUserFirstLoginChangePasswordDialog(message) {\r\n        if (message != \"\") {\r\n\r\n            $(\"#divError\").html(\"\");\r\n            $(\"#divError\").append(\"<span style='font-size:14px;'>\" + message + \"</span>\");\r\n            $(\"#divError\").dialog(\r\n                      {\r\n                          modal: true,\r\n                          resizable: false,\r\n                          width: 670,\r\n                          height: 160,\r\n                          closeOnEscape: false,\r\n                      });\r\n            $('.ui-dialog :button').blur();\r\n            $(\".ui-dialog-titlebar\").html(\"\");\r\n            $(\".ui-dialog-titlebar\").append(\"<span style='font-weight:bold;margin-left:0px;font-size:16px;color:white;font-family:ebrima'>Welcome!</span>\");\r\n            $(\".ui-dialog-titlebar\").css(\"background\", \"#28292B\");//00B0F0\r\n            $('.ui-dialog').css(\"font-weight\", \"bold\");\r\n            $('.ui-dialog').css(\"border-radius\", \"13px\");\r\n            $('.ui-dialog').css(\"font-family\", \"ebrima\");\r\n            $('.ui-widget-header').css(\"border-radius\", \"13px\");\r\n\r\n\r\n            message = \"\";\r\n            // return false;\r\n        }\r\n    }\r\n    function ShowWelocmeDialog(message) {\r\n        if (message != \"\") {\r\n\r\n            $(\"#divError\").html(\"\");\r\n            $(\"#divError\").append(\"<span style='font-size:14px;'>\" + message + \"</span>\");\r\n            $(\"#divError\").dialog(\r\n                      {\r\n                          modal: true,\r\n\r\n                          resizable: false,\r\n                          width: 670,\r\n                          height: 250,\r\n                          closeOnEscape: false,\r\n                      });\r\n            $('.ui-dialog :button').blur();\r\n            $(\".ui-dialog-titlebar\").html(\"\");\r\n            $(\".ui-dialog-titlebar\").append(\"<span style='font-weight:bold;font-size:16px;color:white;font-family:ebrima'>Welcome!</span>\");\r\n            $(\".ui-dialog-titlebar\").css(\"background\", \"#28292B\");//00B0F0\r\n            $('.ui-dialog').css(\"font-weight\", \"bold\");\r\n            $('.ui-dialog').css(\"border-radius\", \"13px\");\r\n            $('.ui-dialog').css(\"font-family\", \"ebrima\");\r\n            $('.ui-widget-header').css(\"border-radius\", \"13px\");\r\n\r\n\r\n            message = \"\";\r\n            // return false;\r\n        }\r\n    }\r\n    function ShowChangeAccountInfoDialog(message) {\r\n        if (message != \"\") {\r\n\r\n            $(\"#divError\").html(\"\");\r\n            $(\"#divError\").append(\"<span style='font-size:14px;'>\" + message + \"</span>\");\r\n            $(\"#divError\").dialog(\r\n                      {\r\n                          modal: true,\r\n\r\n                          resizable: false,\r\n                          width: 650,\r\n                          height: 160,\r\n                          closeOnEscape: false,\r\n                      });\r\n            $('.ui-dialog :button').blur();\r\n            $(\".ui-dialog-titlebar\").html(\"\");\r\n            $(\".ui-dialog-titlebar\").append(\"<span style='font-weight:bold;font-size:16px;color:white;font-family:ebrima'>Welcome!</span>\");\r\n            $(\".ui-dialog-titlebar\").css(\"background\", \"#28292B\");//00B0F0\r\n            $('.ui-dialog').css(\"font-weight\", \"bold\");\r\n            $('.ui-dialog').css(\"border-radius\", \"13px\");\r\n            $('.ui-dialog').css(\"font-family\", \"ebrima\");\r\n            $('.ui-widget-header').css(\"border-radius\", \"13px\");\r\n\r\n\r\n            message = \"\";\r\n            // return false;\r\n        }\r\n    }\r\n\r\n    function preventBack() { window.history.forward(); }\r\n    setTimeout(\"preventBack()\", 0);\r\n    window.onunload = function () { null };\r\n\r\n    function ShowReportDialog() {\r\n        var top = (($(window).height() - 400) / 2);\r\n        var left = (($(window).width() - 700) / 2);\r\n        var reportUs = window.open(\"/Home/ReportUs\", \"Report\", \"width=700, height=400, left=\" + left + \", top=\" + top + \", toolbar=0, status=1\");\r\n        reportUs.focus();\r\n        return false;\r\n    }\r\n\r\n    $(document).ready(function () {\r\n\r\n\r\n        //this is the useful function to scroll a text inside an element...\r\n        function startScrolling(scroller_obj, velocity, start_from) {\r\n            //bind animation  inside the scroller element\r\n            scroller_obj.bind('marquee', function (event, c) {\r\n                //text to scroll\r\n                var ob = $(this);\r\n                //scroller width\r\n                var sw = parseInt(ob.parent().width());\r\n\r\n                //text width\r\n                var tw = parseInt(ob.width());\r\n\r\n                tw = tw - 10;\r\n                //text left position relative to the offset parent\r\n                var tl = parseInt(ob.position().left);\r\n                //velocity converted to calculate duration\r\n                var v = velocity > 0 && velocity < 100 ? (100 - velocity) * 1000 : 5000;\r\n                //same velocity for different text's length in relation with duration\r\n                var dr = (v * tw / sw) + v;\r\n\r\n                //is it scrolling from right or left?\r\n                switch (start_from) {\r\n                    case 'right':\r\n                        //is it the first time?\r\n                        if (typeof c == 'undefined') {\r\n                            //if yes, start from the absolute right\r\n                            ob.css({\r\n                                left: (sw - 10)\r\n                            });\r\n                            sw = -tw;\r\n                        } else {\r\n                            //else calculate destination position\r\n                            sw = tl - (tw + sw);\r\n                        };\r\n                        break;\r\n                    default:\r\n                        if (typeof c == 'undefined') {\r\n                            //start from the absolute left\r\n                            ob.css({\r\n                                left: -tw\r\n                            });\r\n                        } else {\r\n                            //else calculate destination position\r\n                            sw += tl + tw;\r\n                        };\r\n                }\r\n                //attach animation to scroller element and start it by a trigger\r\n                ob.animate({\r\n                    left: sw\r\n                }, {\r\n                    duration: dr,\r\n                    easing: 'linear',\r\n                    complete: function () {\r\n                        ob.trigger('marquee');\r\n                    },\r\n                    step: function () {\r\n                        // check if scroller limits are reached\r\n                        if (start_from == 'right') {\r\n                            if (parseInt(ob.position().left) < -parseInt(ob.width())) {\r\n                                //we need to stop and restart animation\r\n                                ob.stop();\r\n                                ob.trigger('marquee');\r\n                            };\r\n                        } else {\r\n                            if (parseInt(ob.position().left) > parseInt(ob.parent().width())) {\r\n                                ob.stop();\r\n                                ob.trigger('marquee');\r\n                            };\r\n                        };\r\n                    }\r\n                });\r\n            }).trigger('marquee');\r\n            //pause scrolling animation on mouse over\r\n            scroller_obj.mouseover(function () {\r\n                $(this).stop();\r\n            });\r\n            //resume scrolling animation on mouse out\r\n            scroller_obj.mouseout(function () {\r\n                $(this).trigger('marquee', ['resume']);\r\n            });\r\n        };\r\n\r\n        //the main app starts here...\r\n\r\n        //change the cursor type for each scroller\r\n        $('.scroller').css(\"cursor\", \"pointer\");\r\n\r\n        //settings to pass to function\r\n        var scroller = $('.scrollingtext'); // element(s) to scroll\r\n        var scrolling_velocity = 80; // 1-99\r\n        var scrolling_from = 'right'; // 'right' or 'left'\r\n\r\n        //call the function and start to scroll..\r\n        startScrolling(scroller, scrolling_velocity, scrolling_from);\r\n\r\n    });\r\n\r\n</script>\r\n\r\n<script type=\"text/javascript\">\r\n\r\n    $(function () {\r\n\r\n        $('#leftNavigation').ssdVerticalNavigation();\r\n\r\n    });\r\n\r\n    $(function ($) {\r\n\r\n        $.fn.ssdVerticalNavigation = function (options) {\r\n\r\n            \"use strict\";\r\n\r\n            var settings = $.extend({\r\n\r\n                classMaster: 'master',\r\n                classActive: 'active'\r\n\r\n            }, options);\r\n\r\n\r\n            function _leftNavigationActiveMain(thisLi) {\r\n\r\n                \"use strict\";\r\n\r\n                thisLi\r\n                    .toggleClass(settings.classActive)\r\n                    .siblings()\r\n                    .removeClass(settings.classActive);\r\n\r\n            }\r\n\r\n\r\n            function _leftNavigationClick(thisParentUl, thisLi, event) {\r\n\r\n                \"use strict\";\r\n\r\n                //if (thisParentUl.hasClass(settings.classMaster)) {\r\n                if (1 == 2) {\r\n                    event.preventDefault();\r\n                    event.stopPropagation();\r\n\r\n                    _leftNavigationActiveMain(thisLi);\r\n\r\n                }\r\n\r\n                _leftNavigationActiveMain(thisLi);\r\n            }\r\n\r\n\r\n            return this.each(function () {\r\n\r\n                \"use strict\";\r\n\r\n                $(this)\r\n                    .addClass(settings.classMaster)\r\n                    .on('click', 'li a', function (event) {\r\n\r\n                        try {\r\n\r\n                            var thisA = $(this),\r\n                                thisLi = thisA.parent('li'),\r\n                                thisParentUl = thisLi.parent('ul');\r\n\r\n                            _leftNavigationClick(thisParentUl, thisLi, event);\r\n\r\n                        } catch (errorMessage) {\r\n\r\n                            console.log(errorMessage);\r\n\r\n                        }\r\n\r\n                    });\r\n\r\n            });\r\n\r\n\r\n        }\r\n\r\n    }(jQuery));\r\n\r\n</script>\r\n"
+          },
+          "redirectURL": "",
+          "headersSize": 364,
+          "bodySize": 7522
+        },
+        "cache": {},
+        "timings": {
+          "blocked": 17,
+          "dns": 0,
+          "connect": 8,
+          "ssl": 12,
+          "send": 0,
+          "wait": 1193,
+          "receive": 0
+        },
+        "time": 1230,
+        "_securityState": "secure",
+        "serverIPAddress": "104.18.0.83",
+        "connection": "443",
+        "pageref": "page_1"
+      },
+      {
+        "startedDateTime": "2026-06-18T05:20:09.985-04:00",
+        "request": {
+          "bodySize": 0,
+          "method": "GET",
+          "url": "https://ecorp.sos.ga.gov/Scripts/Script?v=8X2IDPh1LaRe4erLuQcGu5zpE8N1cVf-nEWZkD0RhvQ1",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "Host",
+              "value": "ecorp.sos.ga.gov"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0"
+            },
+            {
+              "name": "Accept",
+              "value": "*/*"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br, zstd"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "Referer",
+              "value": "https://ecorp.sos.ga.gov/BusinessSearch"
+            },
+            {
+              "name": "Cookie",
+              "value": "ASP.NET_SessionId=qw250enqcibggnvh5biy5jsd; __cflb=02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2; cf_clearance=hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w; __RequestVerificationToken=xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2; userCookie="
+            },
+            {
+              "name": "Sec-Fetch-Dest",
+              "value": "script"
+            },
+            {
+              "name": "Sec-Fetch-Mode",
+              "value": "no-cors"
+            },
+            {
+              "name": "Sec-Fetch-Site",
+              "value": "same-origin"
+            }
+          ],
+          "cookies": [
+            {
+              "name": "ASP.NET_SessionId",
+              "value": "qw250enqcibggnvh5biy5jsd"
+            },
+            {
+              "name": "__cflb",
+              "value": "02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2"
+            },
+            {
+              "name": "cf_clearance",
+              "value": "hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w"
+            },
+            {
+              "name": "__RequestVerificationToken",
+              "value": "xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2"
+            },
+            {
+              "name": "userCookie",
+              "value": ""
+            }
+          ],
+          "queryString": [
+            {
+              "name": "v",
+              "value": "8X2IDPh1LaRe4erLuQcGu5zpE8N1cVf-nEWZkD0RhvQ1"
+            }
+          ],
+          "headersSize": 0
+        },
+        "response": {
+          "status": 200,
+          "statusText": "",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "date",
+              "value": "Thu, 18 Jun 2026 09:08:35 GMT"
+            },
+            {
+              "name": "content-type",
+              "value": "text/javascript; charset=utf-8"
+            },
+            {
+              "name": "cache-control",
+              "value": "public"
+            },
+            {
+              "name": "content-encoding",
+              "value": "gzip"
+            },
+            {
+              "name": "expires",
+              "value": "Fri, 18 Jun 2027 09:08:35 GMT"
+            },
+            {
+              "name": "last-modified",
+              "value": "Thu, 18 Jun 2026 09:08:35 GMT"
+            },
+            {
+              "name": "vary",
+              "value": "User-Agent,Accept-Encoding"
+            },
+            {
+              "name": "server",
+              "value": "cloudflare"
+            },
+            {
+              "name": "x-aspnet-version",
+              "value": "4.0.30319"
+            },
+            {
+              "name": "x-powered-by",
+              "value": "ASP.NET"
+            },
+            {
+              "name": "x-frame-options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "name": "cf-cache-status",
+              "value": "DYNAMIC"
+            },
+            {
+              "name": "cf-ray",
+              "value": "a0d92676aee85f23-ATL"
+            },
+            {
+              "name": "X-Firefox-Spdy",
+              "value": "h2"
+            }
+          ],
+          "cookies": [],
+          "content": {
+            "mimeType": "text/javascript; charset=utf-8",
+            "size": 0,
+            "text": ""
+          },
+          "redirectURL": "",
+          "headersSize": 0,
+          "bodySize": 1167793
+        },
+        "cache": {},
+        "timings": {
+          "blocked": 0,
+          "dns": 0,
+          "ssl": 0,
+          "connect": 0,
+          "send": 0,
+          "wait": 0,
+          "receive": 0
+        },
+        "time": 0,
+        "_securityState": "secure",
+        "pageref": "page_1"
+      },
+      {
+        "startedDateTime": "2026-06-18T05:20:09.990-04:00",
+        "request": {
+          "bodySize": 0,
+          "method": "GET",
+          "url": "https://ecorp.sos.ga.gov/Scripts/jquery.loadmask.js",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "Host",
+              "value": "ecorp.sos.ga.gov"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0"
+            },
+            {
+              "name": "Accept",
+              "value": "*/*"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br, zstd"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "Referer",
+              "value": "https://ecorp.sos.ga.gov/BusinessSearch"
+            },
+            {
+              "name": "Cookie",
+              "value": "ASP.NET_SessionId=qw250enqcibggnvh5biy5jsd; __cflb=02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2; cf_clearance=hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w; __RequestVerificationToken=xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2; userCookie="
+            },
+            {
+              "name": "Sec-Fetch-Dest",
+              "value": "script"
+            },
+            {
+              "name": "Sec-Fetch-Mode",
+              "value": "no-cors"
+            },
+            {
+              "name": "Sec-Fetch-Site",
+              "value": "same-origin"
+            }
+          ],
+          "cookies": [
+            {
+              "name": "ASP.NET_SessionId",
+              "value": "qw250enqcibggnvh5biy5jsd"
+            },
+            {
+              "name": "__cflb",
+              "value": "02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2"
+            },
+            {
+              "name": "cf_clearance",
+              "value": "hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w"
+            },
+            {
+              "name": "__RequestVerificationToken",
+              "value": "xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2"
+            },
+            {
+              "name": "userCookie",
+              "value": ""
+            }
+          ],
+          "queryString": [],
+          "headersSize": 0
+        },
+        "response": {
+          "status": 200,
+          "statusText": "",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "date",
+              "value": "Thu, 18 Jun 2026 09:09:21 GMT"
+            },
+            {
+              "name": "content-type",
+              "value": "application/javascript"
+            },
+            {
+              "name": "content-length",
+              "value": "1598"
+            },
+            {
+              "name": "content-encoding",
+              "value": "gzip"
+            },
+            {
+              "name": "last-modified",
+              "value": "Fri, 17 May 2019 19:19:54 GMT"
+            },
+            {
+              "name": "accept-ranges",
+              "value": "bytes"
+            },
+            {
+              "name": "etag",
+              "value": "\"0e9ad81e5cd51:0\""
+            },
+            {
+              "name": "vary",
+              "value": "Accept-Encoding"
+            },
+            {
+              "name": "server",
+              "value": "cloudflare"
+            },
+            {
+              "name": "x-powered-by",
+              "value": "ASP.NET"
+            },
+            {
+              "name": "x-frame-options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "name": "age",
+              "value": "4444"
+            },
+            {
+              "name": "expires",
+              "value": "Thu, 18 Jun 2026 13:09:21 GMT"
+            },
+            {
+              "name": "cache-control",
+              "value": "public, max-age=14400"
+            },
+            {
+              "name": "cf-cache-status",
+              "value": "HIT"
+            },
+            {
+              "name": "cf-ray",
+              "value": "a0d9279aa8595f23-ATL"
+            },
+            {
+              "name": "X-Firefox-Spdy",
+              "value": "h2"
+            }
+          ],
+          "cookies": [],
+          "content": {
+            "mimeType": "application/javascript",
+            "size": 3807,
+            "text": "/**\r\n * Copyright (c) 2009 Sergiy Kovalchuk (serg472@gmail.com)\r\n * \r\n * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)\r\n * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.\r\n *  \r\n * Following code is based on Element.mask() implementation from ExtJS framework (http://extjs.com/)\r\n *\r\n */\r\n;(function($){\r\n\t\r\n\t/**\r\n\t * Displays loading mask over selected element(s). Accepts both single and multiple selectors.\r\n\t *\r\n\t * @param label Text message that will be displayed on top of the mask besides a spinner (optional). \r\n\t * \t\t\t\tIf not provided only mask will be displayed without a label or a spinner.  \t\r\n\t * @param delay Delay in milliseconds before element is masked (optional). If unmask() is called \r\n\t *              before the delay times out, no mask is displayed. This can be used to prevent unnecessary \r\n\t *              mask display for quick processes.   \t\r\n\t */\r\n\t$.fn.mask = function(label, delay){\r\n\t\t$(this).each(function() {\r\n\t\t\tif(delay !== undefined && delay > 0) {\r\n\t\t        var element = $(this);\r\n\t\t        element.data(\"_mask_timeout\", setTimeout(function() { $.maskElement(element, label)}, delay));\r\n\t\t\t} else {\r\n\t\t\t\t$.maskElement($(this), label);\r\n\t\t\t}\r\n\t\t});\r\n\t};\r\n\t\r\n\t/**\r\n\t * Removes mask from the element(s). Accepts both single and multiple selectors.\r\n\t */\r\n\t$.fn.unmask = function(){\r\n\t\t$(this).each(function() {\r\n\t\t\t$.unmaskElement($(this));\r\n\t\t});\r\n\t};\r\n\t\r\n\t/**\r\n\t * Checks if a single element is masked. Returns false if mask is delayed or not displayed. \r\n\t */\r\n\t$.fn.isMasked = function(){\r\n\t\treturn this.hasClass(\"masked\");\r\n\t};\r\n\r\n\t$.maskElement = function(element, label){\r\n\t\r\n\t\t//if this element has delayed mask scheduled then remove it and display the new one\r\n\t\tif (element.data(\"_mask_timeout\") !== undefined) {\r\n\t\t\tclearTimeout(element.data(\"_mask_timeout\"));\r\n\t\t\telement.removeData(\"_mask_timeout\");\r\n\t\t}\r\n\r\n\t\tif(element.isMasked()) {\r\n\t\t\t$.unmaskElement(element);\r\n\t\t}\r\n\t\t\r\n\t\tif(element.css(\"position\") == \"static\") {\r\n\t\t\telement.addClass(\"masked-relative\");\r\n\t\t}\r\n\t\t\r\n\t\telement.addClass(\"masked\");\r\n\t\t\r\n\t\tvar maskDiv = $('<div class=\"loadmask\"></div>');\r\n\t\t\r\n\t\t//auto height fix for IE\r\n\t\tif(navigator.userAgent.toLowerCase().indexOf(\"msie\") > -1){\r\n\t\t\tmaskDiv.height(element.height() + parseInt(element.css(\"padding-top\")) + parseInt(element.css(\"padding-bottom\")));\r\n\t\t\tmaskDiv.width(element.width() + parseInt(element.css(\"padding-left\")) + parseInt(element.css(\"padding-right\")));\r\n\t\t}\r\n\t\t\r\n\t\t//fix for z-index bug with selects in IE6\r\n\t\tif(navigator.userAgent.toLowerCase().indexOf(\"msie 6\") > -1){\r\n\t\t\telement.find(\"select\").addClass(\"masked-hidden\");\r\n\t\t}\r\n\t\t\r\n\t\telement.append(maskDiv);\r\n\t\t\r\n\t\tif(label !== undefined) {\r\n\t\t\tvar maskMsgDiv = $('<div class=\"loadmask-msg\" style=\"display:none;\"></div>');\r\n\t\t\tmaskMsgDiv.append('<div>' + label + '</div>');\r\n\t\t\telement.append(maskMsgDiv);\r\n\t\t\t\r\n\t\t\t//calculate center position\r\n\t\t\tmaskMsgDiv.css(\"top\", Math.round(element.height() / 2 - (maskMsgDiv.height() - parseInt(maskMsgDiv.css(\"padding-top\")) - parseInt(maskMsgDiv.css(\"padding-bottom\"))) / 2)+\"px\");\r\n\t\t\tmaskMsgDiv.css(\"left\", Math.round(element.width() / 2 - (maskMsgDiv.width() - parseInt(maskMsgDiv.css(\"padding-left\")) - parseInt(maskMsgDiv.css(\"padding-right\"))) / 2)+\"px\");\r\n\t\t\t\r\n\t\t\tmaskMsgDiv.show();\r\n\t\t}\r\n\t\t\r\n\t};\r\n\t\r\n\t$.unmaskElement = function(element){\r\n\t\t//if this element has delayed mask scheduled then remove it\r\n\t\tif (element.data(\"_mask_timeout\") !== undefined) {\r\n\t\t\tclearTimeout(element.data(\"_mask_timeout\"));\r\n\t\t\telement.removeData(\"_mask_timeout\");\r\n\t\t}\r\n\t\t\r\n\t\telement.find(\".loadmask-msg,.loadmask\").remove();\r\n\t\telement.removeClass(\"masked\");\r\n\t\telement.removeClass(\"masked-relative\");\r\n\t\telement.find(\"select\").removeClass(\"masked-hidden\");\r\n\t};\r\n \r\n})(jQuery);"
+          },
+          "redirectURL": "",
+          "headersSize": 0,
+          "bodySize": 1598
+        },
+        "cache": {},
+        "timings": {
+          "blocked": 0,
+          "dns": 0,
+          "ssl": 0,
+          "connect": 0,
+          "send": 0,
+          "wait": 0,
+          "receive": 0
+        },
+        "time": 0,
+        "_securityState": "secure",
+        "pageref": "page_1"
+      },
+      {
+        "startedDateTime": "2026-06-18T05:20:09.993-04:00",
+        "request": {
+          "bodySize": 0,
+          "method": "GET",
+          "url": "https://ecorp.sos.ga.gov/Scripts/DateValidation.js",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "Host",
+              "value": "ecorp.sos.ga.gov"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0"
+            },
+            {
+              "name": "Accept",
+              "value": "*/*"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br, zstd"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "Referer",
+              "value": "https://ecorp.sos.ga.gov/BusinessSearch"
+            },
+            {
+              "name": "Cookie",
+              "value": "ASP.NET_SessionId=qw250enqcibggnvh5biy5jsd; __cflb=02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2; cf_clearance=hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w; __RequestVerificationToken=xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2; userCookie="
+            },
+            {
+              "name": "Sec-Fetch-Dest",
+              "value": "script"
+            },
+            {
+              "name": "Sec-Fetch-Mode",
+              "value": "no-cors"
+            },
+            {
+              "name": "Sec-Fetch-Site",
+              "value": "same-origin"
+            }
+          ],
+          "cookies": [
+            {
+              "name": "ASP.NET_SessionId",
+              "value": "qw250enqcibggnvh5biy5jsd"
+            },
+            {
+              "name": "__cflb",
+              "value": "02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2"
+            },
+            {
+              "name": "cf_clearance",
+              "value": "hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w"
+            },
+            {
+              "name": "__RequestVerificationToken",
+              "value": "xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2"
+            },
+            {
+              "name": "userCookie",
+              "value": ""
+            }
+          ],
+          "queryString": [],
+          "headersSize": 0
+        },
+        "response": {
+          "status": 200,
+          "statusText": "",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "date",
+              "value": "Thu, 18 Jun 2026 09:09:21 GMT"
+            },
+            {
+              "name": "content-type",
+              "value": "application/javascript"
+            },
+            {
+              "name": "content-length",
+              "value": "888"
+            },
+            {
+              "name": "content-encoding",
+              "value": "gzip"
+            },
+            {
+              "name": "last-modified",
+              "value": "Fri, 17 May 2019 19:19:54 GMT"
+            },
+            {
+              "name": "accept-ranges",
+              "value": "bytes"
+            },
+            {
+              "name": "etag",
+              "value": "\"0e9ad81e5cd51:0\""
+            },
+            {
+              "name": "vary",
+              "value": "Accept-Encoding"
+            },
+            {
+              "name": "server",
+              "value": "cloudflare"
+            },
+            {
+              "name": "x-powered-by",
+              "value": "ASP.NET"
+            },
+            {
+              "name": "x-frame-options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "name": "age",
+              "value": "5877"
+            },
+            {
+              "name": "expires",
+              "value": "Thu, 18 Jun 2026 13:09:21 GMT"
+            },
+            {
+              "name": "cache-control",
+              "value": "public, max-age=14400"
+            },
+            {
+              "name": "cf-cache-status",
+              "value": "HIT"
+            },
+            {
+              "name": "cf-ray",
+              "value": "a0d9279aa85c5f23-ATL"
+            },
+            {
+              "name": "X-Firefox-Spdy",
+              "value": "h2"
+            }
+          ],
+          "cookies": [],
+          "content": {
+            "mimeType": "application/javascript",
+            "size": 2441,
+            "text": "function CompareDates(txtStartDate, txtEndDate)\r\n{\r\nvar startDate =  new Date(txtStartDate);\r\nvar endDate = new Date(txtEndDate);\r\nvar todaysDate = new Date();//$.datepicker.formatDate('mm/dd/yy', new Date());\r\n    if (startDate <= todaysDate && endDate <= todaysDate) {\r\n        if (startDate <= endDate) {\r\n           return true;\r\n        }\r\n        else {\r\n            errorDialog(\"Start Date cannot be greater than End Date.\");\r\n            return false;\r\n        }\r\n    }\r\n    else {\r\n        errorDialog(\"Start Date or End Date cannot be greater than today.\");\r\n        return false;\r\n    }\r\n}\r\n\r\nfunction CompareDatesandTime(txtStartDate, txtEndDate, txtStartTime, txtEndTime) {\r\n    var startDate = txtStartDate + ' ' + txtStartTime;\r\n    var startDateTime = new Date(startDate);\r\n    var stDtTime = new Date(txtStartDate);\r\n    var endDtTime = new Date(txtEndDate);\r\n    var endDate = txtEndDate + ' ' + txtEndTime;\r\n    var endDateTime = new Date(endDate);\r\n    var todaysDate = new Date();\r\n    if (startDateTime != \"Invalid Date\" && endDateTime != \"Invalid Date\") {\r\n        if (stDtTime <= todaysDate && endDtTime <= todaysDate) {\r\n            if (startDateTime <= endDateTime) {\r\n                return true;\r\n            }\r\n            else {\r\n                errorDialog(\"Start date cannot be greater than end date.\");\r\n                return false;\r\n            }\r\n        }\r\n        else {\r\n            errorDialog(\"Start Date or End Date cannot be greater than today.\");\r\n            return false;\r\n        }\r\n    }\r\n    else {\r\n        errorDialog(\"Please enter a valid Start Time and End Time.\");\r\n        return false;\r\n    }\r\n}\r\n\r\nfunction ValidateDate(txtboxId, prevValue) {\r\n    var date = $.datepicker.formatDate('mm/dd/yy', new Date());\r\n    var receiveddate = $(txtboxId).val();\r\n    if (isValidDate(receiveddate))\r\n        return true;\r\n    else {\r\n        errorDialog(\"Invalid date, please enter valid date.\");\r\n        $(txtboxId).val(prevValue);\r\n        return false;\r\n    }\r\n}\r\n\r\nfunction isValidDate(s) {\r\n    if (s.length == 10) {\r\n        var bits = s.split('/');\r\n        if ((bits[2].substring(0, 1) != 0 && bits[2] >= 1900) && (s.length == 10)) {\r\n            var d = new Date(bits[2], bits[0] - 1, bits[1]);\r\n            return d && (d.getMonth() + 1) == bits[0] && d.getDate() == Number(bits[1]);\r\n        }\r\n        else\r\n            return false;\r\n    }\r\n    else\r\n        return false;\r\n}\r\n\r\n"
+          },
+          "redirectURL": "",
+          "headersSize": 0,
+          "bodySize": 888
+        },
+        "cache": {},
+        "timings": {
+          "blocked": 0,
+          "dns": 0,
+          "ssl": 0,
+          "connect": 0,
+          "send": 0,
+          "wait": 0,
+          "receive": 0
+        },
+        "time": 0,
+        "_securityState": "secure",
+        "pageref": "page_1"
+      },
+      {
+        "startedDateTime": "2026-06-18T05:20:10.195-04:00",
+        "request": {
+          "bodySize": 0,
+          "method": "GET",
+          "url": "https://ecorp.sos.ga.gov/Themes/CRDBase/fonts/ebrima.woff",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "Host",
+              "value": "ecorp.sos.ga.gov"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0"
+            },
+            {
+              "name": "Accept",
+              "value": "application/font-woff2;q=1.0,application/font-woff;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "identity"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "Referer",
+              "value": "https://ecorp.sos.ga.gov/Themes/CSS/Styles?v=Zg5mvax9ru3G0Vr5izUJdPH0jjJ6wtthi2dPqDAi_201"
+            },
+            {
+              "name": "Cookie",
+              "value": "ASP.NET_SessionId=qw250enqcibggnvh5biy5jsd; __cflb=02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2; cf_clearance=hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w; __RequestVerificationToken=xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2; userCookie="
+            },
+            {
+              "name": "Sec-Fetch-Dest",
+              "value": "font"
+            },
+            {
+              "name": "Sec-Fetch-Mode",
+              "value": "cors"
+            },
+            {
+              "name": "Sec-Fetch-Site",
+              "value": "same-origin"
+            },
+            {
+              "name": "TE",
+              "value": "trailers"
+            }
+          ],
+          "cookies": [
+            {
+              "name": "ASP.NET_SessionId",
+              "value": "qw250enqcibggnvh5biy5jsd"
+            },
+            {
+              "name": "__cflb",
+              "value": "02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2"
+            },
+            {
+              "name": "cf_clearance",
+              "value": "hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w"
+            },
+            {
+              "name": "__RequestVerificationToken",
+              "value": "xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2"
+            },
+            {
+              "name": "userCookie",
+              "value": ""
+            }
+          ],
+          "queryString": [],
+          "headersSize": 1224
+        },
+        "response": {
+          "status": 404,
+          "statusText": "",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "date",
+              "value": "Thu, 18 Jun 2026 09:20:10 GMT"
+            },
+            {
+              "name": "content-type",
+              "value": "text/html"
+            },
+            {
+              "name": "server",
+              "value": "cloudflare"
+            },
+            {
+              "name": "x-powered-by",
+              "value": "ASP.NET"
+            },
+            {
+              "name": "x-frame-options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "name": "vary",
+              "value": "accept-encoding"
+            },
+            {
+              "name": "expires",
+              "value": "Thu, 18 Jun 2026 13:20:10 GMT"
+            },
+            {
+              "name": "cache-control",
+              "value": "public, max-age=14400"
+            },
+            {
+              "name": "cf-cache-status",
+              "value": "EXPIRED"
+            },
+            {
+              "name": "cf-ray",
+              "value": "a0d937701ea59613-ATL"
+            },
+            {
+              "name": "X-Firefox-Spdy",
+              "value": "h2"
+            }
+          ],
+          "cookies": [],
+          "content": {
+            "mimeType": "text/html",
+            "size": 1245,
+            "text": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\"/>\r\n<title>404 - File or directory not found.</title>\r\n<style type=\"text/css\">\r\n<!--\r\nbody{margin:0;font-size:.7em;font-family:Verdana, Arial, Helvetica, sans-serif;background:#EEEEEE;}\r\nfieldset{padding:0 15px 10px 15px;} \r\nh1{font-size:2.4em;margin:0;color:#FFF;}\r\nh2{font-size:1.7em;margin:0;color:#CC0000;} \r\nh3{font-size:1.2em;margin:10px 0 0 0;color:#000000;} \r\n#header{width:96%;margin:0 0 0 0;padding:6px 2% 6px 2%;font-family:\"trebuchet MS\", Verdana, sans-serif;color:#FFF;\r\nbackground-color:#555555;}\r\n#content{margin:0 0 0 2%;position:relative;}\r\n.content-container{background:#FFF;width:96%;margin-top:8px;padding:10px;position:relative;}\r\n-->\r\n</style>\r\n</head>\r\n<body>\r\n<div id=\"header\"><h1>Server Error</h1></div>\r\n<div id=\"content\">\r\n <div class=\"content-container\"><fieldset>\r\n  <h2>404 - File or directory not found.</h2>\r\n  <h3>The resource you are looking for might have been removed, had its name changed, or is temporarily unavailable.</h3>\r\n </fieldset></div>\r\n</div>\r\n</body>\r\n</html>\r\n"
+          },
+          "redirectURL": "",
+          "headersSize": 326,
+          "bodySize": 1571
+        },
+        "cache": {},
+        "timings": {
+          "blocked": -1,
+          "dns": 0,
+          "connect": 0,
+          "ssl": 0,
+          "send": 0,
+          "wait": 361,
+          "receive": 0
+        },
+        "time": 361,
+        "_securityState": "secure",
+        "serverIPAddress": "104.18.0.83",
+        "connection": "443",
+        "pageref": "page_1"
+      },
+      {
+        "startedDateTime": "2026-06-18T05:20:10.474-04:00",
+        "request": {
+          "bodySize": 0,
+          "method": "GET",
+          "url": "https://ecorp.sos.ga.gov/favicon.ico",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "Host",
+              "value": "ecorp.sos.ga.gov"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0"
+            },
+            {
+              "name": "Accept",
+              "value": "image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br, zstd"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "Referer",
+              "value": "https://ecorp.sos.ga.gov/BusinessSearch"
+            },
+            {
+              "name": "Cookie",
+              "value": "ASP.NET_SessionId=qw250enqcibggnvh5biy5jsd; __cflb=02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2; cf_clearance=hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w; __RequestVerificationToken=xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2; userCookie="
+            },
+            {
+              "name": "Sec-Fetch-Dest",
+              "value": "image"
+            },
+            {
+              "name": "Sec-Fetch-Mode",
+              "value": "no-cors"
+            },
+            {
+              "name": "Sec-Fetch-Site",
+              "value": "same-origin"
+            }
+          ],
+          "cookies": [
+            {
+              "name": "ASP.NET_SessionId",
+              "value": "qw250enqcibggnvh5biy5jsd"
+            },
+            {
+              "name": "__cflb",
+              "value": "02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2"
+            },
+            {
+              "name": "cf_clearance",
+              "value": "hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w"
+            },
+            {
+              "name": "__RequestVerificationToken",
+              "value": "xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2"
+            },
+            {
+              "name": "userCookie",
+              "value": ""
+            }
+          ],
+          "queryString": [],
+          "headersSize": 0
+        },
+        "response": {
+          "status": 404,
+          "statusText": "",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "date",
+              "value": "Thu, 18 Jun 2026 09:08:36 GMT"
+            },
+            {
+              "name": "content-type",
+              "value": "text/html"
+            },
+            {
+              "name": "server",
+              "value": "cloudflare"
+            },
+            {
+              "name": "x-powered-by",
+              "value": "ASP.NET"
+            },
+            {
+              "name": "x-frame-options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "name": "vary",
+              "value": "accept-encoding"
+            },
+            {
+              "name": "age",
+              "value": "85"
+            },
+            {
+              "name": "expires",
+              "value": "Thu, 18 Jun 2026 13:08:36 GMT"
+            },
+            {
+              "name": "cache-control",
+              "value": "public, max-age=14400"
+            },
+            {
+              "name": "cf-cache-status",
+              "value": "HIT"
+            },
+            {
+              "name": "content-encoding",
+              "value": "br"
+            },
+            {
+              "name": "cf-ray",
+              "value": "a0d926800b055f23-ATL"
+            },
+            {
+              "name": "X-Firefox-Spdy",
+              "value": "h2"
+            }
+          ],
+          "cookies": [],
+          "content": {
+            "mimeType": "text/html",
+            "size": 1245,
+            "text": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\"/>\r\n<title>404 - File or directory not found.</title>\r\n<style type=\"text/css\">\r\n<!--\r\nbody{margin:0;font-size:.7em;font-family:Verdana, Arial, Helvetica, sans-serif;background:#EEEEEE;}\r\nfieldset{padding:0 15px 10px 15px;} \r\nh1{font-size:2.4em;margin:0;color:#FFF;}\r\nh2{font-size:1.7em;margin:0;color:#CC0000;} \r\nh3{font-size:1.2em;margin:10px 0 0 0;color:#000000;} \r\n#header{width:96%;margin:0 0 0 0;padding:6px 2% 6px 2%;font-family:\"trebuchet MS\", Verdana, sans-serif;color:#FFF;\r\nbackground-color:#555555;}\r\n#content{margin:0 0 0 2%;position:relative;}\r\n.content-container{background:#FFF;width:96%;margin-top:8px;padding:10px;position:relative;}\r\n-->\r\n</style>\r\n</head>\r\n<body>\r\n<div id=\"header\"><h1>Server Error</h1></div>\r\n<div id=\"content\">\r\n <div class=\"content-container\"><fieldset>\r\n  <h2>404 - File or directory not found.</h2>\r\n  <h3>The resource you are looking for might have been removed, had its name changed, or is temporarily unavailable.</h3>\r\n </fieldset></div>\r\n</div>\r\n</body>\r\n</html>\r\n"
+          },
+          "redirectURL": "",
+          "headersSize": 0,
+          "bodySize": 508
+        },
+        "cache": {},
+        "timings": {
+          "blocked": 0,
+          "dns": 0,
+          "ssl": 0,
+          "connect": 0,
+          "send": 0,
+          "wait": 0,
+          "receive": 0
+        },
+        "time": 0,
+        "_securityState": "secure",
+        "pageref": "page_1"
+      },
+      {
+        "startedDateTime": "2026-06-18T05:20:31.704-04:00",
+        "request": {
+          "bodySize": 0,
+          "method": "GET",
+          "url": "https://ecorp.sos.ga.gov/BusinessSearch/BusinessInformation?businessId=4540046&businessType=Domestic%20Limited%20Liability%20Company&fromSearch=True",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "Host",
+              "value": "ecorp.sos.ga.gov"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br, zstd"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "Referer",
+              "value": "https://ecorp.sos.ga.gov/BusinessSearch"
+            },
+            {
+              "name": "Cookie",
+              "value": "ASP.NET_SessionId=qw250enqcibggnvh5biy5jsd; __cflb=02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2; cf_clearance=hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w; __RequestVerificationToken=xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2; userCookie="
+            },
+            {
+              "name": "Upgrade-Insecure-Requests",
+              "value": "1"
+            },
+            {
+              "name": "Sec-Fetch-Dest",
+              "value": "document"
+            },
+            {
+              "name": "Sec-Fetch-Mode",
+              "value": "navigate"
+            },
+            {
+              "name": "Sec-Fetch-Site",
+              "value": "same-origin"
+            },
+            {
+              "name": "Sec-Fetch-User",
+              "value": "?1"
+            },
+            {
+              "name": "Priority",
+              "value": "u=0, i"
+            },
+            {
+              "name": "TE",
+              "value": "trailers"
+            }
+          ],
+          "cookies": [
+            {
+              "name": "ASP.NET_SessionId",
+              "value": "qw250enqcibggnvh5biy5jsd"
+            },
+            {
+              "name": "__cflb",
+              "value": "02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2"
+            },
+            {
+              "name": "cf_clearance",
+              "value": "hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w"
+            },
+            {
+              "name": "__RequestVerificationToken",
+              "value": "xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2"
+            },
+            {
+              "name": "userCookie",
+              "value": ""
+            }
+          ],
+          "queryString": [
+            {
+              "name": "businessId",
+              "value": "4540046"
+            },
+            {
+              "name": "businessType",
+              "value": "Domestic Limited Liability Company"
+            },
+            {
+              "name": "fromSearch",
+              "value": "True"
+            }
+          ],
+          "headersSize": 1353
+        },
+        "response": {
+          "status": 200,
+          "statusText": "",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "date",
+              "value": "Thu, 18 Jun 2026 09:20:31 GMT"
+            },
+            {
+              "name": "content-type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "name": "cache-control",
+              "value": "private"
+            },
+            {
+              "name": "vary",
+              "value": "Accept-Encoding"
+            },
+            {
+              "name": "server",
+              "value": "cloudflare"
+            },
+            {
+              "name": "x-aspnetmvc-version",
+              "value": "4.0"
+            },
+            {
+              "name": "x-aspnet-version",
+              "value": "4.0.30319"
+            },
+            {
+              "name": "x-powered-by",
+              "value": "ASP.NET"
+            },
+            {
+              "name": "x-frame-options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "name": "cf-cache-status",
+              "value": "DYNAMIC"
+            },
+            {
+              "name": "content-encoding",
+              "value": "br"
+            },
+            {
+              "name": "cf-ray",
+              "value": "a0d937f678ce9613-ATL"
+            },
+            {
+              "name": "X-Firefox-Spdy",
+              "value": "h2"
+            }
+          ],
+          "cookies": [],
+          "content": {
+            "mimeType": "text/html; charset=utf-8",
+            "size": 34643,
+            "text": "<!DOCTYPE html>\r\n\r\n<html>\r\n<head>\r\n    <meta name=\"viewport\" content=\"width=device-width\" />\r\n    <title>GEORGIA</title>\r\n    <link href=\"/Themes/CSS/Styles?v=Zg5mvax9ru3G0Vr5izUJdPH0jjJ6wtthi2dPqDAi_201\" rel=\"stylesheet\"/>\r\n\r\n    <script src=\"/Scripts/Script?v=8X2IDPh1LaRe4erLuQcGu5zpE8N1cVf-nEWZkD0RhvQ1\"></script>\r\n\r\n\r\n    \r\n    \r\n<script type=\"text/javascript\">\r\n    $helper = function ()\r\n    {\r\n        var config =\r\n        {\r\n            commerceHubSettings:\r\n            {\r\n                environment: 'PROD',\r\n                baseUrl: 'https://connect.fiservapis.com/ch/',\r\n                merchantId: '100106000000137',\r\n                terminalId: '10000001',\r\n                apiKey: '3hOZxA5DyeaQinHppt4nA4a6s8BAPzHFIXgM5Ium6RpKZjGw',\r\n                apiSecret: 'IAqcGUCXJwaT4JxkvyQSrlsrm2q1RHQVcRwY6GrA5BR06ARxuwqk13MnasbCsxEE',\r\n                domainWhiteList: 'http://localhost:51351/,https://localhost:51351/',\r\n                pageId: '2fa919c0-1edf-429a-903e-56decac5b1ac',\r\n                pageVersion: '1',\r\n                showGenericError: 'false'.toString().toLowerCase(),\r\n                genericError: 'Something went wrong while authorizing your card. You may want to try again or use a different payment method.'\r\n            }\r\n        };\r\n\r\n        return {\r\n            config: config\r\n        };\r\n    }();\r\n</script>   \r\n\r\n    <script type=\"text/javascript\">\r\n        $v.messagebox = function (msg) {\r\n            errorDialog(msg, true);\r\n        };\r\n\r\n        $(function () {\r\n            if ($(\"#_errorElement_\").val() != \"\") {\r\n                errorDialog($(\"#_errorElement_\").val());\r\n            }\r\n        });\r\n\r\n    </script>\r\n    <style type=\"text/css\">\r\n        .scrollingtext {\r\n            color: #535B62;\r\n            font-weight: bold;\r\n            white-space: nowrap;\r\n            position: absolute;\r\n            font-size: 12px;\r\n        }\r\n\r\n        .menuBackGround {\r\n            background: url(\"../Themes/CRDBase/Images/footerBG.jpg\") repeat;\r\n        }\r\n\r\n\r\n        .uatBg {\r\n            background: #2d2d2f url('../../Themes/base/Images/ga_uat.png') repeat 100% !important; /*#36598a*/\r\n        }\r\n    </style>\r\n    <script src=\"/Scripts/jquery.loadmask.js\"></script>\r\n    <script src=\"/Scripts/DateValidation.js\"></script>\r\n</head>\r\n<body class=\"loginbody\" oncontextmenu=\"return false\">\r\n    <input type=\"hidden\" id=\"_errorElement_\" value=\"\" />\r\n    <table class=\"header_color\" width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"8\">\r\n        <tbody>\r\n            <tr>\r\n                <td>\r\n                    <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\r\n                        <tbody>\r\n                            <tr>\r\n                                <td width=\"100\" align=\"center\" valign=\"middle\">\r\n                                    <img src=\"/Themes/base/images/sos-logo.PNG\">\r\n                                </td>\r\n                                <td valign=\"middle\" class=\"header_left\">\r\n                                    <div class=\"header_txt\">\r\n                                        Georgia<br>\r\n                                        Corporations Division \r\n                                    </div>\r\n                                </td>\r\n                                <td align=\"right\">\r\n                                    <span class=\"header_small_title\">GEORGIA SECRETARY OF STATE</span><br>\r\n                                    <span class=\"header_txt\">BRAD RAFFENSPERGER</span>\r\n                                </td>\r\n                            </tr>\r\n                        </tbody>\r\n                    </table>\r\n                </td>\r\n            </tr>\r\n        </tbody>\r\n    </table>\r\n\r\n    <table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\r\n        <tr>\r\n            <td>\r\n                <div class=\"navbg\" id=\"divMain\">\r\n    <ul id=\"nav\">\r\n        <li class=\"top\">\r\n            <a href=\"/DashBoard/Home\" class=\"top_link\">\r\n                <img src=\"/Themes/CRDBase/images/home.png\" align=\"left\"><span class=\"down\">Home</span>\r\n            </a>\r\n        </li>\r\n        <li class=\"top\">\r\n            <a href=\"/DashBoard\" class=\"top_link\">\r\n                <img src=\"/Themes/CRDBase/images/dashboard.png\" align=\"left\"><span class=\"down\">Dashboard</span>\r\n            </a>\r\n        </li>\r\n        <li class=\"top\">\r\n            <a href=\"#\" class=\"top_link\">\r\n                <img src=\"/Themes/CRDBase/images/magnifier.png\" align=\"left\"><span class=\"down\">Search</span><img src=\"/Themes/CRDBase/images/downarrow.png\" alt=\"\" class=\"vtop\">\r\n            </a>\r\n            <div>\r\n                <ul class=\"sub\">\r\n                    <li><a href=\"#\" onclick=\"submitpage('/BusinessSearch')\">Business Search</a></li>\r\n                </ul>\r\n            </div>\r\n        </li>\r\n        <li class=\"top\">\r\n            <a href=\"#\" class=\"top_link\">\r\n                <img src=\"/Themes/CRDBase/images/monitor.png\" align=\"left\"><span class=\"down\">Online Services</span><img src=\"/Themes/CRDBase/images/downarrow.png\" alt=\"\" class=\"vtop\">\r\n            </a>\r\n\r\n            <div class=\"double tabResponsiveMarginLeft\" style=\"display: flex; padding-top:0; padding-bottom:0;\">\r\n                <ul class=\"sub\" style=\"margin:0; padding: 4px 0;\">\r\n                    <li><a href=\"#\" onclick=\"submitpage('/BusinessFormation')\">Create or Register a Business</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/NameReservation')\">Name Reservation</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/BusinessAmendment')\">Business Amendment - Name Change Only</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/Reinstatement')\">Reinstate an Entity</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/ReActivate')\">Reactivate LP or LLLP</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/EmailSubscription')\">E-Notifications</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/NAICS')\">NAICS Code Update</a></li>\r\n                </ul>\r\n                <ul class=\"sub\" style=\"margin:0; padding: 4px 0;\">\r\n                    <li><a href=\"#\" onclick=\"submitpage('/AnnualReport')\">File Annual Registration</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/OneClickAR')\">One Click Annual Registration (No Changes)</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/BulkOneClickAR')\">Bulk One Click Annual Registration (No Changes)</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/ARForm')\">Print Annual Registration Form</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/AmendedAR')\">Amended Annual Registration</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/CertificateOfExistence')\">Certificate Of Existence</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/certifiedcopyrequest')\">Certified Copies</a></li>\r\n                </ul>\r\n                <ul class=\"sub\" style=\"margin:0; padding: 4px 0;\">\r\n                    <li><a href=\"#\" onclick=\"submitpage('/IntentToDissolve')\">Notice of Intent to Dissolve</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/Dissolution')\">Voluntary Dissolution</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/WindingUp')\">Winding Up</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/BusinessTermination')\">Termination</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/BusinessCancellation')\">Cancellation</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/BusinessWithDrawal')\">Withdrawal</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/RegisteredAgentResignation')\">Registered Agent Resignation</a></li>\r\n                </ul>\r\n                <ul class=\"sub\" style=\"margin:0; padding: 4px 0;\">\r\n                    <li><a href=\"#\" onclick=\"submitpage('/RegisteredOfficeAddressChange')\">Registered Office Address Change</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/PaperApplication/paperfilingtype')\">Submit Paper Filing Online</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/CableVideoFranchiseApplication/franchisefilingtype')\">Cable/Video Franchise</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/SOP')\">Service of Process</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/Trademarks')\">Trademarks/Service Marks</a></li>\r\n                    \r\n                </ul>\r\n            </div>\r\n        </li>\r\n\r\n        \r\n        <li class=\"top\">\r\n            <a href=\"http://sos.ga.gov/corporations/acrobat/applications/Reference%20-%20Filing%20Fees.pdf\" class=\"top_link\" target=\"_blank\">\r\n                <img src=\"/Themes/CRDBase/images/form3.png\" align=\"left\"><span class=\"down\">Fees</span>\r\n            </a>\r\n        </li>\r\n        <li class=\"top\">\r\n            <a href=\"#\" class=\"top_link\">\r\n                <img src=\"/Themes/CRDBase/images/whatsnew.png\" align=\"left\"><span class=\"down\">What's New?</span>\r\n            </a>\r\n        </li>\r\n        <li class=\"top\">\r\n            <a href=\"https://sos.ga.gov/page/business-division-faq\" class=\"top_link\" target=\"_blank\">\r\n                <img src=\"/Themes/CRDBase/images/form3.png\" align=\"left\"><span class=\"down\">FAQs</span>\r\n            </a>\r\n        </li>\r\n\r\n        <li class=\"top\">\r\n            <a href=\"#\" class=\"top_link\">\r\n                <img src=\"/Themes/CRDBase/images/personalization.png\" align=\"left\"><span class=\"down\">Personalization</span><img src=\"/Themes/CRDBase/images/downarrow.png\" alt=\"\" class=\"vtop\">\r\n            </a><div>\r\n                <ul class=\"sub\">\r\n                    <li><a href=\"#\" onclick=\"submitpage('/Account/accountmaintenance')\">Change Account Information</a></li>\r\n                    <li><a href=\"#\" onclick=\"submitpage('/Account/changepassword')\">Change Password</a></li>\r\n                    <li id=\"linkUserCreation\"><a href=\"#\" onclick=\"submitpage('/UserCreation/usercreation')\">Create/Manage Sub Account</a></li>\r\n                    <li id=\"linkManageAcc\"><a href=\"#\" onclick=\"submitpage('/ReplenishPrePaidAccount')\">Replenish Pre-Paid Account</a></li>\r\n                    <li id=\"linkChangePin\"><a href=\"#\" onclick=\"submitpage('/ReplenishPrePaidAccount/resetpin')\">Reset PIN</a></li>\r\n                    <li id=\"linkSummaryReport\"><a href=\"#\" onclick=\"submitpage('/ReplenishPrePaidAccount/filerreconcillationdetails')\">Pre-Paid Account Statement</a></li>\r\n                </ul>\r\n            </div>\r\n        </li>\r\n        <li class=\"top\" style=\"float: right;\" id=\"logout\"><a href=\"/\" class=\"top_link\" onclick=\"CallLocalStorage()\"><span class=\"down\">Logout</span></a></li>\r\n    </ul>\r\n</div>\r\n<div class=\"navbg\" id=\"divMain2\" style=\"display: none\">\r\n    <ul id=\"nav\">\r\n        <li class=\"top\" style=\"float: right;\" id=\"logout\"><a href=\"/\" class=\"top_link\" onclick=\"CallLocalStorage()\"><span class=\"down\">Logout</span></a></li>\r\n    </ul>\r\n</div>\r\n<script type=\"text/javascript\">\r\n\r\n\r\n\r\n\r\n    function submitpage(url, type) {\r\n        window.location.href = url;\r\n    }\r\n\r\n\r\n    $(function () {\r\n        //disable mouse roll button click\r\n        $(document).bind(\"click\", function (e) {\r\n            if (e.button == 1) {\r\n                //e.preventDefault();\r\n                return false;\r\n            }\r\n        });\r\n        //Disables Cntrl+Mouse left click on all links\r\n        $('a').click(function (e) {\r\n            if (e.ctrlKey) {\r\n                return false;\r\n            }\r\n        });\r\n    });\r\n\r\n\r\n    //Need to set localStorage  popup_show value to false to Display multi tab message on login page for every login.\r\n    function CallLocalStorage() {\r\n        SetLocalStoragetoFalse();\r\n    }\r\n</script>\r\n\r\n\r\n                <div class=\"welcome_data\">\r\n                    <table width=\"100%\" border=\"0\" align=\"center\" cellspacing=\"0\" cellpadding=\"0\">\r\n                        <tbody>\r\n                            <tr>\r\n                                    <td width=\"32%\">\r\n                                        <div class=\"welcomeinner\"><span class=\"lastlogin\">Welcome IAN ISAIAH ENOCH BRUCE &nbsp;</span></div>\r\n                                    </td>\r\n                                        <td width=\"33%\" align=\"center\"><strong>Last Login:</strong>&nbsp;&nbsp;6/17/2026 11:15:28 AM&nbsp;&nbsp;</td>\r\n                                <td align=\"right\">Thursday, June 18, 2026</td>\r\n                            </tr>\r\n                        </tbody>\r\n                    </table>\r\n                </div>\r\n                <div id=\"scroller\">\r\n                    <div class=\"scrollingtext\">\r\n                    </div>\r\n                </div>\r\n                <div class=\"right_content\">\r\n                    \r\n<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\r\n    <tr>\r\n        <td class=\"border_pagetitle\">\r\n            <div class=\"pagetitle\">\r\n                <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\r\n                    <tr>\r\n                        <td class=\"title_bg\">Business Search</td>\r\n                        <td align=\"left\">\r\n                            <img src=\"/Themes/CRDBase/images/corver.png\" width=\"27\" height=\"30\" />\r\n                        </td>\r\n                    </tr>\r\n                </table>\r\n            </div>\r\n        </td>\r\n    </tr>\r\n    <tr>\r\n        <td>\r\n            <div class=\"data_pannel\">\r\n                <table cellpadding=\"4\" width=\"100%\">\r\n\r\n                        <tr>\r\n                            <td class=\"inner_databg\" align=\"left\" colspan=\"4\">Business Information</td>\r\n                        </tr>\r\n                        <tr>\r\n                                <td align=\"right\" width=\"25%\">Business Name:</td>\r\n                            <td width=\"25%\"><strong>FUNLYNK LLC</strong></td>\r\n                            <td align=\"right\" width=\"25%\">Control Number:</td>\r\n                            <td width=\"25%\"><strong>25132191</strong></td>\r\n                        </tr>\r\n                        <tr>\r\n                                <td align=\"right\">Business Type:</td>\r\n                            <td><strong>Domestic Limited Liability Company</strong></td>\r\n                                <td align=\"right\">Business Status:</td>\r\n                            <td><strong>Active/Compliance</strong></td>\r\n                        </tr>\r\n                                <tr>\r\n                                    <td align=\"right\">NAICS Code:</td>\r\n                                    <td><strong>Professional, Scientific, and Technical Services</strong></td>\r\n                                    <td align=\"right\">NAICS Sub Code:</td>\r\n                                    <td><strong>Custom Computer Programming Services</strong></td>\r\n                                </tr>\r\n                            <tr>\r\n                                    <td align=\"right\">Principal Office Address:</td>\r\n\r\n                                <td><strong>1410 Comet Ives lane, lawrenceville, GA, 30045, USA</strong></td>\r\n\r\n                                <td align=\"right\">Date of Formation / Registration Date:</td>\r\n                                <td><strong>6/25/2025</strong></td>\r\n                            </tr>\r\n                            <tr>\r\n                                    <td align=\"right\">State of Formation:</td>\r\n                                    <td><strong>Georgia</strong></td>\r\n\r\n                                    <td align=\"right\">Last Annual Registration Year:</td>\r\n                                    <td><strong>2026</strong></td>\r\n                            </tr>\r\n                        <tr>\r\n                                                    </tr>\r\n                        <tr>\r\n                        </tr>\r\n                </table>\r\n            </div>\r\n        </td>\r\n    </tr>\r\n                <tr>\r\n                    <td>\r\n                        <div class=\"data_pannel\">\r\n                            <table width=\"100%\" cellpadding=\"4\">\r\n                                <tr>\r\n                                    <td class=\"inner_databg\" align=\"left\" colspan=\"2\">Registered Agent Information</td>\r\n                                </tr>\r\n                                <tr>\r\n                                    <td width=\"25%\" align=\"right\">Registered Agent Name:</td>\r\n                                    <td width=\"75%\"><strong>ian bruce</strong></td>\r\n                                </tr>\r\n                                    <tr>\r\n                                        <td width=\"25%\" align=\"right\">Physical Address:</td>\r\n                                        <td width=\"75%\"><strong>267 langley dr, #1267, Lawrenceville, GA, 30046, USA</strong></td>\r\n                                    </tr>\r\n                                    <tr>\r\n                                        <td width=\"25%\" align=\"right\">County:</td>\r\n                                        <td width=\"75%\"><strong>Gwinnett</strong></td>\r\n                                    </tr>\r\n                            </table>\r\n                        </div>\r\n                    </td>\r\n                </tr>\r\n        <tr>\r\n        <td>\r\n            <table width=\"100%\">\r\n                <tr>\r\n                    <td style=\"width: 150px;\">\r\n                            <input type=\"button\" name=\"\" value=\"Back\" class=\"button btnBack\" onclick=\"submitBack()\" />\r\n                    </td>\r\n                    <td style=\"text-align: center\">\r\n                        <input type=\"button\" name=\"btnSearch\" value=\"Filing History\" class=\"button\" onclick=\"submitForm(4540046,'/BusinessSearch/BusinessFilings')\" />\r\n                        <input type=\"button\" name=\"btnSearch\" value=\"Name History\" class=\"button\" onclick=\"submitForm(4540046,'/BusinessSearch/NameChangeHistory')\" />\r\n                            <input type=\"button\" name=\"Reset\" value=\"Return to Business Search\" class=\"button btnBack\" onclick=\"window.location.href='/BusinessSearch'\" />\r\n                    </td>\r\n                    <td style=\"width: 150px;\"></td>\r\n                </tr>\r\n            </table>\r\n        </td>\r\n    </tr>\r\n</table>\r\n\r\n\r\n<br />\r\n<br />\r\n<script type=\"text/javascript\">\r\n    function submitBack() {\r\n        $.submitForm('/BusinessSearch', { isBack: true });\r\n    }\r\n\r\n    function submitForm(id, url) {\r\n        if (searchFrom())\r\n            window.location.href = url.trim() + '?businessId=' + id + '&isEmailSubscriptionSearch=true';\r\n        else\r\n            $.submitForm(url, { businessId: id });\r\n    }\r\n\r\n    $(function () {\r\n        if (searchFrom()) {\r\n            $(\".btnBack\").hide();\r\n        }\r\n    })\r\n\r\n    /*Returns true if business search is from Email Subscription page.*/\r\n    function searchFrom() {\r\n        if ($.inArray('isEmailSubscriptionSearch=true', window.location.search.split('&')) != -1) {\r\n            return true;\r\n        }\r\n    }\r\n</script>\r\n\r\n                </div>\r\n            </td>\r\n        </tr>\r\n    </table>\r\n    <input type=\"hidden\" id=\"hdnIsChildFiler\" value=\"FALSE\" />\r\n    <div class=\"container-fluid\">\r\n        <div class=\"row\">\r\n            <div class=\"footer\">\r\n                Office of the Georgia Secretary of State Attn: 2 MLK, Jr. Dr. Suite 313, Floyd West Tower Atlanta, GA 30334-1530, Phone: (404) 656-2817 Toll-free: (844) 753-7825, WEBSITE: https://sos.ga.gov/\r\n                <br />\r\n                © 2015 PCC Technology Group. All Rights Reserved. Version 6.2.19\r\n                <span style=\"float: right; padding-right: 10px\"><a href=\"javascript:void(0);\" onclick=\"javascript:return ShowReportDialog();\" style=\"color: #FFF; font-weight: bold; font-size: 8pt\">Report a Problem?</a></span>\r\n            </div>\r\n        </div>\r\n    </div>\r\n    <div id=\"divError\" style=\"font-family: ebrima; font-size: 13px; text-align: left;\"></div>    \r\n</body>\r\n</html>\r\n<script type=\"text/javascript\">\r\n    $(\"document\").ready(function () {      \r\n\r\n\r\n\r\n        //get account balance\r\n        if (('FI' == 'PA' && 'FALSE' == 'TRUE') || ('FALSE' == 'TRUE')) {\r\n            $.ajax({\r\n                type: \"POST\",\r\n                url: '/Dashboard/GetFilerAccountBalance',\r\n                dataType: \"json\",\r\n                success: function (response, status, xhr) {\r\n                    var accountBal = response.AccountBalance;\r\n                    $('#spnAccountBalance').text(accountBal);\r\n                },\r\n                error: function (response, status, xhr) {\r\n                    errorDialog(xhr.status + \" \" + xhr.statusText);\r\n                    return false;\r\n                }\r\n            });\r\n        }\r\n\r\n        if ('FALSE' != 'TRUE') {\r\n            $(\"#linkUserCreation,#linkManageAcc,#linkChangePin,#linkSummaryReport\").hide();\r\n        }\r\n\r\n        var id = $(\"#Form_ChangePassword\").attr(\"id\");\r\n        if ($(\"#hdnIsChildFiler\").val() == 'TRUE' && 'ryan' == \"\" && 'FALSE' == 'TRUE') {\r\n            $(\"#divMain\").hide();\r\n            $(\"#divMain2\").show();\r\n        }\r\n        else if ('ryan' == \"\" && 'FALSE' == 'TRUE') {\r\n            $(\"#divMain\").hide();\r\n            $(\"#divMain2\").show();\r\n        }\r\n        else if ($(\"#hdnIsChildFiler\").val() == 'TRUE' && 'FALSE' == 'TRUE') {\r\n            $(\"#divMain\").hide();\r\n            $(\"#divMain2\").show();\r\n        }\r\n        else if ('FALSE' != 'TRUE' && 'ryan' == \"\") {\r\n            $(\"#divMain\").hide();\r\n            $(\"#divMain2\").show();\r\n        }\r\n        else if ('FI' == 'PA' && 'FALSE' == 'TRUE' && 'FALSE' == 'TRUE') {\r\n            $(\"#divMain\").hide();\r\n            $(\"#divMain2\").show();\r\n        }\r\n        else {\r\n            $(\"#divMain\").show();\r\n            $(\"#divMain2\").hide();\r\n        }\r\n        if (!id) {\r\n            if ($(\"#hdnIsChildFiler\").val() == 'TRUE' && 'ryan' == \"\" && 'FALSE' == 'TRUE') {\r\n                window.location.href = '/Account/ChangePassword';\r\n            }\r\n            else if ($(\"#hdnIsChildFiler\").val() == 'TRUE' && 'FALSE' == 'TRUE') {\r\n                window.location.href = '/Account/ChangePassword';\r\n            }\r\n            else if ('FI' == 'PA' && 'FALSE' == 'TRUE') {\r\n                window.location.href = '/Account/ChangePassword';\r\n            }\r\n}\r\n\r\n        if ('FALSE' != 'TRUE') {\r\n            // Check if current page is OneClickAR - skip validation only for unauthenticated AR filing\r\n            var currentController = 'BusinessSearch'.toLowerCase();\r\n            var isOneClickAR = currentController === 'oneclickar';\r\n\r\n            if (!isOneClickAR) {\r\n                if ($(\"#hdnIsChildFiler\").val() == 'TRUE') {\r\n                    $(\"#linkUserCreation,#linkManageAcc,#linkSummaryReport\").hide();\r\n                    var changeacccountid = $(\"#frm_UserAccountMaintenance\").attr(\"id\");\r\n                    if (!changeacccountid) {\r\n                        if ('ryan' == \"\") {\r\n                            window.location.href = '/Account/AccountMaintenance';\r\n                        }\r\n                    }\r\n                }\r\n                else {\r\n                    var changeacccountid = $(\"#frm_UserAccountMaintenance\").attr(\"id\");\r\n                    if (!changeacccountid) {\r\n                        if ('ryan' == \"\") {\r\n                            window.location.href = '/Account/AccountMaintenance';\r\n                        }\r\n                    }\r\n                }\r\n            }\r\n        }\r\n\r\n    });\r\n    function ChangeAccountInfo() {\r\n        window.location.href = '/Account/AccountMaintenance';\r\n    };\r\n    function ShowChangePasswordDialog(message) {\r\n        if (message != \"\") {\r\n\r\n            $(\"#divError\").html(\"\");\r\n            $(\"#divError\").append(\"<span style='font-size:14px;'>\" + message + \"</span>\");\r\n            $(\"#divError\").dialog(\r\n                      {\r\n                          modal: true,\r\n                          resizable: false,\r\n                          width: 670,\r\n                          height: 150,\r\n                          closeOnEscape: false,\r\n                      });\r\n            $('.ui-dialog :button').blur();\r\n            $(\".ui-dialog-titlebar\").html(\"\");\r\n            $(\".ui-dialog-titlebar\").append(\"<span style='font-weight:bold;margin-left:0px;font-size:16px;color:white;font-family:ebrima'>Welcome Back!</span>\");\r\n            $(\".ui-dialog-titlebar\").css(\"background\", \"#28292B\");//00B0F0\r\n            $('.ui-dialog').css(\"font-weight\", \"bold\");\r\n            $('.ui-dialog').css(\"border-radius\", \"13px\");\r\n            $('.ui-dialog').css(\"font-family\", \"ebrima\");\r\n            $('.ui-widget-header').css(\"border-radius\", \"13px\");\r\n\r\n\r\n            message = \"\";\r\n            // return false;\r\n        }\r\n    }\r\n    function ChildUserFirstLoginChangePasswordDialog(message) {\r\n        if (message != \"\") {\r\n\r\n            $(\"#divError\").html(\"\");\r\n            $(\"#divError\").append(\"<span style='font-size:14px;'>\" + message + \"</span>\");\r\n            $(\"#divError\").dialog(\r\n                      {\r\n                          modal: true,\r\n                          resizable: false,\r\n                          width: 670,\r\n                          height: 160,\r\n                          closeOnEscape: false,\r\n                      });\r\n            $('.ui-dialog :button').blur();\r\n            $(\".ui-dialog-titlebar\").html(\"\");\r\n            $(\".ui-dialog-titlebar\").append(\"<span style='font-weight:bold;margin-left:0px;font-size:16px;color:white;font-family:ebrima'>Welcome!</span>\");\r\n            $(\".ui-dialog-titlebar\").css(\"background\", \"#28292B\");//00B0F0\r\n            $('.ui-dialog').css(\"font-weight\", \"bold\");\r\n            $('.ui-dialog').css(\"border-radius\", \"13px\");\r\n            $('.ui-dialog').css(\"font-family\", \"ebrima\");\r\n            $('.ui-widget-header').css(\"border-radius\", \"13px\");\r\n\r\n\r\n            message = \"\";\r\n            // return false;\r\n        }\r\n    }\r\n    function ShowWelocmeDialog(message) {\r\n        if (message != \"\") {\r\n\r\n            $(\"#divError\").html(\"\");\r\n            $(\"#divError\").append(\"<span style='font-size:14px;'>\" + message + \"</span>\");\r\n            $(\"#divError\").dialog(\r\n                      {\r\n                          modal: true,\r\n\r\n                          resizable: false,\r\n                          width: 670,\r\n                          height: 250,\r\n                          closeOnEscape: false,\r\n                      });\r\n            $('.ui-dialog :button').blur();\r\n            $(\".ui-dialog-titlebar\").html(\"\");\r\n            $(\".ui-dialog-titlebar\").append(\"<span style='font-weight:bold;font-size:16px;color:white;font-family:ebrima'>Welcome!</span>\");\r\n            $(\".ui-dialog-titlebar\").css(\"background\", \"#28292B\");//00B0F0\r\n            $('.ui-dialog').css(\"font-weight\", \"bold\");\r\n            $('.ui-dialog').css(\"border-radius\", \"13px\");\r\n            $('.ui-dialog').css(\"font-family\", \"ebrima\");\r\n            $('.ui-widget-header').css(\"border-radius\", \"13px\");\r\n\r\n\r\n            message = \"\";\r\n            // return false;\r\n        }\r\n    }\r\n    function ShowChangeAccountInfoDialog(message) {\r\n        if (message != \"\") {\r\n\r\n            $(\"#divError\").html(\"\");\r\n            $(\"#divError\").append(\"<span style='font-size:14px;'>\" + message + \"</span>\");\r\n            $(\"#divError\").dialog(\r\n                      {\r\n                          modal: true,\r\n\r\n                          resizable: false,\r\n                          width: 650,\r\n                          height: 160,\r\n                          closeOnEscape: false,\r\n                      });\r\n            $('.ui-dialog :button').blur();\r\n            $(\".ui-dialog-titlebar\").html(\"\");\r\n            $(\".ui-dialog-titlebar\").append(\"<span style='font-weight:bold;font-size:16px;color:white;font-family:ebrima'>Welcome!</span>\");\r\n            $(\".ui-dialog-titlebar\").css(\"background\", \"#28292B\");//00B0F0\r\n            $('.ui-dialog').css(\"font-weight\", \"bold\");\r\n            $('.ui-dialog').css(\"border-radius\", \"13px\");\r\n            $('.ui-dialog').css(\"font-family\", \"ebrima\");\r\n            $('.ui-widget-header').css(\"border-radius\", \"13px\");\r\n\r\n\r\n            message = \"\";\r\n            // return false;\r\n        }\r\n    }\r\n\r\n    function preventBack() { window.history.forward(); }\r\n    setTimeout(\"preventBack()\", 0);\r\n    window.onunload = function () { null };\r\n\r\n    function ShowReportDialog() {\r\n        var top = (($(window).height() - 400) / 2);\r\n        var left = (($(window).width() - 700) / 2);\r\n        var reportUs = window.open(\"/Home/ReportUs\", \"Report\", \"width=700, height=400, left=\" + left + \", top=\" + top + \", toolbar=0, status=1\");\r\n        reportUs.focus();\r\n        return false;\r\n    }\r\n\r\n    $(document).ready(function () {\r\n\r\n\r\n        //this is the useful function to scroll a text inside an element...\r\n        function startScrolling(scroller_obj, velocity, start_from) {\r\n            //bind animation  inside the scroller element\r\n            scroller_obj.bind('marquee', function (event, c) {\r\n                //text to scroll\r\n                var ob = $(this);\r\n                //scroller width\r\n                var sw = parseInt(ob.parent().width());\r\n\r\n                //text width\r\n                var tw = parseInt(ob.width());\r\n\r\n                tw = tw - 10;\r\n                //text left position relative to the offset parent\r\n                var tl = parseInt(ob.position().left);\r\n                //velocity converted to calculate duration\r\n                var v = velocity > 0 && velocity < 100 ? (100 - velocity) * 1000 : 5000;\r\n                //same velocity for different text's length in relation with duration\r\n                var dr = (v * tw / sw) + v;\r\n\r\n                //is it scrolling from right or left?\r\n                switch (start_from) {\r\n                    case 'right':\r\n                        //is it the first time?\r\n                        if (typeof c == 'undefined') {\r\n                            //if yes, start from the absolute right\r\n                            ob.css({\r\n                                left: (sw - 10)\r\n                            });\r\n                            sw = -tw;\r\n                        } else {\r\n                            //else calculate destination position\r\n                            sw = tl - (tw + sw);\r\n                        };\r\n                        break;\r\n                    default:\r\n                        if (typeof c == 'undefined') {\r\n                            //start from the absolute left\r\n                            ob.css({\r\n                                left: -tw\r\n                            });\r\n                        } else {\r\n                            //else calculate destination position\r\n                            sw += tl + tw;\r\n                        };\r\n                }\r\n                //attach animation to scroller element and start it by a trigger\r\n                ob.animate({\r\n                    left: sw\r\n                }, {\r\n                    duration: dr,\r\n                    easing: 'linear',\r\n                    complete: function () {\r\n                        ob.trigger('marquee');\r\n                    },\r\n                    step: function () {\r\n                        // check if scroller limits are reached\r\n                        if (start_from == 'right') {\r\n                            if (parseInt(ob.position().left) < -parseInt(ob.width())) {\r\n                                //we need to stop and restart animation\r\n                                ob.stop();\r\n                                ob.trigger('marquee');\r\n                            };\r\n                        } else {\r\n                            if (parseInt(ob.position().left) > parseInt(ob.parent().width())) {\r\n                                ob.stop();\r\n                                ob.trigger('marquee');\r\n                            };\r\n                        };\r\n                    }\r\n                });\r\n            }).trigger('marquee');\r\n            //pause scrolling animation on mouse over\r\n            scroller_obj.mouseover(function () {\r\n                $(this).stop();\r\n            });\r\n            //resume scrolling animation on mouse out\r\n            scroller_obj.mouseout(function () {\r\n                $(this).trigger('marquee', ['resume']);\r\n            });\r\n        };\r\n\r\n        //the main app starts here...\r\n\r\n        //change the cursor type for each scroller\r\n        $('.scroller').css(\"cursor\", \"pointer\");\r\n\r\n        //settings to pass to function\r\n        var scroller = $('.scrollingtext'); // element(s) to scroll\r\n        var scrolling_velocity = 80; // 1-99\r\n        var scrolling_from = 'right'; // 'right' or 'left'\r\n\r\n        //call the function and start to scroll..\r\n        startScrolling(scroller, scrolling_velocity, scrolling_from);\r\n\r\n    });\r\n\r\n</script>\r\n\r\n<script type=\"text/javascript\">\r\n\r\n    $(function () {\r\n\r\n        $('#leftNavigation').ssdVerticalNavigation();\r\n\r\n    });\r\n\r\n    $(function ($) {\r\n\r\n        $.fn.ssdVerticalNavigation = function (options) {\r\n\r\n            \"use strict\";\r\n\r\n            var settings = $.extend({\r\n\r\n                classMaster: 'master',\r\n                classActive: 'active'\r\n\r\n            }, options);\r\n\r\n\r\n            function _leftNavigationActiveMain(thisLi) {\r\n\r\n                \"use strict\";\r\n\r\n                thisLi\r\n                    .toggleClass(settings.classActive)\r\n                    .siblings()\r\n                    .removeClass(settings.classActive);\r\n\r\n            }\r\n\r\n\r\n            function _leftNavigationClick(thisParentUl, thisLi, event) {\r\n\r\n                \"use strict\";\r\n\r\n                //if (thisParentUl.hasClass(settings.classMaster)) {\r\n                if (1 == 2) {\r\n                    event.preventDefault();\r\n                    event.stopPropagation();\r\n\r\n                    _leftNavigationActiveMain(thisLi);\r\n\r\n                }\r\n\r\n                _leftNavigationActiveMain(thisLi);\r\n            }\r\n\r\n\r\n            return this.each(function () {\r\n\r\n                \"use strict\";\r\n\r\n                $(this)\r\n                    .addClass(settings.classMaster)\r\n                    .on('click', 'li a', function (event) {\r\n\r\n                        try {\r\n\r\n                            var thisA = $(this),\r\n                                thisLi = thisA.parent('li'),\r\n                                thisParentUl = thisLi.parent('ul');\r\n\r\n                            _leftNavigationClick(thisParentUl, thisLi, event);\r\n\r\n                        } catch (errorMessage) {\r\n\r\n                            console.log(errorMessage);\r\n\r\n                        }\r\n\r\n                    });\r\n\r\n            });\r\n\r\n\r\n        }\r\n\r\n    }(jQuery));\r\n\r\n</script>\r\n"
+          },
+          "redirectURL": "",
+          "headersSize": 364,
+          "bodySize": 7550
+        },
+        "cache": {},
+        "timings": {
+          "blocked": -1,
+          "dns": 0,
+          "connect": 0,
+          "ssl": 0,
+          "send": 0,
+          "wait": 36,
+          "receive": 0
+        },
+        "time": 36,
+        "_securityState": "secure",
+        "serverIPAddress": "104.18.0.83",
+        "connection": "443",
+        "pageref": "page_1"
+      },
+      {
+        "startedDateTime": "2026-06-18T05:20:31.794-04:00",
+        "request": {
+          "bodySize": 0,
+          "method": "GET",
+          "url": "https://ecorp.sos.ga.gov/Themes/CSS/Styles?v=Zg5mvax9ru3G0Vr5izUJdPH0jjJ6wtthi2dPqDAi_201",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "Host",
+              "value": "ecorp.sos.ga.gov"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0"
+            },
+            {
+              "name": "Accept",
+              "value": "text/css,*/*;q=0.1"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br, zstd"
+            }
+          ],
+          "cookies": [],
+          "queryString": [
+            {
+              "name": "v",
+              "value": "Zg5mvax9ru3G0Vr5izUJdPH0jjJ6wtthi2dPqDAi_201"
+            }
+          ],
+          "headersSize": 0
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "date",
+              "value": "Thu, 18 Jun 2026 09:08:35 GMT"
+            },
+            {
+              "name": "content-type",
+              "value": "text/css; charset=utf-8"
+            },
+            {
+              "name": "content-length",
+              "value": "49133"
+            },
+            {
+              "name": "cache-control",
+              "value": "public"
+            },
+            {
+              "name": "content-encoding",
+              "value": "gzip"
+            },
+            {
+              "name": "expires",
+              "value": "Fri, 18 Jun 2027 09:08:34 GMT"
+            },
+            {
+              "name": "last-modified",
+              "value": "Thu, 18 Jun 2026 09:08:34 GMT"
+            },
+            {
+              "name": "vary",
+              "value": "User-Agent,Accept-Encoding"
+            },
+            {
+              "name": "server",
+              "value": "cloudflare"
+            },
+            {
+              "name": "x-aspnet-version",
+              "value": "4.0.30319"
+            },
+            {
+              "name": "x-powered-by",
+              "value": "ASP.NET"
+            },
+            {
+              "name": "x-frame-options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "name": "cf-cache-status",
+              "value": "DYNAMIC"
+            },
+            {
+              "name": "cf-ray",
+              "value": "a0d92676aee65f23-ATL"
+            },
+            {
+              "name": "X-Firefox-Spdy",
+              "value": "h2"
+            }
+          ],
+          "cookies": [],
+          "content": {
+            "mimeType": "text/css",
+            "size": 49133,
+            "text": ""
+          },
+          "redirectURL": "",
+          "headersSize": 0,
+          "bodySize": 0
+        },
+        "cache": {},
+        "timings": {},
+        "time": 0,
+        "pageref": "page_1"
+      },
+      {
+        "startedDateTime": "2026-06-18T05:20:31.889-04:00",
+        "request": {
+          "bodySize": 0,
+          "method": "GET",
+          "url": "https://ecorp.sos.ga.gov/Scripts/Script?v=8X2IDPh1LaRe4erLuQcGu5zpE8N1cVf-nEWZkD0RhvQ1",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "Host",
+              "value": "ecorp.sos.ga.gov"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0"
+            },
+            {
+              "name": "Accept",
+              "value": "*/*"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br, zstd"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "Referer",
+              "value": "https://ecorp.sos.ga.gov/BusinessSearch/BusinessInformation?businessId=4540046&businessType=Domestic%20Limited%20Liability%20Company&fromSearch=True"
+            },
+            {
+              "name": "Cookie",
+              "value": "ASP.NET_SessionId=qw250enqcibggnvh5biy5jsd; __cflb=02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2; cf_clearance=hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w; __RequestVerificationToken=xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2; userCookie="
+            },
+            {
+              "name": "Sec-Fetch-Dest",
+              "value": "script"
+            },
+            {
+              "name": "Sec-Fetch-Mode",
+              "value": "no-cors"
+            },
+            {
+              "name": "Sec-Fetch-Site",
+              "value": "same-origin"
+            }
+          ],
+          "cookies": [
+            {
+              "name": "ASP.NET_SessionId",
+              "value": "qw250enqcibggnvh5biy5jsd"
+            },
+            {
+              "name": "__cflb",
+              "value": "02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2"
+            },
+            {
+              "name": "cf_clearance",
+              "value": "hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w"
+            },
+            {
+              "name": "__RequestVerificationToken",
+              "value": "xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2"
+            },
+            {
+              "name": "userCookie",
+              "value": ""
+            }
+          ],
+          "queryString": [
+            {
+              "name": "v",
+              "value": "8X2IDPh1LaRe4erLuQcGu5zpE8N1cVf-nEWZkD0RhvQ1"
+            }
+          ],
+          "headersSize": 0
+        },
+        "response": {
+          "status": 200,
+          "statusText": "",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "date",
+              "value": "Thu, 18 Jun 2026 09:08:35 GMT"
+            },
+            {
+              "name": "content-type",
+              "value": "text/javascript; charset=utf-8"
+            },
+            {
+              "name": "cache-control",
+              "value": "public"
+            },
+            {
+              "name": "content-encoding",
+              "value": "gzip"
+            },
+            {
+              "name": "expires",
+              "value": "Fri, 18 Jun 2027 09:08:35 GMT"
+            },
+            {
+              "name": "last-modified",
+              "value": "Thu, 18 Jun 2026 09:08:35 GMT"
+            },
+            {
+              "name": "vary",
+              "value": "User-Agent,Accept-Encoding"
+            },
+            {
+              "name": "server",
+              "value": "cloudflare"
+            },
+            {
+              "name": "x-aspnet-version",
+              "value": "4.0.30319"
+            },
+            {
+              "name": "x-powered-by",
+              "value": "ASP.NET"
+            },
+            {
+              "name": "x-frame-options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "name": "cf-cache-status",
+              "value": "DYNAMIC"
+            },
+            {
+              "name": "cf-ray",
+              "value": "a0d92676aee85f23-ATL"
+            },
+            {
+              "name": "X-Firefox-Spdy",
+              "value": "h2"
+            }
+          ],
+          "cookies": [],
+          "content": {
+            "mimeType": "text/javascript; charset=utf-8",
+            "size": 0,
+            "text": ""
+          },
+          "redirectURL": "",
+          "headersSize": 0,
+          "bodySize": 1392800
+        },
+        "cache": {},
+        "timings": {
+          "blocked": 0,
+          "dns": 0,
+          "ssl": 0,
+          "connect": 0,
+          "send": 0,
+          "wait": 0,
+          "receive": 0
+        },
+        "time": 0,
+        "_securityState": "secure",
+        "pageref": "page_1"
+      },
+      {
+        "startedDateTime": "2026-06-18T05:20:31.906-04:00",
+        "request": {
+          "bodySize": 0,
+          "method": "GET",
+          "url": "https://ecorp.sos.ga.gov/Scripts/jquery.loadmask.js",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "Host",
+              "value": "ecorp.sos.ga.gov"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0"
+            },
+            {
+              "name": "Accept",
+              "value": "*/*"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br, zstd"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "Referer",
+              "value": "https://ecorp.sos.ga.gov/BusinessSearch/BusinessInformation?businessId=4540046&businessType=Domestic%20Limited%20Liability%20Company&fromSearch=True"
+            },
+            {
+              "name": "Cookie",
+              "value": "ASP.NET_SessionId=qw250enqcibggnvh5biy5jsd; __cflb=02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2; cf_clearance=hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w; __RequestVerificationToken=xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2; userCookie="
+            },
+            {
+              "name": "Sec-Fetch-Dest",
+              "value": "script"
+            },
+            {
+              "name": "Sec-Fetch-Mode",
+              "value": "no-cors"
+            },
+            {
+              "name": "Sec-Fetch-Site",
+              "value": "same-origin"
+            }
+          ],
+          "cookies": [
+            {
+              "name": "ASP.NET_SessionId",
+              "value": "qw250enqcibggnvh5biy5jsd"
+            },
+            {
+              "name": "__cflb",
+              "value": "02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2"
+            },
+            {
+              "name": "cf_clearance",
+              "value": "hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w"
+            },
+            {
+              "name": "__RequestVerificationToken",
+              "value": "xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2"
+            },
+            {
+              "name": "userCookie",
+              "value": ""
+            }
+          ],
+          "queryString": [],
+          "headersSize": 0
+        },
+        "response": {
+          "status": 200,
+          "statusText": "",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "date",
+              "value": "Thu, 18 Jun 2026 09:09:21 GMT"
+            },
+            {
+              "name": "content-type",
+              "value": "application/javascript"
+            },
+            {
+              "name": "content-length",
+              "value": "1598"
+            },
+            {
+              "name": "content-encoding",
+              "value": "gzip"
+            },
+            {
+              "name": "last-modified",
+              "value": "Fri, 17 May 2019 19:19:54 GMT"
+            },
+            {
+              "name": "accept-ranges",
+              "value": "bytes"
+            },
+            {
+              "name": "etag",
+              "value": "\"0e9ad81e5cd51:0\""
+            },
+            {
+              "name": "vary",
+              "value": "Accept-Encoding"
+            },
+            {
+              "name": "server",
+              "value": "cloudflare"
+            },
+            {
+              "name": "x-powered-by",
+              "value": "ASP.NET"
+            },
+            {
+              "name": "x-frame-options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "name": "age",
+              "value": "4444"
+            },
+            {
+              "name": "expires",
+              "value": "Thu, 18 Jun 2026 13:09:21 GMT"
+            },
+            {
+              "name": "cache-control",
+              "value": "public, max-age=14400"
+            },
+            {
+              "name": "cf-cache-status",
+              "value": "HIT"
+            },
+            {
+              "name": "cf-ray",
+              "value": "a0d9279aa8595f23-ATL"
+            },
+            {
+              "name": "X-Firefox-Spdy",
+              "value": "h2"
+            }
+          ],
+          "cookies": [],
+          "content": {
+            "mimeType": "application/javascript",
+            "size": 3807,
+            "text": "/**\r\n * Copyright (c) 2009 Sergiy Kovalchuk (serg472@gmail.com)\r\n * \r\n * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)\r\n * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.\r\n *  \r\n * Following code is based on Element.mask() implementation from ExtJS framework (http://extjs.com/)\r\n *\r\n */\r\n;(function($){\r\n\t\r\n\t/**\r\n\t * Displays loading mask over selected element(s). Accepts both single and multiple selectors.\r\n\t *\r\n\t * @param label Text message that will be displayed on top of the mask besides a spinner (optional). \r\n\t * \t\t\t\tIf not provided only mask will be displayed without a label or a spinner.  \t\r\n\t * @param delay Delay in milliseconds before element is masked (optional). If unmask() is called \r\n\t *              before the delay times out, no mask is displayed. This can be used to prevent unnecessary \r\n\t *              mask display for quick processes.   \t\r\n\t */\r\n\t$.fn.mask = function(label, delay){\r\n\t\t$(this).each(function() {\r\n\t\t\tif(delay !== undefined && delay > 0) {\r\n\t\t        var element = $(this);\r\n\t\t        element.data(\"_mask_timeout\", setTimeout(function() { $.maskElement(element, label)}, delay));\r\n\t\t\t} else {\r\n\t\t\t\t$.maskElement($(this), label);\r\n\t\t\t}\r\n\t\t});\r\n\t};\r\n\t\r\n\t/**\r\n\t * Removes mask from the element(s). Accepts both single and multiple selectors.\r\n\t */\r\n\t$.fn.unmask = function(){\r\n\t\t$(this).each(function() {\r\n\t\t\t$.unmaskElement($(this));\r\n\t\t});\r\n\t};\r\n\t\r\n\t/**\r\n\t * Checks if a single element is masked. Returns false if mask is delayed or not displayed. \r\n\t */\r\n\t$.fn.isMasked = function(){\r\n\t\treturn this.hasClass(\"masked\");\r\n\t};\r\n\r\n\t$.maskElement = function(element, label){\r\n\t\r\n\t\t//if this element has delayed mask scheduled then remove it and display the new one\r\n\t\tif (element.data(\"_mask_timeout\") !== undefined) {\r\n\t\t\tclearTimeout(element.data(\"_mask_timeout\"));\r\n\t\t\telement.removeData(\"_mask_timeout\");\r\n\t\t}\r\n\r\n\t\tif(element.isMasked()) {\r\n\t\t\t$.unmaskElement(element);\r\n\t\t}\r\n\t\t\r\n\t\tif(element.css(\"position\") == \"static\") {\r\n\t\t\telement.addClass(\"masked-relative\");\r\n\t\t}\r\n\t\t\r\n\t\telement.addClass(\"masked\");\r\n\t\t\r\n\t\tvar maskDiv = $('<div class=\"loadmask\"></div>');\r\n\t\t\r\n\t\t//auto height fix for IE\r\n\t\tif(navigator.userAgent.toLowerCase().indexOf(\"msie\") > -1){\r\n\t\t\tmaskDiv.height(element.height() + parseInt(element.css(\"padding-top\")) + parseInt(element.css(\"padding-bottom\")));\r\n\t\t\tmaskDiv.width(element.width() + parseInt(element.css(\"padding-left\")) + parseInt(element.css(\"padding-right\")));\r\n\t\t}\r\n\t\t\r\n\t\t//fix for z-index bug with selects in IE6\r\n\t\tif(navigator.userAgent.toLowerCase().indexOf(\"msie 6\") > -1){\r\n\t\t\telement.find(\"select\").addClass(\"masked-hidden\");\r\n\t\t}\r\n\t\t\r\n\t\telement.append(maskDiv);\r\n\t\t\r\n\t\tif(label !== undefined) {\r\n\t\t\tvar maskMsgDiv = $('<div class=\"loadmask-msg\" style=\"display:none;\"></div>');\r\n\t\t\tmaskMsgDiv.append('<div>' + label + '</div>');\r\n\t\t\telement.append(maskMsgDiv);\r\n\t\t\t\r\n\t\t\t//calculate center position\r\n\t\t\tmaskMsgDiv.css(\"top\", Math.round(element.height() / 2 - (maskMsgDiv.height() - parseInt(maskMsgDiv.css(\"padding-top\")) - parseInt(maskMsgDiv.css(\"padding-bottom\"))) / 2)+\"px\");\r\n\t\t\tmaskMsgDiv.css(\"left\", Math.round(element.width() / 2 - (maskMsgDiv.width() - parseInt(maskMsgDiv.css(\"padding-left\")) - parseInt(maskMsgDiv.css(\"padding-right\"))) / 2)+\"px\");\r\n\t\t\t\r\n\t\t\tmaskMsgDiv.show();\r\n\t\t}\r\n\t\t\r\n\t};\r\n\t\r\n\t$.unmaskElement = function(element){\r\n\t\t//if this element has delayed mask scheduled then remove it\r\n\t\tif (element.data(\"_mask_timeout\") !== undefined) {\r\n\t\t\tclearTimeout(element.data(\"_mask_timeout\"));\r\n\t\t\telement.removeData(\"_mask_timeout\");\r\n\t\t}\r\n\t\t\r\n\t\telement.find(\".loadmask-msg,.loadmask\").remove();\r\n\t\telement.removeClass(\"masked\");\r\n\t\telement.removeClass(\"masked-relative\");\r\n\t\telement.find(\"select\").removeClass(\"masked-hidden\");\r\n\t};\r\n \r\n})(jQuery);"
+          },
+          "redirectURL": "",
+          "headersSize": 0,
+          "bodySize": 1598
+        },
+        "cache": {},
+        "timings": {
+          "blocked": 0,
+          "dns": 0,
+          "ssl": 0,
+          "connect": 0,
+          "send": 0,
+          "wait": 0,
+          "receive": 0
+        },
+        "time": 0,
+        "_securityState": "secure",
+        "pageref": "page_1"
+      },
+      {
+        "startedDateTime": "2026-06-18T05:20:31.921-04:00",
+        "request": {
+          "bodySize": 0,
+          "method": "GET",
+          "url": "https://ecorp.sos.ga.gov/Scripts/DateValidation.js",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "Host",
+              "value": "ecorp.sos.ga.gov"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0"
+            },
+            {
+              "name": "Accept",
+              "value": "*/*"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br, zstd"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "Referer",
+              "value": "https://ecorp.sos.ga.gov/BusinessSearch/BusinessInformation?businessId=4540046&businessType=Domestic%20Limited%20Liability%20Company&fromSearch=True"
+            },
+            {
+              "name": "Cookie",
+              "value": "ASP.NET_SessionId=qw250enqcibggnvh5biy5jsd; __cflb=02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2; cf_clearance=hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w; __RequestVerificationToken=xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2; userCookie="
+            },
+            {
+              "name": "Sec-Fetch-Dest",
+              "value": "script"
+            },
+            {
+              "name": "Sec-Fetch-Mode",
+              "value": "no-cors"
+            },
+            {
+              "name": "Sec-Fetch-Site",
+              "value": "same-origin"
+            }
+          ],
+          "cookies": [
+            {
+              "name": "ASP.NET_SessionId",
+              "value": "qw250enqcibggnvh5biy5jsd"
+            },
+            {
+              "name": "__cflb",
+              "value": "02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2"
+            },
+            {
+              "name": "cf_clearance",
+              "value": "hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w"
+            },
+            {
+              "name": "__RequestVerificationToken",
+              "value": "xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2"
+            },
+            {
+              "name": "userCookie",
+              "value": ""
+            }
+          ],
+          "queryString": [],
+          "headersSize": 0
+        },
+        "response": {
+          "status": 200,
+          "statusText": "",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "date",
+              "value": "Thu, 18 Jun 2026 09:09:21 GMT"
+            },
+            {
+              "name": "content-type",
+              "value": "application/javascript"
+            },
+            {
+              "name": "content-length",
+              "value": "888"
+            },
+            {
+              "name": "content-encoding",
+              "value": "gzip"
+            },
+            {
+              "name": "last-modified",
+              "value": "Fri, 17 May 2019 19:19:54 GMT"
+            },
+            {
+              "name": "accept-ranges",
+              "value": "bytes"
+            },
+            {
+              "name": "etag",
+              "value": "\"0e9ad81e5cd51:0\""
+            },
+            {
+              "name": "vary",
+              "value": "Accept-Encoding"
+            },
+            {
+              "name": "server",
+              "value": "cloudflare"
+            },
+            {
+              "name": "x-powered-by",
+              "value": "ASP.NET"
+            },
+            {
+              "name": "x-frame-options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "name": "age",
+              "value": "5877"
+            },
+            {
+              "name": "expires",
+              "value": "Thu, 18 Jun 2026 13:09:21 GMT"
+            },
+            {
+              "name": "cache-control",
+              "value": "public, max-age=14400"
+            },
+            {
+              "name": "cf-cache-status",
+              "value": "HIT"
+            },
+            {
+              "name": "cf-ray",
+              "value": "a0d9279aa85c5f23-ATL"
+            },
+            {
+              "name": "X-Firefox-Spdy",
+              "value": "h2"
+            }
+          ],
+          "cookies": [],
+          "content": {
+            "mimeType": "application/javascript",
+            "size": 2441,
+            "text": "function CompareDates(txtStartDate, txtEndDate)\r\n{\r\nvar startDate =  new Date(txtStartDate);\r\nvar endDate = new Date(txtEndDate);\r\nvar todaysDate = new Date();//$.datepicker.formatDate('mm/dd/yy', new Date());\r\n    if (startDate <= todaysDate && endDate <= todaysDate) {\r\n        if (startDate <= endDate) {\r\n           return true;\r\n        }\r\n        else {\r\n            errorDialog(\"Start Date cannot be greater than End Date.\");\r\n            return false;\r\n        }\r\n    }\r\n    else {\r\n        errorDialog(\"Start Date or End Date cannot be greater than today.\");\r\n        return false;\r\n    }\r\n}\r\n\r\nfunction CompareDatesandTime(txtStartDate, txtEndDate, txtStartTime, txtEndTime) {\r\n    var startDate = txtStartDate + ' ' + txtStartTime;\r\n    var startDateTime = new Date(startDate);\r\n    var stDtTime = new Date(txtStartDate);\r\n    var endDtTime = new Date(txtEndDate);\r\n    var endDate = txtEndDate + ' ' + txtEndTime;\r\n    var endDateTime = new Date(endDate);\r\n    var todaysDate = new Date();\r\n    if (startDateTime != \"Invalid Date\" && endDateTime != \"Invalid Date\") {\r\n        if (stDtTime <= todaysDate && endDtTime <= todaysDate) {\r\n            if (startDateTime <= endDateTime) {\r\n                return true;\r\n            }\r\n            else {\r\n                errorDialog(\"Start date cannot be greater than end date.\");\r\n                return false;\r\n            }\r\n        }\r\n        else {\r\n            errorDialog(\"Start Date or End Date cannot be greater than today.\");\r\n            return false;\r\n        }\r\n    }\r\n    else {\r\n        errorDialog(\"Please enter a valid Start Time and End Time.\");\r\n        return false;\r\n    }\r\n}\r\n\r\nfunction ValidateDate(txtboxId, prevValue) {\r\n    var date = $.datepicker.formatDate('mm/dd/yy', new Date());\r\n    var receiveddate = $(txtboxId).val();\r\n    if (isValidDate(receiveddate))\r\n        return true;\r\n    else {\r\n        errorDialog(\"Invalid date, please enter valid date.\");\r\n        $(txtboxId).val(prevValue);\r\n        return false;\r\n    }\r\n}\r\n\r\nfunction isValidDate(s) {\r\n    if (s.length == 10) {\r\n        var bits = s.split('/');\r\n        if ((bits[2].substring(0, 1) != 0 && bits[2] >= 1900) && (s.length == 10)) {\r\n            var d = new Date(bits[2], bits[0] - 1, bits[1]);\r\n            return d && (d.getMonth() + 1) == bits[0] && d.getDate() == Number(bits[1]);\r\n        }\r\n        else\r\n            return false;\r\n    }\r\n    else\r\n        return false;\r\n}\r\n\r\n"
+          },
+          "redirectURL": "",
+          "headersSize": 0,
+          "bodySize": 888
+        },
+        "cache": {},
+        "timings": {
+          "blocked": 0,
+          "dns": 0,
+          "ssl": 0,
+          "connect": 0,
+          "send": 0,
+          "wait": 0,
+          "receive": 0
+        },
+        "time": 0,
+        "_securityState": "secure",
+        "pageref": "page_1"
+      },
+      {
+        "startedDateTime": "2026-06-18T05:20:32.148-04:00",
+        "request": {
+          "bodySize": 0,
+          "method": "GET",
+          "url": "https://ecorp.sos.ga.gov/Themes/CRDBase/fonts/ebrima.woff",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "Host",
+              "value": "ecorp.sos.ga.gov"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0"
+            },
+            {
+              "name": "Accept",
+              "value": "application/font-woff2;q=1.0,application/font-woff;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "identity"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "Referer",
+              "value": "https://ecorp.sos.ga.gov/Themes/CSS/Styles?v=Zg5mvax9ru3G0Vr5izUJdPH0jjJ6wtthi2dPqDAi_201"
+            },
+            {
+              "name": "Cookie",
+              "value": "ASP.NET_SessionId=qw250enqcibggnvh5biy5jsd; __cflb=02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2; cf_clearance=hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w; __RequestVerificationToken=xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2; userCookie="
+            },
+            {
+              "name": "Sec-Fetch-Dest",
+              "value": "font"
+            },
+            {
+              "name": "Sec-Fetch-Mode",
+              "value": "cors"
+            },
+            {
+              "name": "Sec-Fetch-Site",
+              "value": "same-origin"
+            },
+            {
+              "name": "TE",
+              "value": "trailers"
+            }
+          ],
+          "cookies": [
+            {
+              "name": "ASP.NET_SessionId",
+              "value": "qw250enqcibggnvh5biy5jsd"
+            },
+            {
+              "name": "__cflb",
+              "value": "02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2"
+            },
+            {
+              "name": "cf_clearance",
+              "value": "hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w"
+            },
+            {
+              "name": "__RequestVerificationToken",
+              "value": "xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2"
+            },
+            {
+              "name": "userCookie",
+              "value": ""
+            }
+          ],
+          "queryString": [],
+          "headersSize": 1224
+        },
+        "response": {
+          "status": 404,
+          "statusText": "",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "date",
+              "value": "Thu, 18 Jun 2026 09:20:32 GMT"
+            },
+            {
+              "name": "content-type",
+              "value": "text/html"
+            },
+            {
+              "name": "server",
+              "value": "cloudflare"
+            },
+            {
+              "name": "x-powered-by",
+              "value": "ASP.NET"
+            },
+            {
+              "name": "x-frame-options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "name": "vary",
+              "value": "accept-encoding"
+            },
+            {
+              "name": "age",
+              "value": "21"
+            },
+            {
+              "name": "expires",
+              "value": "Thu, 18 Jun 2026 13:20:32 GMT"
+            },
+            {
+              "name": "cache-control",
+              "value": "public, max-age=14400"
+            },
+            {
+              "name": "cf-cache-status",
+              "value": "HIT"
+            },
+            {
+              "name": "cf-ray",
+              "value": "a0d937f93d7f9613-ATL"
+            },
+            {
+              "name": "X-Firefox-Spdy",
+              "value": "h2"
+            }
+          ],
+          "cookies": [],
+          "content": {
+            "mimeType": "text/html",
+            "size": 1245,
+            "text": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\"/>\r\n<title>404 - File or directory not found.</title>\r\n<style type=\"text/css\">\r\n<!--\r\nbody{margin:0;font-size:.7em;font-family:Verdana, Arial, Helvetica, sans-serif;background:#EEEEEE;}\r\nfieldset{padding:0 15px 10px 15px;} \r\nh1{font-size:2.4em;margin:0;color:#FFF;}\r\nh2{font-size:1.7em;margin:0;color:#CC0000;} \r\nh3{font-size:1.2em;margin:10px 0 0 0;color:#000000;} \r\n#header{width:96%;margin:0 0 0 0;padding:6px 2% 6px 2%;font-family:\"trebuchet MS\", Verdana, sans-serif;color:#FFF;\r\nbackground-color:#555555;}\r\n#content{margin:0 0 0 2%;position:relative;}\r\n.content-container{background:#FFF;width:96%;margin-top:8px;padding:10px;position:relative;}\r\n-->\r\n</style>\r\n</head>\r\n<body>\r\n<div id=\"header\"><h1>Server Error</h1></div>\r\n<div id=\"content\">\r\n <div class=\"content-container\"><fieldset>\r\n  <h2>404 - File or directory not found.</h2>\r\n  <h3>The resource you are looking for might have been removed, had its name changed, or is temporarily unavailable.</h3>\r\n </fieldset></div>\r\n</div>\r\n</body>\r\n</html>\r\n"
+          },
+          "redirectURL": "",
+          "headersSize": 331,
+          "bodySize": 1576
+        },
+        "cache": {},
+        "timings": {
+          "blocked": -1,
+          "dns": 0,
+          "connect": 0,
+          "ssl": 0,
+          "send": 0,
+          "wait": 13,
+          "receive": 0
+        },
+        "time": 13,
+        "_securityState": "secure",
+        "serverIPAddress": "104.18.0.83",
+        "connection": "443",
+        "pageref": "page_1"
+      },
+      {
+        "startedDateTime": "2026-06-18T05:20:32.317-04:00",
+        "request": {
+          "bodySize": 0,
+          "method": "GET",
+          "url": "https://ecorp.sos.ga.gov/favicon.ico",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "Host",
+              "value": "ecorp.sos.ga.gov"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0"
+            },
+            {
+              "name": "Accept",
+              "value": "image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br, zstd"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "Referer",
+              "value": "https://ecorp.sos.ga.gov/BusinessSearch/BusinessInformation?businessId=4540046&businessType=Domestic%20Limited%20Liability%20Company&fromSearch=True"
+            },
+            {
+              "name": "Cookie",
+              "value": "ASP.NET_SessionId=qw250enqcibggnvh5biy5jsd; __cflb=02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2; cf_clearance=hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w; __RequestVerificationToken=xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2; userCookie="
+            },
+            {
+              "name": "Sec-Fetch-Dest",
+              "value": "image"
+            },
+            {
+              "name": "Sec-Fetch-Mode",
+              "value": "no-cors"
+            },
+            {
+              "name": "Sec-Fetch-Site",
+              "value": "same-origin"
+            }
+          ],
+          "cookies": [
+            {
+              "name": "ASP.NET_SessionId",
+              "value": "qw250enqcibggnvh5biy5jsd"
+            },
+            {
+              "name": "__cflb",
+              "value": "02DiuGUe6EcEgi3jWvAUMJaCjwegKp9Gkx64E65reKbP2"
+            },
+            {
+              "name": "cf_clearance",
+              "value": "hRr0irqeJLckAECYmDfvXbckfdq.fgbp6pLd3oV6uY4-1781773719-1.2.1.1-rztonD2M0k8mF_vaJhX_N5YOGBpDvO8p8KlbP4l6bD8nR3sV8bZi75vksUYitBAMVoX2pFPBshFSzDsM1DqOCL0S9K_4e.LeJHostl4OgWlzzKfH_xRSgJtuL5GDCxua0Bz6NAKB5._xz4.Z7uSAimVrle3lR64e.H2KiK76zUZ_I7bf05UWGSprxLMTbgASb3kauvzXRQ7N3znoI.Bifmy4piGMOmSjO8jaY2qjQSHtdj6wjLSAnK0AUkmjVqbvdG2KP3uWnuoBD6rfVq0BnkN2D4kJkdtcm2XOq4TKuPUOeD3GVznqYAdrasxemeCQQtSlVfR7E8IuQvZH83RG0w"
+            },
+            {
+              "name": "__RequestVerificationToken",
+              "value": "xNGTnPoWosnqSkQezxv5PAJ_a_tOlLl0GAJwkrsMV5SJGjQcpcQew1Ij_jGsRWJbsDRJ-28UYOURp2_DVDOpXT18tAcVIcpVHWrjfmvbVactB0P-H2b-Mlm6sBjLjzBlu6h5OwpYfmuzp3mJBliIYQ2"
+            },
+            {
+              "name": "userCookie",
+              "value": ""
+            }
+          ],
+          "queryString": [],
+          "headersSize": 0
+        },
+        "response": {
+          "status": 404,
+          "statusText": "",
+          "httpVersion": "HTTP/2",
+          "headers": [
+            {
+              "name": "date",
+              "value": "Thu, 18 Jun 2026 09:08:36 GMT"
+            },
+            {
+              "name": "content-type",
+              "value": "text/html"
+            },
+            {
+              "name": "server",
+              "value": "cloudflare"
+            },
+            {
+              "name": "x-powered-by",
+              "value": "ASP.NET"
+            },
+            {
+              "name": "x-frame-options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "name": "vary",
+              "value": "accept-encoding"
+            },
+            {
+              "name": "age",
+              "value": "85"
+            },
+            {
+              "name": "expires",
+              "value": "Thu, 18 Jun 2026 13:08:36 GMT"
+            },
+            {
+              "name": "cache-control",
+              "value": "public, max-age=14400"
+            },
+            {
+              "name": "cf-cache-status",
+              "value": "HIT"
+            },
+            {
+              "name": "content-encoding",
+              "value": "br"
+            },
+            {
+              "name": "cf-ray",
+              "value": "a0d926800b055f23-ATL"
+            },
+            {
+              "name": "X-Firefox-Spdy",
+              "value": "h2"
+            }
+          ],
+          "cookies": [],
+          "content": {
+            "mimeType": "text/html",
+            "size": 1245,
+            "text": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\"/>\r\n<title>404 - File or directory not found.</title>\r\n<style type=\"text/css\">\r\n<!--\r\nbody{margin:0;font-size:.7em;font-family:Verdana, Arial, Helvetica, sans-serif;background:#EEEEEE;}\r\nfieldset{padding:0 15px 10px 15px;} \r\nh1{font-size:2.4em;margin:0;color:#FFF;}\r\nh2{font-size:1.7em;margin:0;color:#CC0000;} \r\nh3{font-size:1.2em;margin:10px 0 0 0;color:#000000;} \r\n#header{width:96%;margin:0 0 0 0;padding:6px 2% 6px 2%;font-family:\"trebuchet MS\", Verdana, sans-serif;color:#FFF;\r\nbackground-color:#555555;}\r\n#content{margin:0 0 0 2%;position:relative;}\r\n.content-container{background:#FFF;width:96%;margin-top:8px;padding:10px;position:relative;}\r\n-->\r\n</style>\r\n</head>\r\n<body>\r\n<div id=\"header\"><h1>Server Error</h1></div>\r\n<div id=\"content\">\r\n <div class=\"content-container\"><fieldset>\r\n  <h2>404 - File or directory not found.</h2>\r\n  <h3>The resource you are looking for might have been removed, had its name changed, or is temporarily unavailable.</h3>\r\n </fieldset></div>\r\n</div>\r\n</body>\r\n</html>\r\n"
+          },
+          "redirectURL": "",
+          "headersSize": 0,
+          "bodySize": 508
+        },
+        "cache": {},
+        "timings": {
+          "blocked": 0,
+          "dns": 0,
+          "ssl": 0,
+          "connect": 0,
+          "send": 0,
+          "wait": 0,
+          "receive": 0
+        },
+        "time": 0,
+        "_securityState": "secure",
+        "pageref": "page_1"
+      }
+    ]
+  }
+}

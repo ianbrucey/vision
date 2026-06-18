@@ -230,6 +230,58 @@ def update_workspace_block_endpoint(
 # Delete
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Folders
+# ---------------------------------------------------------------------------
+
+class CreateFolderRequest(BaseModel):
+    case_id: int
+    name: str
+    parent_id: int | None = None
+    workspace_id: int | None = None
+
+
+@router.get("/cases/{case_id}/folders")
+def list_folders_endpoint(
+    case_id: int,
+    workspace_id: int | None = Query(None),
+    parent_id: int | None = Query(None),
+    user: dict = Depends(get_current_user),
+):
+    """List folders for a case, optionally scoped to workspace and parent."""
+    conn = connect()
+    try:
+        from core.db import list_folders as _list_folders
+        # parent_id=0 is the sentinel for root folders in the DB function
+        pid = parent_id if parent_id is not None else 0
+        folders = _list_folders(conn, case_id, workspace_id=workspace_id, parent_id=pid)
+    finally:
+        conn.close()
+    return {"folders": folders}
+
+
+@router.post("/folders")
+def create_folder_endpoint(
+    body: CreateFolderRequest,
+    user: dict = Depends(get_current_user),
+):
+    """Create a new folder."""
+    conn = connect()
+    try:
+        from core.db import insert_folder as _insert_folder
+        folder_id = _insert_folder(
+            conn,
+            case_id=body.case_id,
+            name=body.name,
+            parent_id=body.parent_id,
+            workspace_id=body.workspace_id,
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return {"id": folder_id, "name": body.name}
+
+
 @router.delete("/workspace/{item_id}")
 def delete_workspace_item_endpoint(
     item_id: int,

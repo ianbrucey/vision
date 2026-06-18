@@ -192,6 +192,29 @@ export const listWorkspaces = (caseId: number): Promise<{ workspaces: Workspace[
 export const createWorkspace = (caseId: number, name: string, description?: string): Promise<{ id: number; name: string }> =>
   fetchAPI("/api/workspaces", { method: "POST", body: JSON.stringify({ case_id: caseId, name, description }) });
 
+// Folders
+export interface Folder {
+  id: number;
+  case_id: number;
+  workspace_id: number | null;
+  name: string;
+  parent_id: number | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export const listFolders = (caseId: number, parentId?: number | null, workspaceId?: number | null): Promise<{ folders: Folder[] }> => {
+  const params = new URLSearchParams();
+  if (parentId != null) params.set("parent_id", String(parentId));
+  if (workspaceId != null) params.set("workspace_id", String(workspaceId));
+  const q = params.toString();
+  return fetchAPI(`/api/cases/${caseId}/folders${q ? `?${q}` : ""}`);
+};
+
+export const createFolder = (caseId: number, name: string, parentId?: number | null, workspaceId?: number | null): Promise<{ id: number; name: string }> =>
+  fetchAPI("/api/folders", { method: "POST", body: JSON.stringify({ case_id: caseId, name, parent_id: parentId ?? null, workspace_id: workspaceId ?? null }) });
+
 export const listWorkspaceItems = (
   caseId: number,
   params?: { folder?: string; file_type?: string },

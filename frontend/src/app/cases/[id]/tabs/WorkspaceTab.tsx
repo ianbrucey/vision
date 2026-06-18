@@ -216,7 +216,7 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
 
   /* ---- actions ---- */
 
-  const handleNewFile = async (folder: string, fileType: FileType = "markdown") => {
+  const handleNewFile = async (folderId: number | null, fileType: FileType = "markdown") => {
     try {
       const content =
         fileType === "markdown"
@@ -226,13 +226,20 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
                 { id: "h1", type: "section_heading", content: "New Section" },
                 { id: "p1", type: "numbered_paragraph", content: "Start writing here..." },
               ]
-            : [];
+            : fileType === "json_view"
+              ? [{ documentMetadata: { title: "Untitled" }, views: [] }]
+              : fileType === "html"
+                ? [{ html: "<!DOCTYPE html><html><body></body></html>" }]
+                : [];
 
       const res = await createWorkspaceItem({
         case_id: caseId,
-        name: fileType === "markdown" ? "Untitled Note" : "Untitled Draft",
+        name: fileType === "markdown" ? "Untitled Note"
+            : fileType === "structured_draft" ? "Untitled Draft"
+            : fileType === "json_view" ? "Untitled Insight"
+            : "Untitled Letter",
         file_type: fileType,
-        folder,
+        folder: "artifacts",  // deprecated but still required by API
         content,
         workspace_id: activeWorkspaceId,
       });
@@ -428,13 +435,13 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
             <div className="absolute right-0 top-full mt-1 w-44 bg-surface-2 border border-border
                             rounded-lg shadow-lg z-40 py-1">
               <button
-                onClick={() => handleNewFile("freestyle", "markdown")}
+                onClick={() => handleNewFile(null, "markdown")}
                 className="w-full text-left px-3 py-2 text-xs hover:bg-surface-3"
               >
                 📝 New Markdown Note
               </button>
               <button
-                onClick={() => handleNewFile("artifacts", "structured_draft")}
+                onClick={() => handleNewFile(null, "structured_draft")}
                 className="w-full text-left px-3 py-2 text-xs hover:bg-surface-3"
               >
                 📄 New Structured Draft
@@ -450,107 +457,26 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
           className={`w-[260px] flex-shrink-0 bg-surface-1 border-r border-border flex flex-col
                       overflow-hidden ${mobileView === "preview" ? "max-md:hidden" : "max-md:w-full max-md:border-r-0"}`}
         >
-          {/* Desktop: workspace selector + New File button */}
-          <div className="hidden md:flex items-center justify-between px-4 py-3 border-b border-border gap-2">
-            {creatingWorkspace ? (
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  if (!newWorkspaceName.trim()) return;
-                  try {
-                    const result = await createWorkspace(caseId, newWorkspaceName.trim());
-                    setNewWorkspaceName("");
-                    setCreatingWorkspace(false);
-                    setActiveWorkspaceId(result.id);
-                    setUrlParams({ ws: result.id });
-                    await refreshList();
-                  } catch { /* silent */ }
-                }}
-                className="flex items-center gap-1 min-w-0 flex-1"
-              >
-                <input
-                  type="text"
-                  value={newWorkspaceName}
-                  onChange={(e) => setNewWorkspaceName(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Escape") setCreatingWorkspace(false); }}
-                  placeholder="Workspace name..."
-                  className="text-xs bg-surface-2 border border-border rounded px-2 py-1 w-full text-text-primary placeholder:text-text-disabled outline-none focus:border-brand"
-                  autoFocus
-                />
-                <button type="submit" className="text-success hover:text-green-700 p-0.5" title="Create">
-                  <Check size={14} />
-                </button>
-                <button type="button" onClick={() => { setCreatingWorkspace(false); setNewWorkspaceName(""); }} className="text-text-disabled hover:text-text-secondary p-0.5" title="Cancel">
-                  <X size={14} />
-                </button>
-              </form>
-            ) : (
-              <div className="flex items-center gap-1 min-w-0">
-                <select
-                  value={activeWorkspaceId ?? ""}
-                  onChange={(e) => {
-                    const id = e.target.value ? Number(e.target.value) : null;
-                    setActiveWorkspaceId(id);
-                    setUrlParams({ ws: id });
-                  }}
-                  className="text-xs font-semibold bg-transparent border-none text-text-secondary uppercase tracking-wider cursor-pointer min-w-0 truncate"
-                >
-                  {workspaces.map((ws) => (
-                    <option key={ws.id} value={ws.id}>{ws.name}</option>
-                  ))}
-                </select>
-                <button
-                  onClick={() => setCreatingWorkspace(true)}
-                  className="text-text-disabled hover:text-text-secondary p-0.5 shrink-0"
-                  title="New workspace"
-                >
-                  <Plus size={12} />
-                </button>
-              </div>
-            )}
-            <div className="relative shrink-0">
-              <button
-                onClick={() => setShowNewFileMenu(showNewFileMenu === "desktop" ? null : "desktop")}
-                className="text-brand hover:text-brand-hover p-1 flex items-center gap-1"
-                title="New file"
-              >
-                <FilePlus size={16} />
-              </button>
-              {showNewFileMenu === "desktop" && (
-                <div className="absolute right-0 top-full mt-1 w-48 bg-surface-2 border border-border
-                                rounded-lg shadow-lg z-40 py-1">
-                  <p className="text-[10px] text-text-disabled px-3 py-1.5 uppercase tracking-wider">
-                    New File
-                  </p>
-                  <button
-                    onClick={() => handleNewFile("freestyle", "markdown")}
-                    className="w-full text-left px-3 py-2 text-xs hover:bg-surface-3 flex items-center gap-2"
-                  >
-                    <FileText size={12} />
-                    Markdown Note
-                  </button>
-                  <button
-                    onClick={() => handleNewFile("artifacts", "structured_draft")}
-                    className="w-full text-left px-3 py-2 text-xs hover:bg-surface-3 flex items-center gap-2"
-                  >
-                    <Pencil size={12} />
-                    Structured Draft
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
           <FileExplorer
             items={items.filter((i) => i.workspace_id === activeWorkspaceId || i.workspace_id === null)}
             activeItemId={activeItem?.id ?? null}
-            selectedFolder={selectedFolder}
+            caseId={caseId}
+            workspaceId={activeWorkspaceId}
+            workspaceName={workspaces.find(w => w.id === activeWorkspaceId)?.name || "Main"}
+            workspaces={workspaces}
             onSelectItem={selectItem}
-            onSelectFolder={(folder) => {
-              setSelectedFolder(folder);
-              setUrlParams({ folder });
+            onNewFile={(folderId, fileType) => handleNewFile(folderId, fileType)}
+            onBrowse={() => {/* TODO: FolderBrowserModal */}}
+            onWorkspaceChange={(id) => { setActiveWorkspaceId(id); setUrlParams({ ws: id }); }}
+            onCreateWorkspace={async (name) => {
+              try {
+                const result = await createWorkspace(caseId, name);
+                setActiveWorkspaceId(result.id);
+                setUrlParams({ ws: result.id });
+                await refreshList();
+              } catch { /* silent */ }
             }}
-            onNewFile={(folder) => handleNewFile(folder, "markdown")}
+            refreshKey={0}
           />
         </aside>
 

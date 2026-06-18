@@ -3085,6 +3085,86 @@ def create_vision_server(case_id: int):
         except Exception as exc:
             return _error(f"statute_lookup failed: {exc}")
 
+    # -- Layer 6.6: Folders --------------------------------------------------
+
+    @tool(
+        "list_folders",
+        "List folders for the current case, optionally scoped to a workspace "
+        "and/or parent folder. Folders are hierarchical — use parent_id to "
+        "navigate the tree. Pass parent_id=null for root folders.",
+        {
+            "type": "object",
+            "properties": {
+                "parent_id": {
+                    "type": "integer",
+                    "description": "Parent folder ID. Omit for root folders.",
+                },
+                "workspace_id": {
+                    "type": "integer",
+                    "description": "Workspace ID to scope to (optional).",
+                },
+            },
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def list_folders(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import list_folders as _list_folders
+                rows = _list_folders(
+                    conn, case_id,
+                    workspace_id=args.get("workspace_id"),
+                    parent_id=args.get("parent_id"),
+                )
+            finally:
+                conn.close()
+            return _result({"count": len(rows), "folders": rows})
+        except Exception as exc:
+            return _error(f"list_folders failed: {exc}")
+
+    @tool(
+        "create_folder",
+        "Create a new folder in the case workspace. Folders can be nested "
+        "by setting parent_id. Use this to organize workspace items.",
+        {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Folder name.",
+                },
+                "parent_id": {
+                    "type": "integer",
+                    "description": "Parent folder ID. Omit for root folder.",
+                },
+                "workspace_id": {
+                    "type": "integer",
+                    "description": "Workspace ID (optional).",
+                },
+            },
+            "required": ["name"],
+        },
+    )
+    async def create_folder(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import insert_folder as _insert_folder
+                folder_id = _insert_folder(
+                    conn,
+                    case_id=case_id,
+                    name=args["name"],
+                    parent_id=args.get("parent_id"),
+                    workspace_id=args.get("workspace_id"),
+                )
+            finally:
+                conn.close()
+            return _result({"folder_id": folder_id, "name": args["name"]})
+        except Exception as exc:
+            return _error(f"create_folder failed: {exc}")
+
     # -- Layer 11: Business Vault -------------------------------------------
 
     @tool(
@@ -3488,6 +3568,8 @@ def create_vision_server(case_id: int):
             get_workspace_item,
             create_workspace_item,
             update_workspace_item,
+            list_folders,
+            create_folder,
             list_tasks,
             create_task,
             update_task,

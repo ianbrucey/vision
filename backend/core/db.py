@@ -217,6 +217,77 @@ def list_workspaces(conn: connection, case_id: int) -> list[dict]:
         return [dict(row) for row in cur.fetchall()]
 
 
+def ensure_folders_schema() -> list[str]:
+    """Apply the nested folders schema.
+
+    Creates the folders table for hierarchical file organization.
+    Idempotent — uses IF NOT EXISTS.
+    """
+    sql_path = _SCHEMA_DIR / "006_folders.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(f"Folders schema file not found: {sql_path}")
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+# ---------------------------------------------------------------------------
+# Folder CRUD
+# ---------------------------------------------------------------------------
+
+def insert_folder(
+    conn: connection,
+    case_id: int,
+    name: str,
+    parent_id: int | None = None,
+    workspace_id: int | None = None,
+) -> int:
+    """Insert a folder. Returns the new folder ID."""
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO folders (case_id, workspace_id, name, parent_id)
+               VALUES (%s, %s, %s, %s)
+               ON CONFLICT (case_id, workspace_id, parent_id, name) DO UPDATE
+               SET updated_at = now()
+               RETURNING id""",
+            (case_id, workspace_id, name, parent_id),
+        )
+        return cur.fetchone()[0]
+
+
+def list_folders(
+    conn: connection,
+    case_id: int,
+    workspace_id: int | None = None,
+    parent_id: int | None = 0,
+) -> list[dict]:
+    """List folders for a case/workspace. parent_id=None returns root folders."""
+    import psycopg2.extras
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        if parent_id == 0:  # sentinel for root folders
+            cur.execute(
+                """SELECT id, case_id, workspace_id, name, parent_id, sort_order,
+                          created_at, updated_at
+                   FROM folders WHERE case_id = %s
+                   AND workspace_id IS NOT DISTINCT FROM %s
+                   AND parent_id IS NULL
+                   ORDER BY sort_order, name""",
+                (case_id, workspace_id),
+            )
+        else:
+            cur.execute(
+                """SELECT id, case_id, workspace_id, name, parent_id, sort_order,
+                          created_at, updated_at
+                   FROM folders WHERE case_id = %s
+                   AND workspace_id IS NOT DISTINCT FROM %s
+                   AND parent_id IS NOT DISTINCT FROM %s
+                   ORDER BY sort_order, name""",
+                (case_id, workspace_id, parent_id),
+            )
+        return [dict(row) for row in cur.fetchall()]
+
+
 def ensure_journal_schema() -> list[str]:
     """Apply the journal entries schema.
 
@@ -1341,4 +1412,5 @@ __all__ = [
     "list_calendar_events", "delete_calendar_event",
     "insert_reminder", "update_reminder", "get_reminder",
     "list_reminders", "delete_reminder",
+    "ensure_folders_schema", "insert_folder", "list_folders",
 ]

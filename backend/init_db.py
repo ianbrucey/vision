@@ -25,6 +25,7 @@ from core.db import (
     ensure_chat_schema,
     ensure_correspondence_schema,
     ensure_journal_schema,
+    ensure_folders_schema,
 )
 
 # ---------------------------------------------------------------------------
@@ -129,6 +130,10 @@ def main() -> int:
         journal = ensure_journal_schema()
         for path in journal:
             print(f"  Journal:  {path}")
+
+        folders = ensure_folders_schema()
+        for path in folders:
+            print(f"  Folders:  {path}")
     except Exception as e:
         print(f"  ERROR applying schemas: {e}", file=sys.stderr)
         return 1
