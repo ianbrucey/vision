@@ -1657,6 +1657,309 @@ def create_vision_server(case_id: int):
         except Exception as exc:
             return _error(f"delete_task failed: {exc}")
 
+    # -- Layer 8.5: Calendar Events & Reminders ------------------------------
+
+    @tool(
+        "create_calendar_event",
+        "Create a calendar event in the case. Use this to schedule hearings, "
+        "depositions, deadlines, meetings, or other events. The event appears "
+        "on the case calendar and can have reminders attached.\n\n"
+        "IMPORTANT: Always use the user's local timezone (typically Eastern: "
+        "-04:00 in summer, -05:00 in winter). Include the timezone offset in "
+        "start_time and end_time. For all-day events like filing deadlines, "
+        "set all_day=true and use midnight for start_time.",
+        {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "description": "Event title. Be specific (e.g., "
+                    "'Deposition — Jane Smith' not just 'Meeting').",
+                },
+                "start_time": {
+                    "type": "string",
+                    "description": "Event start time in ISO 8601 format with "
+                    "timezone offset (e.g., '2026-07-15T09:00:00-04:00'). "
+                    "Required.",
+                },
+                "end_time": {
+                    "type": "string",
+                    "description": "Event end time (optional). ISO 8601 with "
+                    "timezone. Omit for point-in-time events.",
+                },
+                "all_day": {
+                    "type": "boolean",
+                    "description": "Set true for all-day events like filing "
+                    "deadlines. When true, start_time should be midnight of "
+                    "the event date. Default false.",
+                },
+                "category": {
+                    "type": "string",
+                    "enum": ["hearing", "deposition", "deadline", "meeting", "other"],
+                    "description": "Event category. Choose based on the type "
+                    "of event. Default 'other'.",
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Detailed notes — purpose, preparation "
+                    "needed, attendees, Zoom links, etc. (optional).",
+                },
+                "location": {
+                    "type": "string",
+                    "description": "Physical address, courtroom number, or "
+                    "virtual meeting link (optional).",
+                },
+            },
+            "required": ["title", "start_time"],
+        },
+    )
+    async def create_calendar_event(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import insert_calendar_event as _insert
+                event_id = _insert(
+                    conn,
+                    case_id=case_id,
+                    title=args["title"],
+                    start_time=args["start_time"],
+                    end_time=args.get("end_time"),
+                    all_day=args.get("all_day", False),
+                    category=args.get("category", "other"),
+                    description=args.get("description"),
+                    location=args.get("location"),
+                    created_by="agent",
+                )
+            finally:
+                conn.close()
+            return _result({
+                "event_id": event_id,
+                "title": args["title"],
+                "start_time": args["start_time"],
+                "category": args.get("category", "other"),
+                "all_day": args.get("all_day", False),
+            })
+        except Exception as exc:
+            return _error(f"create_calendar_event failed: {exc}")
+
+    @tool(
+        "list_calendar_events",
+        "List calendar events for the current case. Use to answer questions "
+        "like 'what's on the calendar this week?' or 'when is the next hearing?' "
+        "Supports filtering by date range and category.",
+        {
+            "type": "object",
+            "properties": {
+                "start_date": {
+                    "type": "string",
+                    "description": "Filter: events from this date (YYYY-MM-DD, "
+                    "inclusive). Use to find upcoming events.",
+                },
+                "end_date": {
+                    "type": "string",
+                    "description": "Filter: events until this date (YYYY-MM-DD, "
+                    "inclusive).",
+                },
+                "category": {
+                    "type": "string",
+                    "enum": ["hearing", "deposition", "deadline", "meeting", "other"],
+                    "description": "Filter by event category (optional).",
+                },
+            },
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def list_calendar_events(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import list_calendar_events as _list
+                rows = _list(
+                    conn, case_id,
+                    start_date=args.get("start_date"),
+                    end_date=args.get("end_date"),
+                    category=args.get("category"),
+                )
+            finally:
+                conn.close()
+            return _result({"count": len(rows), "events": rows})
+        except Exception as exc:
+            return _error(f"list_calendar_events failed: {exc}")
+
+    @tool(
+        "get_calendar_event",
+        "Get a single calendar event by ID with its attached reminders. "
+        "Use to see full event details and any reminders linked to it.",
+        {
+            "type": "object",
+            "properties": {
+                "event_id": {
+                    "type": "integer",
+                    "description": "Calendar event ID from list_calendar_events.",
+                },
+            },
+            "required": ["event_id"],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def get_calendar_event(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import get_calendar_event as _get
+                event = _get(conn, args["event_id"])
+            finally:
+                conn.close()
+            if not event:
+                return _error(f"Calendar event {args['event_id']} not found.")
+            return _result({"event": event})
+        except Exception as exc:
+            return _error(f"get_calendar_event failed: {exc}")
+
+    @tool(
+        "create_reminder",
+        "Create a reminder for the case. Reminders can be standalone or "
+        "attached to a calendar event. Use this when the user asks to be "
+        "reminded about something.\n\n"
+        "IMPORTANT: Compute the absolute remind_at time yourself. If the user "
+        "says 'remind me 48 hours before the hearing', look up the hearing "
+        "event, subtract 48 hours from its start_time, and use that as "
+        "remind_at. The schema only stores absolute times — never intervals.\n\n"
+        "Use the same timezone as the user (typically Eastern).",
+        {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "description": "Reminder title. Be specific about what "
+                    "the user needs to do.",
+                },
+                "remind_at": {
+                    "type": "string",
+                    "description": "Absolute time to fire the reminder in ISO "
+                    "8601 format with timezone offset (e.g., "
+                    "'2026-07-13T09:00:00-04:00'). Compute this from the "
+                    "event's start_time if the user gives an interval like "
+                    "'48 hours before'.",
+                },
+                "event_id": {
+                    "type": "integer",
+                    "description": "Calendar event ID to attach this reminder "
+                    "to (optional). Omit for standalone reminders.",
+                },
+                "category": {
+                    "type": "string",
+                    "enum": ["hearing", "deposition", "deadline", "meeting", "other"],
+                    "description": "Same categories as events. Default 'other'.",
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Additional context about what the user "
+                    "needs to do (optional).",
+                },
+            },
+            "required": ["title", "remind_at"],
+        },
+    )
+    async def create_reminder(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import insert_reminder as _insert
+                reminder_id = _insert(
+                    conn,
+                    case_id=case_id,
+                    title=args["title"],
+                    remind_at=args["remind_at"],
+                    event_id=args.get("event_id"),
+                    category=args.get("category", "other"),
+                    description=args.get("description"),
+                    created_by="agent",
+                )
+            finally:
+                conn.close()
+            return _result({
+                "reminder_id": reminder_id,
+                "title": args["title"],
+                "remind_at": args["remind_at"],
+                "event_id": args.get("event_id"),
+            })
+        except Exception as exc:
+            return _error(f"create_reminder failed: {exc}")
+
+    @tool(
+        "list_reminders",
+        "List reminders for the current case. Use to see what reminders "
+        "are pending, which have fired, or which were dismissed. Supports "
+        "filtering by status and category.",
+        {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": ["pending", "fired", "dismissed"],
+                    "description": "Filter by status (optional). Default: all.",
+                },
+                "category": {
+                    "type": "string",
+                    "enum": ["hearing", "deposition", "deadline", "meeting", "other"],
+                    "description": "Filter by category (optional).",
+                },
+                "event_id": {
+                    "type": "integer",
+                    "description": "Filter: reminders attached to a specific "
+                    "calendar event (optional).",
+                },
+            },
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def list_reminders(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import list_reminders as _list
+                rows = _list(
+                    conn, case_id,
+                    status=args.get("status"),
+                    category=args.get("category"),
+                    event_id=args.get("event_id"),
+                )
+            finally:
+                conn.close()
+            return _result({"count": len(rows), "reminders": rows})
+        except Exception as exc:
+            return _error(f"list_reminders failed: {exc}")
+
+    @tool(
+        "get_reminder",
+        "Get a single reminder by ID. Use to see full reminder details.",
+        {
+            "type": "object",
+            "properties": {
+                "reminder_id": {
+                    "type": "integer",
+                    "description": "Reminder ID from list_reminders.",
+                },
+            },
+            "required": ["reminder_id"],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def get_reminder(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                from core.db import get_reminder as _get
+                reminder = _get(conn, args["reminder_id"])
+            finally:
+                conn.close()
+            if not reminder:
+                return _error(f"Reminder {args['reminder_id']} not found.")
+            return _result({"reminder": reminder})
+        except Exception as exc:
+            return _error(f"get_reminder failed: {exc}")
+
     # -- Layer 8: Correspondence ---------------------------------------------
 
     @tool(
@@ -2673,6 +2976,115 @@ def create_vision_server(case_id: int):
         except Exception as exc:
             return _error(f"far_status failed: {exc}")
 
+    # -- Layer 10.5: Federal Statutes (FCRA, FDCPA) -----------------------
+
+    STATUTE_CASE_NAME = "FCRA & FDCPA — Consumer Protection Statutes"
+
+    def _get_statute_case_id() -> int | None:
+        """Get the case ID for the statute reference case."""
+        row = _query_one(
+            "SELECT id FROM cases WHERE name = %s AND case_type = 'other'",
+            (STATUTE_CASE_NAME,),
+        )
+        return row["id"] if row else None
+
+    @tool(
+        "statute_lookup",
+        "Look up the authoritative text of a federal consumer protection "
+        "statute — FCRA (Fair Credit Reporting Act, 15 USC §§ 1681-1681x) "
+        "or FDCPA (Fair Debt Collection Practices Act, 15 USC §§ 1692-1692p). "
+        "Pass a section number like '1681a', '1681b', '1692e', '1692g'. "
+        "Returns the exact statutory text with proper citation format. "
+        "Use this when analyzing credit reports, debt collection issues, "
+        "or any consumer financial protection matter. "
+        "NEVER paraphrase a statute from memory — always look it up.",
+        {
+            "type": "object",
+            "properties": {
+                "section": {
+                    "type": "string",
+                    "description": "Statute section number. Examples: '1681a' (FCRA definitions), "
+                    "'1681b' (permissible purposes), '1681e' (compliance procedures), "
+                    "'1692e' (FDCPA false representations), '1692g' (validation of debts). "
+                    "Just the number — no '§' or '15 USC' prefix.",
+                },
+            },
+            "required": ["section"],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def statute_lookup(args: dict[str, Any]) -> dict[str, Any]:
+        section = args["section"].strip()
+        try:
+            statute_case_id = _get_statute_case_id()
+            if not statute_case_id:
+                return _error(
+                    "Statute reference case not found. Run: "
+                    "python -m scripts.statute_ingest --statute all"
+                )
+
+            # Search for the section by datalab_id pattern: /section/1681a
+            rows = _query(
+                """SELECT s.id AS section_id, s.title, s.search_text,
+                          s.document_id, d.name AS document_name
+                   FROM sections s
+                   JOIN documents d ON d.id = s.document_id
+                   WHERE d.case_id = %s
+                     AND s.datalab_id = %s
+                   LIMIT 3""",
+                (statute_case_id, f"/section/{section}"),
+            )
+
+            if not rows:
+                # Try partial match
+                rows = _query(
+                    """SELECT s.id AS section_id, s.title, s.search_text,
+                              s.document_id, d.name AS document_name
+                       FROM sections s
+                       JOIN documents d ON d.id = s.document_id
+                       WHERE d.case_id = %s
+                         AND s.datalab_id LIKE %s
+                       LIMIT 10""",
+                    (statute_case_id, f"/section/{section}%"),
+                )
+
+            if not rows:
+                return _error(
+                    f"Section '{section}' not found in the statute corpus. "
+                    f"Available: FCRA (§§ 1681-1681x) and FDCPA (§§ 1692-1692p). "
+                    f"Check the section number and try again."
+                )
+
+            # Get blocks for full text
+            results = []
+            for r in rows:
+                blocks = _query(
+                    """SELECT text_content FROM blocks
+                       WHERE section_id = %s ORDER BY id""",
+                    (r["section_id"],),
+                )
+                block_texts = [b["text_content"] for b in blocks if b.get("text_content")]
+
+                results.append({
+                    "section": f"§ {section}",
+                    "title": r["title"],
+                    "statute": r["document_name"],
+                    "full_text": (
+                        (r["title"] or "") + "\n\n" +
+                        "\n".join(block_texts)
+                    ) if block_texts else (r["search_text"] or ""),
+                    "block_count": len(block_texts),
+                })
+
+            return _result({
+                "query": section,
+                "count": len(results),
+                "results": results,
+            })
+
+        except Exception as exc:
+            return _error(f"statute_lookup failed: {exc}")
+
     # -- Layer 11: Business Vault -------------------------------------------
 
     @tool(
@@ -3080,6 +3492,12 @@ def create_vision_server(case_id: int):
             create_task,
             update_task,
             delete_task,
+            create_calendar_event,
+            list_calendar_events,
+            get_calendar_event,
+            create_reminder,
+            list_reminders,
+            get_reminder,
             list_correspondence_threads,
             create_correspondence_thread,
             update_correspondence_thread,
@@ -3095,6 +3513,7 @@ def create_vision_server(case_id: int):
             list_knowledge_tags,
             far_lookup,
             far_status,
+            statute_lookup,
             list_vault_items,
             get_vault_item,
             create_vault_item,

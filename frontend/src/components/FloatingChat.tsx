@@ -6,6 +6,7 @@ import {
   Maximize2, Minimize2, Mic, MicOff,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 import { useChatSession } from "@/hooks/useChatSession";
 
 /* ------------------------------------------------------------------ */
@@ -233,7 +234,7 @@ export default function FloatingChat({ caseId, context, open, onClose }: Floatin
                 {m.role === "assistant" && (
                   <div className="prose prose-xs max-w-none">
                     {m.content ? (
-                      <ReactMarkdown>{m.content}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkBreaks]}>{m.content}</ReactMarkdown>
                     ) : chat.streaming ? (
                       <Loader2 size={10} className="animate-spin inline" />
                     ) : null}

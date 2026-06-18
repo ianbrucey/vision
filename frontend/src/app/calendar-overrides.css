@@ -1,0 +1,339 @@
+/* =========================================================================
+ * calendar-overrides.css
+ * React Big Calendar → "Command" Design System mapping
+ *
+ * Load order: RBC base CSS → this file.
+ * Scoped to .calendar-wrapper to prevent cascade bleed.
+ * Uses CSS custom properties — NO Tailwind @apply directives here.
+ * ========================================================================= */
+
+/* -------------------------------------------------------------------------
+ * 1. TOOLBAR (hidden — we render our own CalendarHeader)
+ * ------------------------------------------------------------------------- */
+.calendar-wrapper .rbc-toolbar {
+  display: none;
+}
+
+/* -------------------------------------------------------------------------
+ * 2. MONTH VIEW — Header Row (Sun Mon Tue ...)
+ * ------------------------------------------------------------------------- */
+.calendar-wrapper .rbc-month-header {
+  background: var(--color-surface-1);
+  border-bottom: 1px solid var(--color-border);
+}
+.calendar-wrapper .rbc-header {
+  padding: 8px 0;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-geist-sans), sans-serif;
+  color: var(--color-text-secondary);
+  border: none;
+}
+
+/* -------------------------------------------------------------------------
+ * 3. MONTH VIEW — Grid Cells
+ * ------------------------------------------------------------------------- */
+.calendar-wrapper .rbc-month-row {
+  border-bottom: 1px solid var(--color-border);
+  overflow: hidden;
+}
+.calendar-wrapper .rbc-month-row:last-child {
+  border-bottom: none;
+}
+.calendar-wrapper .rbc-day-bg {
+  border-right: 1px solid var(--color-border-light);
+}
+.calendar-wrapper .rbc-day-bg:last-child {
+  border-right: none;
+}
+
+/* Days outside current month */
+.calendar-wrapper .rbc-off-range-bg {
+  background: var(--color-surface-0);
+}
+.calendar-wrapper .rbc-off-range {
+  color: var(--color-text-disabled);
+}
+
+/* Today highlight */
+.calendar-wrapper .rbc-today {
+  background: var(--color-brand-bg); /* #FFF7EB — very subtle amber */
+}
+
+/* Date number in cell */
+.calendar-wrapper .rbc-date-cell {
+  padding: 4px 8px 0;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-geist-sans), sans-serif;
+  color: var(--color-text-primary);
+  text-align: right;
+}
+.calendar-wrapper .rbc-off-range .rbc-date-cell {
+  color: var(--color-text-disabled);
+}
+.calendar-wrapper .rbc-now .rbc-date-cell {
+  font-weight: 600;
+}
+
+/* "Show more" link when events overflow a cell */
+.calendar-wrapper .rbc-show-more {
+  font-size: 10px;
+  font-weight: 500;
+  font-family: var(--font-geist-sans), sans-serif;
+  color: var(--color-brand);
+  background: transparent;
+}
+.calendar-wrapper .rbc-show-more:hover {
+  color: var(--color-brand-hover);
+  text-decoration: underline;
+}
+
+/* -------------------------------------------------------------------------
+ * 4. EVENTS — Rendered in month/day/week views
+ * ------------------------------------------------------------------------- */
+/* Base event pill — category colors applied via data attribute below */
+.calendar-wrapper .rbc-event {
+  border: none;
+  border-radius: 8px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-geist-sans), sans-serif;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: opacity 150ms ease-out;
+}
+.calendar-wrapper .rbc-event:hover {
+  opacity: 0.85;
+}
+.calendar-wrapper .rbc-event:focus {
+  outline: 2px solid var(--color-brand-ring);
+  outline-offset: 1px;
+}
+
+/* Category color map — uses data-category attribute set by custom event component */
+.calendar-wrapper .rbc-event[data-category="hearing"] {
+  background: var(--color-danger);
+  color: #FFFFFF;
+}
+.calendar-wrapper .rbc-event[data-category="deposition"] {
+  background: var(--color-info);
+  color: #FFFFFF;
+}
+.calendar-wrapper .rbc-event[data-category="deadline"] {
+  background: var(--color-warning);
+  color: #FFFFFF;
+}
+.calendar-wrapper .rbc-event[data-category="meeting"] {
+  background: var(--color-success);
+  color: #FFFFFF;
+}
+.calendar-wrapper .rbc-event[data-category="other"] {
+  background: var(--color-surface-5);
+  color: var(--color-text-primary);
+}
+
+/* All-day events: subtle background instead of pill */
+.calendar-wrapper .rbc-allday-cell {
+  background: var(--color-surface-1);
+  border-bottom: 1px solid var(--color-border);
+}
+.calendar-wrapper .rbc-event.rbc-event-allday {
+  background: var(--color-brand-bg);
+  color: var(--color-brand);
+  border: 1px solid rgba(184, 134, 11, 0.15);
+}
+
+/* Event continues from previous / to next day indicators */
+.calendar-wrapper .rbc-event-continues-prior,
+.calendar-wrapper .rbc-event-continues-after {
+  border-radius: 0;
+}
+.calendar-wrapper .rbc-event-continues-prior {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.calendar-wrapper .rbc-event-continues-after {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Event label (time shown inside event pill) */
+.calendar-wrapper .rbc-event-label {
+  font-size: 10px;
+  opacity: 0.8;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+/* -------------------------------------------------------------------------
+ * 5. TIME GRID — Week and Day views
+ * ------------------------------------------------------------------------- */
+/* Time column header */
+.calendar-wrapper .rbc-time-header {
+  background: var(--color-surface-1);
+  border-bottom: 1px solid var(--color-border);
+}
+.calendar-wrapper .rbc-time-header-cell {
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-geist-sans), sans-serif;
+  color: var(--color-text-secondary);
+  padding: 6px 8px;
+  border-right: 1px solid var(--color-border-light);
+}
+
+/* Time gutter (left column showing hours) */
+.calendar-wrapper .rbc-time-gutter {
+  font-size: 10px;
+  font-family: var(--font-geist-mono), monospace;
+  color: var(--color-text-disabled);
+  background: var(--color-surface-1);
+  border-right: 1px solid var(--color-border);
+}
+.calendar-wrapper .rbc-time-gutter .rbc-timeslot-group {
+  padding: 0 6px;
+}
+
+/* Time content area */
+.calendar-wrapper .rbc-time-content {
+  border-top: 1px solid var(--color-border);
+}
+.calendar-wrapper .rbc-timeslot-group {
+  border-bottom: 1px solid var(--color-border-light);
+  min-height: 40px;
+}
+.calendar-wrapper .rbc-time-slot {
+  border-top: 1px solid var(--color-border-light);
+}
+
+/* Current time indicator (red line in day/week view) */
+.calendar-wrapper .rbc-current-time-indicator {
+  background: var(--color-danger);
+  height: 2px;
+}
+
+/* Time view events */
+.calendar-wrapper .rbc-time-view .rbc-event {
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 11px;
+}
+
+/* -------------------------------------------------------------------------
+ * 6. AGENDA VIEW — Mobile-focused list view
+ * ------------------------------------------------------------------------- */
+.calendar-wrapper .rbc-agenda-view {
+  font-family: var(--font-geist-sans), sans-serif;
+}
+.calendar-wrapper .rbc-agenda-table {
+  width: 100%;
+  font-size: 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.calendar-wrapper .rbc-agenda-table thead {
+  display: none;
+}
+.calendar-wrapper .rbc-agenda-table tbody tr {
+  border-bottom: 1px solid var(--color-border-light);
+}
+.calendar-wrapper .rbc-agenda-table tbody tr:last-child {
+  border-bottom: none;
+}
+.calendar-wrapper .rbc-agenda-date-cell {
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-geist-sans), sans-serif;
+  color: var(--color-text-primary);
+  background: var(--color-surface-1);
+  border-right: 1px solid var(--color-border);
+  white-space: nowrap;
+  vertical-align: top;
+  width: 90px;
+}
+.calendar-wrapper .rbc-agenda-event-cell {
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: var(--font-geist-sans), sans-serif;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background-color 150ms ease-out;
+}
+.calendar-wrapper .rbc-agenda-event-cell:hover {
+  background: var(--color-surface-2);
+}
+
+/* Agenda empty state */
+.calendar-wrapper .rbc-agenda-empty {
+  text-align: center;
+  padding: 24px 16px;
+  font-size: 13px;
+  font-family: var(--font-geist-sans), sans-serif;
+  color: var(--color-text-disabled);
+}
+
+/* -------------------------------------------------------------------------
+ * 7. OVERLAY / POPUP — "Show more" popup in month view
+ * ------------------------------------------------------------------------- */
+.calendar-wrapper .rbc-overlay {
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  z-index: 50;
+}
+.calendar-wrapper .rbc-overlay-header {
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-geist-sans), sans-serif;
+  color: var(--color-text-primary);
+  padding: 6px 8px 8px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 4px;
+}
+
+/* -------------------------------------------------------------------------
+ * 8. BUTTONS — Any RBC-generated buttons
+ * ------------------------------------------------------------------------- */
+.calendar-wrapper .rbc-btn-group button {
+  font-size: 12px;
+  font-family: var(--font-geist-sans), sans-serif;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+.calendar-wrapper .rbc-btn-group button:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.calendar-wrapper .rbc-btn-group button:last-child {
+  border-radius: 0 6px 6px 0;
+}
+.calendar-wrapper .rbc-btn-group button:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text-primary);
+}
+.calendar-wrapper .rbc-btn-group button.rbc-active {
+  background: var(--color-brand-bg);
+  color: var(--color-brand);
+  border-color: rgba(184, 134, 11, 0.15);
+}
+
+/* -------------------------------------------------------------------------
+ * 9. LOADING STATE
+ * ------------------------------------------------------------------------- */
+.calendar-wrapper .rbc-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  font-size: 13px;
+  font-family: var(--font-geist-sans), sans-serif;
+  color: var(--color-text-disabled);
+}

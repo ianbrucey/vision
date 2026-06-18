@@ -13,6 +13,7 @@ import DraftsTab from "./tabs/DraftsTab";
 import WorkspaceTab from "./tabs/WorkspaceTab";
 import CorrespondenceTab from "./tabs/CorrespondenceTab";
 import TasksTab from "./tabs/TasksTab";
+import CalendarTab from "./tabs/CalendarTab";
 import FloatingChat, { FloatingChatButton } from "@/components/FloatingChat";
 
 /* ------------------------------------------------------------------ */
@@ -44,7 +45,7 @@ function CaseDashboardInner() {
   // Tab state lives in the URL — survives refresh
   const tabParam = searchParams.get("tab");
   const activeTab: TabId =
-    tabParam === "chat" || tabParam === "documents" || tabParam === "drafts" || tabParam === "workspace" || tabParam === "correspondence" || tabParam === "tasks"
+    tabParam === "chat" || tabParam === "documents" || tabParam === "drafts" || tabParam === "workspace" || tabParam === "correspondence" || tabParam === "tasks" || tabParam === "calendar"
       ? tabParam
       : "overview";
 
@@ -215,6 +216,7 @@ function CaseDashboardInner() {
         {activeTab === "workspace" && <WorkspaceTab caseId={Number(id)} />}
         {activeTab === "correspondence" && <CorrespondenceTab caseId={Number(id)} />}
         {activeTab === "tasks" && <TasksTab caseId={Number(id)} />}
+        {activeTab === "calendar" && <CalendarTab caseId={Number(id)} />}
       </div>
 
       {/* Tab Navigation */}

@@ -1090,6 +1090,233 @@ def detach_vault_document(
         return cur.rowcount > 0
 
 
+# ============================================================================
+# Calendar Events & Reminders
+# ============================================================================
+
+def insert_calendar_event(
+    conn: connection,
+    case_id: int,
+    title: str,
+    start_time: str,
+    end_time: str | None = None,
+    all_day: bool = False,
+    category: str = "other",
+    description: str | None = None,
+    location: str | None = None,
+    created_by: str = "user",
+    workspace_id: int | None = None,
+    metadata: dict | None = None,
+) -> int:
+    """Create a calendar event. Returns the new event ID."""
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO calendar_events
+               (case_id, workspace_id, title, description, start_time, end_time,
+                all_day, category, location, created_by, metadata)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+               RETURNING id""",
+            (case_id, workspace_id, title, description, start_time, end_time,
+             all_day, category, location, created_by,
+             json.dumps(metadata) if metadata else "{}"),
+        )
+        return cur.fetchone()[0]
+
+
+def update_calendar_event(
+    conn: connection,
+    event_id: int,
+    title: str | None = None,
+    description: str | None = None,
+    start_time: str | None = None,
+    end_time: str | None = None,
+    all_day: bool | None = None,
+    category: str | None = None,
+    location: str | None = None,
+) -> dict | None:
+    """Partial update. Only provided (non-None) fields are updated."""
+    sets = []
+    params: list[Any] = []
+    for col, val in [
+        ("title", title), ("description", description),
+        ("start_time", start_time), ("end_time", end_time),
+        ("all_day", all_day), ("category", category), ("location", location),
+    ]:
+        if val is not None:
+            sets.append(f"{col} = %s"); params.append(val)
+    if not sets:
+        return None
+    sets.append("updated_at = now()")
+    params.append(event_id)
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            f"UPDATE calendar_events SET {', '.join(sets)} WHERE id = %s RETURNING *",
+            tuple(params),
+        )
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def get_calendar_event(conn: connection, event_id: int) -> dict | None:
+    """Get a calendar event with its attached reminders."""
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            "SELECT * FROM calendar_events WHERE id = %s", (event_id,),
+        )
+        row = cur.fetchone()
+        if not row:
+            return None
+        event = dict(row)
+        cur.execute(
+            """SELECT * FROM reminders
+               WHERE event_id = %s
+               ORDER BY remind_at ASC""",
+            (event_id,),
+        )
+        event["reminders"] = [dict(r) for r in cur.fetchall()]
+        return event
+
+
+def list_calendar_events(
+    conn: connection,
+    case_id: int,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    category: str | None = None,
+    limit: int = 100,
+) -> list[dict]:
+    """List calendar events with optional date range and category filters."""
+    clauses = ["case_id = %s"]
+    params: list[Any] = [case_id]
+    if start_date:
+        clauses.append("start_time::DATE >= %s"); params.append(start_date)
+    if end_date:
+        clauses.append("start_time::DATE <= %s"); params.append(end_date)
+    if category:
+        clauses.append("category = %s"); params.append(category)
+    params.append(limit)
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            f"""SELECT * FROM calendar_events
+                WHERE {' AND '.join(clauses)}
+                ORDER BY start_time ASC, created_at DESC
+                LIMIT %s""",
+            tuple(params),
+        )
+        return [dict(row) for row in cur.fetchall()]
+
+
+def delete_calendar_event(conn: connection, event_id: int) -> bool:
+    """Delete a calendar event. Cascades to reminders via FK ON DELETE CASCADE."""
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM calendar_events WHERE id = %s", (event_id,))
+        return cur.rowcount > 0
+
+
+def insert_reminder(
+    conn: connection,
+    case_id: int,
+    title: str,
+    remind_at: str,
+    event_id: int | None = None,
+    category: str = "other",
+    description: str | None = None,
+    created_by: str = "user",
+    metadata: dict | None = None,
+) -> int:
+    """Create a reminder (standalone or event-attached). Returns the new reminder ID."""
+    with conn.cursor() as cur:
+        cur.execute(
+            """INSERT INTO reminders
+               (case_id, event_id, title, description, remind_at, category,
+                created_by, metadata)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+               RETURNING id""",
+            (case_id, event_id, title, description, remind_at, category,
+             created_by, json.dumps(metadata) if metadata else "{}"),
+        )
+        return cur.fetchone()[0]
+
+
+def update_reminder(
+    conn: connection,
+    reminder_id: int,
+    title: str | None = None,
+    description: str | None = None,
+    remind_at: str | None = None,
+    category: str | None = None,
+    status: str | None = None,
+) -> dict | None:
+    """Partial update. Only provided (non-None) fields are updated."""
+    sets = []
+    params: list[Any] = []
+    for col, val in [
+        ("title", title), ("description", description),
+        ("remind_at", remind_at), ("category", category), ("status", status),
+    ]:
+        if val is not None:
+            sets.append(f"{col} = %s"); params.append(val)
+    if not sets:
+        return None
+    sets.append("updated_at = now()")
+    params.append(reminder_id)
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            f"UPDATE reminders SET {', '.join(sets)} WHERE id = %s RETURNING *",
+            tuple(params),
+        )
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def get_reminder(conn: connection, reminder_id: int) -> dict | None:
+    """Get a single reminder by ID."""
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            "SELECT * FROM reminders WHERE id = %s", (reminder_id,),
+        )
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def list_reminders(
+    conn: connection,
+    case_id: int,
+    status: str | None = None,
+    category: str | None = None,
+    event_id: int | None = None,
+    limit: int = 100,
+) -> list[dict]:
+    """List reminders with optional filters."""
+    clauses = ["case_id = %s"]
+    params: list[Any] = [case_id]
+    if status:
+        clauses.append("status = %s"); params.append(status)
+    if category:
+        clauses.append("category = %s"); params.append(category)
+    if event_id is not None:
+        clauses.append("event_id = %s"); params.append(event_id)
+    params.append(limit)
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            f"""SELECT * FROM reminders
+                WHERE {' AND '.join(clauses)}
+                ORDER BY
+                  CASE WHEN status = 'pending' THEN 0 ELSE 1 END,
+                  remind_at ASC
+                LIMIT %s""",
+            tuple(params),
+        )
+        return [dict(row) for row in cur.fetchall()]
+
+
+def delete_reminder(conn: connection, reminder_id: int) -> bool:
+    """Delete a reminder."""
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM reminders WHERE id = %s", (reminder_id,))
+        return cur.rowcount > 0
+
+
 __all__ = [
     "connect", "tx",
     "ensure_schema", "ensure_strategy_schema", "ensure_chat_schema",
@@ -1110,4 +1337,8 @@ __all__ = [
     "attach_vault_documents", "detach_vault_document",
     "ensure_journal_schema", "insert_journal_entry", "list_journal_entries",
     "ensure_default_workspace", "list_workspaces",
+    "insert_calendar_event", "update_calendar_event", "get_calendar_event",
+    "list_calendar_events", "delete_calendar_event",
+    "insert_reminder", "update_reminder", "get_reminder",
+    "list_reminders", "delete_reminder",
 ]

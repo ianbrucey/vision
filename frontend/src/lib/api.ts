@@ -375,6 +375,106 @@ export const detachTaskDocument = (
 export const deleteTask = (taskId: number): Promise<{ deleted: boolean }> =>
   fetchAPI(`/api/tasks/${taskId}`, { method: "DELETE" });
 
+// ---------------------------------------------------------------------------
+// Calendar Events & Reminders
+// ---------------------------------------------------------------------------
+
+export interface CalendarEvent {
+  id: number;
+  case_id: number;
+  workspace_id: number | null;
+  title: string;
+  description: string | null;
+  start_time: string;
+  end_time: string | null;
+  all_day: boolean;
+  category: "hearing" | "deposition" | "deadline" | "meeting" | "other";
+  location: string | null;
+  created_by: "user" | "agent";
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Reminder {
+  id: number;
+  case_id: number;
+  event_id: number | null;
+  title: string;
+  description: string | null;
+  remind_at: string;
+  category: "hearing" | "deposition" | "deadline" | "meeting" | "other";
+  status: "pending" | "fired" | "dismissed";
+  created_by: "user" | "agent";
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+// Calendar Events
+export const listCalendarEvents = (
+  caseId: number,
+  params?: { start_date?: string; end_date?: string; category?: string; limit?: number },
+): Promise<{ count: number; events: CalendarEvent[] }> => {
+  const qs = new URLSearchParams();
+  if (params?.start_date) qs.set("start_date", params.start_date);
+  if (params?.end_date) qs.set("end_date", params.end_date);
+  if (params?.category) qs.set("category", params.category);
+  if (params?.limit) qs.set("limit", String(params.limit));
+  const s = qs.toString();
+  return fetchAPI(`/api/cases/${caseId}/calendar/events${s ? `?${s}` : ""}`);
+};
+
+export const getCalendarEvent = (eventId: number): Promise<{ event: CalendarEvent & { reminders?: Reminder[] } }> =>
+  fetchAPI(`/api/calendar/events/${eventId}`);
+
+export const createCalendarEvent = (
+  caseId: number,
+  data: { title: string; start_time: string; end_time?: string; all_day?: boolean; category?: string; description?: string; location?: string },
+): Promise<{ event: CalendarEvent }> =>
+  fetchAPI(`/api/cases/${caseId}/calendar/events`, { method: "POST", body: JSON.stringify(data) });
+
+export const updateCalendarEvent = (
+  eventId: number,
+  data: { title?: string; description?: string; start_time?: string; end_time?: string; all_day?: boolean; category?: string; location?: string },
+): Promise<{ event: CalendarEvent }> =>
+  fetchAPI(`/api/calendar/events/${eventId}`, { method: "PATCH", body: JSON.stringify(data) });
+
+export const deleteCalendarEvent = (eventId: number): Promise<{ deleted: boolean }> =>
+  fetchAPI(`/api/calendar/events/${eventId}`, { method: "DELETE" });
+
+// Reminders
+export const listReminders = (
+  caseId: number,
+  params?: { status?: string; category?: string; event_id?: number; limit?: number },
+): Promise<{ count: number; reminders: Reminder[] }> => {
+  const qs = new URLSearchParams();
+  if (params?.status) qs.set("status", params.status);
+  if (params?.category) qs.set("category", params.category);
+  if (params?.event_id != null) qs.set("event_id", String(params.event_id));
+  if (params?.limit) qs.set("limit", String(params.limit));
+  const s = qs.toString();
+  return fetchAPI(`/api/cases/${caseId}/calendar/reminders${s ? `?${s}` : ""}`);
+};
+
+export const getReminder = (reminderId: number): Promise<{ reminder: Reminder }> =>
+  fetchAPI(`/api/calendar/reminders/${reminderId}`);
+
+export const createReminder = (
+  caseId: number,
+  data: { title: string; remind_at: string; event_id?: number; category?: string; description?: string },
+): Promise<{ reminder: Reminder }> =>
+  fetchAPI(`/api/cases/${caseId}/calendar/reminders`, { method: "POST", body: JSON.stringify(data) });
+
+export const updateReminder = (
+  reminderId: number,
+  data: { title?: string; description?: string; remind_at?: string; category?: string; status?: string },
+): Promise<{ reminder: Reminder }> =>
+  fetchAPI(`/api/calendar/reminders/${reminderId}`, { method: "PATCH", body: JSON.stringify(data) });
+
+export const deleteReminder = (reminderId: number): Promise<{ deleted: boolean }> =>
+  fetchAPI(`/api/calendar/reminders/${reminderId}`, { method: "DELETE" });
+
 // Health
 export const healthCheck = () => fetchAPI("/api/health");
 

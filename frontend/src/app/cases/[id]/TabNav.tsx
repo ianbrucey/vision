@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Eye, MessageCircle, FolderOpen, FolderTree, PenLine, Mail, CheckSquare, MoreHorizontal } from "lucide-react";
+import { Eye, MessageCircle, FolderOpen, FolderTree, PenLine, Mail, CheckSquare, CalendarDays, MoreHorizontal } from "lucide-react";
 
-export type TabId = "overview" | "chat" | "documents" | "drafts" | "workspace" | "correspondence" | "tasks";
+export type TabId = "overview" | "chat" | "documents" | "drafts" | "workspace" | "correspondence" | "tasks" | "calendar";
 
 interface TabNavProps {
   activeTab: TabId;
@@ -24,6 +24,7 @@ const TABS: TabDef[] = [
   { id: "workspace", label: "Workspace", shortLabel: "Work", icon: FolderTree },
   { id: "correspondence", label: "Correspondence", shortLabel: "Corr.", icon: Mail },
   { id: "tasks", label: "Tasks", shortLabel: "Tasks", icon: CheckSquare },
+  { id: "calendar", label: "Calendar", shortLabel: "Cal", icon: CalendarDays },
 ];
 
 /** First 4 tabs are always visible on mobile */

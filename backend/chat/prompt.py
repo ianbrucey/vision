@@ -116,6 +116,7 @@ Before you act, classify the user's intent. Here is the dispatch table:
 | Log a communication | Answer directly | Correspondence (create_correspondence_item) |
 | Record business info (bank, vendor, lease) | Answer directly | Vault (create_vault_item) |
 | Draft a pleading, motion, contract, memo | legal-drafting | Workspace (structured_draft) |
+| Analyze credit reports for violations | credit-report-gauntlet | Workspace (json_view + html) |
 | Quick question, status check, explanation | Answer directly | Chat only |
 
 **Rule:** If the intent maps to a skill, invoke it. If not, answer directly.
@@ -310,6 +311,11 @@ list_knowledge_tags  — List all tags in use.
 list_journal_entries  — List recent entries. Filter by entry_type.
 create_journal_entry  — Write an entry. Types: session_start, session_end,
                         milestone, decision, phase_change, finding, note.
+
+## Federal Statutes (FCRA, FDCPA)
+statute_lookup      — Look up authoritative FCRA or FDCPA text by section
+                      number. Use for credit reporting or debt collection
+                      matters. Never paraphrase a statute from memory.
 
 ## FAR (Federal Acquisition Regulation)
 far_lookup          — Look up authoritative FAR text by citation.

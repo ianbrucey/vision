@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workspace File Tree — Design Mockup</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f5f6f8;
+    display: flex; justify-content: center; padding: 40px;
+  }
+  .mockup-label {
+    text-align: center;
+    font-size: 13px; color: #999; margin-bottom: 16px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* ---- Sidebar (260px) ---- */
+  .sidebar {
+    width: 260px; background: #fff; border: 1px solid #e1e4e8;
+    border-radius: 12px; overflow: hidden; margin-right: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .sidebar-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-bottom: 1px solid #e1e4e8;
+    font-size: 11px; font-weight: 600; color: #5f6675;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .sidebar-header select {
+    font-size: 11px; font-weight: 600; color: #5f6675;
+    background: none; border: none; cursor: pointer;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .sidebar-body { padding: 4px 0; max-height: 500px; overflow-y: auto; }
+
+  /* Tree items */
+  .tree-item {
+    display: flex; align-items: center; gap: 4px;
+    padding: 2px 8px; font-size: 12px; cursor: pointer;
+    transition: background 0.1s; user-select: none;
+    white-space: nowrap;
+  }
+  .tree-item:hover { background: #f5f6f8; }
+  .tree-item.active { background: #fff7eb; color: #b8860b; }
+  .tree-item .icon { width: 16px; text-align: center; font-size: 13px; flex-shrink: 0; }
+  .tree-item .name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tree-item .badge {
+    font-size: 9px; padding: 0 4px; border-radius: 3px;
+    font-weight: 500; flex-shrink: 0;
+    color: #5f6675; background: #ebedf0;
+  }
+  .tree-item .badge.insight { color: #2d8a4e; background: #edf7f0; }
+  .tree-item .badge.draft { color: #b8860b; background: #fff7eb; }
+  .tree-item .badge.note { color: #3b6cb5; background: #f0f5fc; }
+  .tree-item .badge.html { color: #b85c0a; background: #fff8f0; }
+
+  /* Indentation levels */
+  .tree-item[data-depth="0"] { padding-left: 12px; }
+  .tree-item[data-depth="1"] { padding-left: 28px; }
+  .tree-item[data-depth="2"] { padding-left: 44px; }
+  .tree-item[data-depth="3"] { padding-left: 60px; }
+
+  /* Chevron */
+  .chevron {
+    width: 12px; font-size: 10px; color: #9da3ae;
+    transition: transform 0.15s; flex-shrink: 0; text-align: center;
+  }
+  .chevron.open { transform: rotate(90deg); }
+
+  /* New buttons */
+  .new-btn {
+    font-size: 10px; color: #9da3ae; cursor: pointer;
+    padding: 2px 6px; border-radius: 4px;
+    opacity: 0; transition: opacity 0.1s;
+  }
+  .tree-item:hover .new-btn, .sidebar-header .new-btn { opacity: 1; }
+  .new-btn:hover { background: #ebedf0; color: #5f6675; }
+
+  /* ---- Modal (full browser) ---- */
+  .modal-overlay {
+    position: fixed; inset:0; background: rgba(0,0,0,0.3);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 50;
+  }
+  .modal {
+    background: #fff; border-radius: 16px;
+    width: 720px; max-height: 80vh; display: flex; flex-direction: column;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid #e1e4e8;
+  }
+  .modal-header h2 { font-size: 15px; font-weight: 600; }
+  .modal-header .actions { display: flex; gap: 8px; }
+  .modal-body { flex:1; overflow-y: auto; padding: 0; }
+
+  /* Modal table */
+  .file-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .file-table th {
+    text-align: left; padding: 8px 16px; font-size: 10px; font-weight: 600;
+    color: #9da3ae; text-transform: uppercase; letter-spacing: 0.5px;
+    border-bottom: 1px solid #e1e4e8; background: #fafbfc;
+  }
+  .file-table td { padding: 8px 16px; border-bottom: 1px solid #f5f6f8; }
+  .file-table tr:hover td { background: #fafbfc; }
+  .file-table .name-cell {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .file-table .type-badge {
+    font-size: 10px; padding: 1px 6px; border-radius: 3px; font-weight: 500;
+  }
+  .file-table .type-badge.folder { color: #3b6cb5; background: #f0f5fc; }
+  .file-table .type-badge.insight { color: #2d8a4e; background: #edf7f0; }
+  .file-table .type-badge.draft { color: #b8860b; background: #fff7eb; }
+  .file-table .type-badge.note { color: #3b6cb5; background: #f0f5fc; }
+  .file-table .type-badge.letter { color: #b85c0a; background: #fff8f0; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- Sidebar View                                                  -->
+<!-- ============================================================ -->
+<div>
+  <div class="mockup-label">Sidebar — Compact Tree (260px)</div>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <select><option>▼ Main</option></select>
+      <span class="new-btn" title="New folder">+ Folder</span>
+      <span class="new-btn" title="New file">+ File</span>
+    </div>
+    <div class="sidebar-body">
+      <!-- Folder: Credit Disputes -->
+      <div class="tree-item" data-depth="0">
+        <span class="chevron open">▶</span>
+        <span class="icon">📁</span>
+        <span class="name">Credit Disputes</span>
+        <span class="new-btn">+</span>
+      </div>
+      <div class="tree-item" data-depth="1">
+        <span class="chevron open">▶</span>
+        <span class="icon">📁</span>
+        <span class="name">Experian</span>
+        <span class="new-btn">+</span>
+      </div>
+      <div class="tree-item active" data-depth="2">
+        <span class="chevron" style="visibility:hidden">▶</span>
+        <span class="icon">📊</span>
+        <span class="name">Negative Accounts Table</span>
+        <span class="badge insight">insight</span>
+      </div>
+      <div class="tree-item" data-depth="2">
+        <span class="chevron" style="visibility:hidden">▶</span>
+        <span class="icon">📄</span>
+        <span class="name">Chase Dispute Letter</span>
+        <span class="badge html">html</span>
+      </div>
+      <div class="tree-item" data-depth="2">
+        <span class="chevron" style="visibility:hidden">▶</span>
+        <span class="icon">📋</span>
+        <span class="name">Dispute Checklist</span>
+        <span class="badge insight">insight</span>
+      </div>
+      <div class="tree-item" data-depth="1">
+        <span class="chevron">▶</span>
+        <span class="icon">📁</span>
+        <span class="name">Equifax</span>
+        <span class="new-btn">+</span>
+      </div>
+      <div class="tree-item" data-depth="1">
+        <span class="chevron">▶</span>
+        <span class="icon">📁</span>
+        <span class="name">Letters Sent</span>
+      </div>
+      <div class="tree-item" data-depth="1">
+        <span class="chevron" style="visibility:hidden">▶</span>
+        <span class="icon">📝</span>
+        <span class="name">Gauntlet State Tracker</span>
+        <span class="badge note">note</span>
+      </div>
+
+      <!-- Folder: RFP Response -->
+      <div class="tree-item" data-depth="0">
+        <span class="chevron">▶</span>
+        <span class="icon">📁</span>
+        <span class="name">RFP Response — VA T4NG</span>
+        <span class="new-btn">+</span>
+      </div>
+
+      <!-- Folder: Research (no children) -->
+      <div class="tree-item" data-depth="0">
+        <span class="chevron" style="visibility:hidden">▶</span>
+        <span class="icon">📝</span>
+        <span class="name">Case Analysis Notes</span>
+        <span class="badge note">note</span>
+      </div>
+
+      <!-- Folder: Motion to Dismiss -->
+      <div class="tree-item" data-depth="0">
+        <span class="chevron open">▶</span>
+        <span class="icon">📁</span>
+        <span class="name">Motion to Dismiss</span>
+        <span class="new-btn">+</span>
+      </div>
+      <div class="tree-item" data-depth="1">
+        <span class="chevron" style="visibility:hidden">▶</span>
+        <span class="icon">📄</span>
+        <span class="name">Draft — Motion</span>
+        <span class="badge draft">draft</span>
+      </div>
+      <div class="tree-item" data-depth="1">
+        <span class="chevron" style="visibility:hidden">▶</span>
+        <span class="icon">📝</span>
+        <span class="name">Research Memo</span>
+        <span class="badge note">note</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Modal View                                                    -->
+<!-- ============================================================ -->
+<div>
+  <div class="mockup-label">Modal — Full File Browser (720px)</div>
+  <div class="modal-overlay" style="position:static; background:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;">📁</span>
+          <span style="font-size:11px;color:#9da3ae;">Main /</span>
+          <span style="font-size:11px;color:#9da3ae;">Credit Disputes /</span>
+          <span style="font-size:11px;color:#5f6675;">Experian</span>
+        </div>
+        <div class="actions">
+          <button style="font-size:11px;padding:4px 10px;border:1px solid #e1e4e8;border-radius:6px;background:#fff;cursor:pointer;">+ New File</button>
+          <button style="font-size:11px;padding:4px 10px;border:1px solid #e1e4e8;border-radius:6px;background:#fff;cursor:pointer;">📁 New Folder</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <table class="file-table">
+          <thead>
+            <tr><th style="width:50%">Name</th><th>Type</th><th>Modified</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="name-cell">
+                  <span>📁</span> <span>..</span>
+                </div>
+              </td>
+              <td><span class="type-badge folder">folder</span></td>
+              <td style="color:#9da3ae">—</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="name-cell">
+                  <span>📊</span> <span>Negative Accounts Table</span>
+                </div>
+              </td>
+              <td><span class="type-badge insight">insight</span></td>
+              <td style="color:#9da3ae">Jun 17</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="name-cell">
+                  <span>📄</span> <span>Chase Dispute Letter</span>
+                </div>
+              </td>
+              <td><span class="type-badge letter">html letter</span></td>
+              <td style="color:#9da3ae">Jun 17</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="name-cell">
+                  <span>📋</span> <span>Dispute Action Checklist</span>
+                </div>
+              </td>
+              <td><span class="type-badge insight">insight</span></td>
+              <td style="color:#9da3ae">Jun 17</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="name-cell">
+                  <span>📄</span> <span>Wells Fargo Demand Letter</span>
+                </div>
+              </td>
+              <td><span class="type-badge letter">html letter</span></td>
+              <td style="color:#9da3ae">Jun 16</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="name-cell">
+                  <span>📄</span> <span>Portfolio Recovery Dispute</span>
+                </div>
+              </td>
+              <td><span class="type-badge letter">html letter</span></td>
+              <td style="color:#9da3ae">Jun 16</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

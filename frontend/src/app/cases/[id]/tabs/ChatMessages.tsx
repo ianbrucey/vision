@@ -2,6 +2,7 @@
 
 import { useRef, useCallback, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 import { MessageCircle, Loader2, ChevronDown } from "lucide-react";
 import type { ChatSession } from "@/lib/api";
 
@@ -117,7 +118,7 @@ export default function ChatMessages({
               {msg.role === "assistant" && (
                 <div className="wrap-break-word prose prose-sm max-w-none prose-table:text-sm prose-td:border prose-td:border-border prose-td:px-2 prose-td:py-1 prose-th:bg-surface-2 prose-th:px-2 prose-th:py-1 prose-th:font-semibold">
                   {msg.content ? (
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkBreaks]}>{msg.content}</ReactMarkdown>
                   ) : streaming ? (
                     <span className="inline-flex items-center gap-1 text-text-disabled">
                       <Loader2 size={12} className="animate-spin" />

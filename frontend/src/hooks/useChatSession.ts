@@ -198,9 +198,14 @@ export function useChatSession(caseId: number) {
               setWorking(false);
               for (let i = copy.length - 1; i >= 0; i--) {
                 if (copy[i].role === "assistant" && copy[i].sequence === null) {
+                  const chunk = event.content || "";
+                  const existing = copy[i].content;
+                  // Add spacing between distinct streaming chunks.
+                  // First chunk: no prefix. Subsequent chunks: newline separator.
+                  const sep = existing ? "\n\n" : "";
                   copy[i] = {
                     ...copy[i],
-                    content: copy[i].content + (event.content || ""),
+                    content: existing + sep + chunk,
                   };
                   break;
                 }

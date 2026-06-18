@@ -480,6 +480,7 @@ from api.routes.correspondence import router as correspondence_router
 from api.routes.tasks import router as tasks_router
 from api.routes.profiles import router as profiles_router
 from api.routes.vault import router as vault_router
+from api.routes.calendar import router as calendar_router
 app.include_router(chat_router)
 app.include_router(drafts_router)
 app.include_router(workspace_router)
@@ -487,6 +488,7 @@ app.include_router(correspondence_router)
 app.include_router(tasks_router)
 app.include_router(profiles_router)
 app.include_router(vault_router)
+app.include_router(calendar_router)
 
 # ---------------------------------------------------------------------------
 # Health check
