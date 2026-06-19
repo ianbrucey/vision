@@ -1158,6 +1158,232 @@ async def fetch_protected_url(args: dict[str, Any]) -> dict[str, Any]:
         return {"content": [{"type": "text", "text": msg}], "is_error": True}
 
 
+# ---------------------------------------------------------------------------
+# SAM.gov — contract opportunities and sources sought notices
+# ---------------------------------------------------------------------------
+
+_SAM_API_KEY = os.environ.get("SAM_GOV_API_KEY", "")
+_SAM_BASE = "https://api.sam.gov/opportunities/v2/search"
+
+_SAM_NOTICE_TYPES = {
+    "sources_sought": "s",
+    "solicitation": "o",
+    "presolicitation": "p",
+    "special_notice": "k",
+    "award_notice": "a",
+    "justification": "r",
+}
+
+
+async def _sam_search(params: dict) -> dict:
+    """Helper: call the SAM.gov API."""
+    if not _SAM_API_KEY:
+        return {"error": "SAM_GOV_API_KEY not configured. Add to .env."}
+
+    qs_parts = [f"api_key={_SAM_API_KEY}"]
+    for k, v in params.items():
+        if v is not None:
+            qs_parts.append(f"{k}={v}")
+    url = f"{_SAM_BASE}?{'&'.join(qs_parts)}"
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        resp = await client.get(url)
+        resp.raise_for_status()
+        return resp.json()
+
+
+# ---------------------------------------------------------------------------
+# Tools
+# ---------------------------------------------------------------------------
+
+@tool(
+    "search_sam_opportunities",
+    "Search SAM.gov for federal contract opportunities, sources sought "
+    "notices, presolicitations, special notices, and award notices. "
+    "Use this to find upcoming or current federal procurement opportunities "
+    "matching specific keywords, NAICS codes, set-aside types, or date ranges.\n\n"
+    "Notice type codes:\n"
+    "  sources_sought  — Sources Sought notices (market research)\n"
+    "  solicitation    — Combined Synopsis/Solicitation\n"
+    "  presolicitation — Pre-solicitation notices\n"
+    "  special_notice  — Special notices\n"
+    "  all             — All notice types (default)",
+    {
+        "type": "object",
+        "properties": {
+            "q": {
+                "type": "string",
+                "description": "Keywords to search for (e.g. 'IT services', "
+                "'cybersecurity', 'construction management').",
+            },
+            "notice_type": {
+                "type": "string",
+                "enum": [
+                    "sources_sought", "solicitation", "presolicitation",
+                    "special_notice", "award_notice", "justification", "all",
+                ],
+                "description": "Filter by notice type. Default: all.",
+            },
+            "naics": {
+                "type": "string",
+                "description": "NAICS code to filter by (e.g. '541511', '541330').",
+            },
+            "set_aside": {
+                "type": "string",
+                "description": "Set-aside filter — e.g. 'SBA', 'SDVOSBC', "
+                "'WOSB', '8A', 'HZC'. Use 'SBA' for total small business.",
+            },
+            "posted_days": {
+                "type": "integer",
+                "description": "Only show opportunities from the last N days "
+                "(default: 30, max: 365).",
+            },
+            "limit": {
+                "type": "integer",
+                "description": "Max results (default: 20, max: 100).",
+            },
+        },
+        "required": [],
+    },
+    annotations=ToolAnnotations(readOnlyHint=True),
+)
+async def search_sam_opportunities(args: dict[str, Any]) -> dict[str, Any]:
+    try:
+        notice_type = args.get("notice_type", "all")
+        posted_days = min(args.get("posted_days", 30), 365)
+        limit = min(args.get("limit", 20), 100)
+        keyword = args.get("q", "").strip() or None
+
+        from datetime import date, timedelta
+        to_date = date.today()
+        from_date = to_date - timedelta(days=posted_days)
+
+        params = {
+            "limit": limit,
+            "postedFrom": from_date.strftime("%m/%d/%Y"),
+            "postedTo": to_date.strftime("%m/%d/%Y"),
+        }
+        if keyword:
+            params["q"] = keyword
+        if notice_type != "all" and notice_type in _SAM_NOTICE_TYPES:
+            params["noticeType"] = _SAM_NOTICE_TYPES[notice_type]
+        if args.get("naics"):
+            params["naicsCode"] = args["naics"]
+        if args.get("set_aside"):
+            params["setAside"] = args["set_aside"]
+
+        data = await _sam_search(params)
+
+        if "error" in data:
+            return _error(data["error"])
+
+        opportunities = data.get("opportunitiesData", [])
+        results = []
+        for op in opportunities:
+            desc_url = op.get("description", "")
+            notice_id = ""
+            if desc_url and "noticeid=" in str(desc_url):
+                notice_id = str(desc_url).split("noticeid=")[-1]
+
+            results.append({
+                "title": op.get("title", ""),
+                "notice_type": op.get("type", ""),
+                "solicitation_number": op.get("solicitationNumber", ""),
+                "response_deadline": op.get("responseDeadLine"),
+                "posted_date": op.get("postedDate"),
+                "naics_code": op.get("naicsCode", ""),
+                "naics_description": op.get("naicsDescription", ""),
+                "set_aside": op.get("typeOfSetAsideDescription", ""),
+                "place_of_performance": op.get("placeOfPerformance", {}).get("city", {}).get("code", "")
+                if op.get("placeOfPerformance") else "",
+                "notice_id": notice_id,
+                "ui_link": op.get("uiLink", ""),
+                "office": op.get("office", ""),
+                "organization": op.get("organization", ""),
+            })
+
+        return _result({
+            "query": keyword or "(all)",
+            "notice_type": notice_type,
+            "posted_days": posted_days,
+            "count": len(results),
+            "total_available": data.get("totalRecords", 0),
+            "opportunities": results,
+        })
+
+    except Exception as exc:
+        return _error(f"search_sam_opportunities failed: {exc}")
+
+
+@tool(
+    "get_sam_opportunity_detail",
+    "Get the full description for a specific SAM.gov opportunity. "
+    "Pass the notice_id from search_sam_opportunities results. "
+    "Returns the complete description text with downloadable links "
+    "extracted. Attachments are accessed via the SAM.gov UI link "
+    "(ui_link in search results) — click through to download files.",
+    {
+        "type": "object",
+        "properties": {
+            "notice_id": {
+                "type": "string",
+                "description": "The notice ID from search results "
+                "(the UUID at the end of the description URL).",
+            },
+        },
+        "required": ["notice_id"],
+    },
+    annotations=ToolAnnotations(readOnlyHint=True),
+)
+async def get_sam_opportunity_detail(args: dict[str, Any]) -> dict[str, Any]:
+    try:
+        if not _SAM_API_KEY:
+            return _error("SAM_GOV_API_KEY not configured.")
+
+        notice_id = args["notice_id"]
+        url = (
+            f"https://api.sam.gov/prod/opportunities/v1/noticedesc"
+            f"?noticeid={notice_id}&api_key={_SAM_API_KEY}"
+        )
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.get(url)
+            resp.raise_for_status()
+            data = resp.json()
+
+        desc_html = data.get("description", "")
+
+        # Strip HTML tags for plain text
+        import re as _re
+        plain_text = _re.sub(r"<[^>]+>", " ", desc_html)
+        plain_text = _re.sub(r"\s+", " ", plain_text).strip()
+
+        # Extract links from description
+        links = []
+        for match in _re.finditer(
+            r'<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>(.*?)</a>',
+            desc_html,
+            _re.IGNORECASE | _re.DOTALL,
+        ):
+            href = match.group(1)
+            label = _re.sub(r"<[^>]+>", "", match.group(2)).strip()
+            if href and label:
+                links.append({"url": href, "label": label})
+
+        return _result({
+            "notice_id": notice_id,
+            "plain_text": plain_text[:8000]
+            if len(plain_text) > 8000
+            else plain_text,
+            "text_length": len(plain_text),
+            "links_found": links[:30],
+            "sam_gov_url": f"https://sam.gov/opp/{notice_id}/view",
+        })
+
+    except Exception as exc:
+        return _error(f"get_sam_opportunity_detail failed: {exc}")
+
+
 # ===================================================================
 # Server factory
 # ===================================================================
@@ -1193,6 +1419,9 @@ def create_external_tools_server() -> Any:
             lookup_usc_section,
             # Stealth Scraper
             fetch_protected_url,
+            # SAM.gov
+            search_sam_opportunities,
+            get_sam_opportunity_detail,
             # Legal Brain (Neo4j) — disabled pending infrastructure setup
             # kg_ingest_case,
             # kg_ingest_strategy,

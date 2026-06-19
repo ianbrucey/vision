@@ -302,6 +302,14 @@ get_company_profile   — Get full profile data (CAGE/UEI, NAICS, etc.).
 get_case_profile      — Get the profile attached to this case. Call before
                         drafting any response that needs company info.
 
+## SAM.gov (Federal Contract Opportunities)
+search_sam_opportunities  — Search for federal contract opportunities,
+                            sources sought notices, presolicitations, and
+                            special notices. Filter by keyword, NAICS,
+                            set-aside, notice type, and date range.
+get_sam_opportunity_detail — Get full description and attachment links
+                            for a specific SAM.gov opportunity.
+
 ## Knowledge Base
 create_knowledge_entry — Persist reusable knowledge across cases.
 search_knowledge     — Search by tags, text, or both.
