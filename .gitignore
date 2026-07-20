@@ -30,3 +30,5 @@ Thumbs.db
 # Docker volumes
 vision_pgdata/
 vision_minio_data/
+.env.docker
+.env.prod
