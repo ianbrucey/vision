@@ -37,6 +37,8 @@ from core.db import (
     ensure_vendor_outreach_messages_schema,
     ensure_workspace_pdf_filetype_schema,
     ensure_sam_notices_schema,
+    ensure_sam_notice_import_job_schema,
+    ensure_forecast_opportunities_schema,
 )
 
 # ---------------------------------------------------------------------------
@@ -113,11 +115,18 @@ def main() -> int:
         status = "OK" if ok else "MISSING"
         print(f"  {name}: {status}")
     if not all(exts.values()):
-        print("  ERROR: Missing extensions. Install with:")
-        print("    CREATE EXTENSION IF NOT EXISTS vector;")
-        print("    CREATE EXTENSION IF NOT EXISTS pg_trgm;")
-        print("  Or use the docker image: pgvector/pgvector:pg15")
-        return 1
+        print("  Creating missing extensions...")
+        conn = connect()
+        try:
+            with conn.cursor() as cur:
+                if not exts["pgvector"]:
+                    cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
+                    print("  pgvector: CREATED")
+                if not exts["pg_trgm"]:
+                    cur.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
+                    print("  pg_trgm: CREATED")
+        finally:
+            conn.close()
 
     # 3. Apply schemas
     print("\n[3/4] Applying schemas...")
@@ -189,6 +198,14 @@ def main() -> int:
         sam_notices = ensure_sam_notices_schema()
         for path in sam_notices:
             print(f"  SamNotices:{path}")
+
+        sam_import = ensure_sam_notice_import_job_schema()
+        for path in sam_import:
+            print(f"  SamImport:{path}")
+
+        forecasts = ensure_forecast_opportunities_schema()
+        for path in forecasts:
+            print(f"  Forecasts:{path}")
     except Exception as e:
         print(f"  ERROR applying schemas: {e}", file=sys.stderr)
         return 1
