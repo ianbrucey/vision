@@ -1,8 +1,9 @@
 """
 Vision — Vendor Matching Pipeline (Unattended).
 
-Runs after a solicitation's triage completes with quick_kill=false (or
-on-demand via the manual trigger). Builds a deterministic SQL candidate
+Runs after a solicitation's triage completes (automatically or on-demand
+via the manual trigger). quick_kill is informational only and does NOT
+block matching. Builds a deterministic SQL candidate
 pool (NAICS exact -> NAICS family -> capabilities FTS, set-aside
 hard-gated, capped ~300 rows) via VendorMatchManager, then runs a single
 LLM agent that ranks/selects the top 25 candidates and drafts one

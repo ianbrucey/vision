@@ -599,22 +599,21 @@ async def run_solicitation_triage(case_id: int, solicitation_id: int) -> dict:
         triage_error="; ".join(errors) if errors else None,
     )
 
-    # Auto-trigger vendor matching — only for non-quick-killed,
-    # fully artifact-completed triage runs.
-    if not triage_result.get("quick_kill"):
-        try:
-            from ingestion.jobs import enqueue
+    # Auto-trigger vendor matching — always runs after artifact extraction.
+    # quick_kill is informational only; it never blocks the pipeline.
+    try:
+        from ingestion.jobs import enqueue
 
-            enqueue(
-                case_id=case_id,
-                job_type="vendor_matching",
-                metadata={"solicitation_id": solicitation_id},
-            )
-        except Exception as e:
-            print(
-                f"Failed to enqueue vendor_matching for "
-                f"solicitation_id={solicitation_id}: {e}"
-            )
+        enqueue(
+            case_id=case_id,
+            job_type="vendor_matching",
+            metadata={"solicitation_id": solicitation_id},
+        )
+    except Exception as e:
+        print(
+            f"Failed to enqueue vendor_matching for "
+            f"solicitation_id={solicitation_id}: {e}"
+        )
 
     return {
         "quick_kill": triage_result["quick_kill"],

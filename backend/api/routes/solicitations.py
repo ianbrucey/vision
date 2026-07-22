@@ -189,9 +189,9 @@ def trigger_vendor_matching_endpoint(
 ):
     """Manually (re)trigger vendor matching for a solicitation.
 
-    Requires triage_status='complete', quick_kill=false, and a NAICS code
-    present. Deletes prior vendor_matches rows for this solicitation before
-    the job runs (CLAIM-08 — enforced by the job handler at save-time).
+    Requires triage_status='complete' and a NAICS code present (matching
+    cannot function without a NAICS to query the vendor pool). quick_kill
+    is informational only and does NOT block matching.
     """
     sol = mgr.get(solicitation_id)
     if sol is None:
@@ -201,12 +201,6 @@ def trigger_vendor_matching_endpoint(
         raise HTTPException(
             status_code=400,
             detail="Cannot run vendor matching — triage has not completed",
-        )
-
-    if sol.get("quick_kill"):
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot run vendor matching — solicitation was quick-killed during triage",
         )
 
     if not sol.get("naics_code"):

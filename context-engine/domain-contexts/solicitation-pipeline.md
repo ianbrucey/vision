@@ -16,7 +16,7 @@ A federal solicitation created with `source_type='federal'` runs through three c
 | Gate | Location | Condition | If it fails |
 |---|---|---|---|
 | **Triage gate** | `worker.py: process_sam_fetch_job` (end) | `has_missing_docs == False` | `solicitation_triage` is NOT enqueued — solicitation sits with `ingestion_status='complete'`; user must click "Run Triage" manually |
-| **Matching gate** | `solicitation_triage.py: run_solicitation_triage` (end) | `quick_kill == False` | `vendor_matching` is NOT auto-enqueued; `matching_status` stays `'pending'` forever unless manually triggered (manual trigger also blocks quick-killed sols). **Artifacts are always extracted regardless of quick-kill status.** |
+| **Matching gate** | `solicitation_triage.py: run_solicitation_triage` (end) | None — matching always runs | `vendor_matching` is always auto-enqueued after artifact extraction. `quick_kill` is informational only and does NOT block the pipeline. **Artifacts are always extracted and matching always runs regardless of quick-kill status.** |
 | **NAICS gate** | `vendor_matching.py: run_vendor_matching_pipeline` | `solicitations.naics_code` is non-null | `matching_status='failed'`, no agent call |
 | **Empty-pool short-circuit** | same | `build_candidate_pool()` returns `[]` | `matching_status='complete'` with 0 matches — a legitimate outcome, not a failure. No LLM call (cost-saving). |
 
