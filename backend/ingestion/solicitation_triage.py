@@ -3,8 +3,9 @@ Vision — Solicitation Triage Pipeline (Unattended).
 
 Runs after a federal solicitation's documents finish fetching (or on-demand
 via the manual trigger). Classifies the notice type, runs the quick-kill
-checklist, and — if it passes — extracts 5 partner-facing HTML artifacts in
-parallel. Each artifact is written directly to its `solicitations` column
+checklist, and always extracts 5 partner-facing HTML artifacts in parallel
+(regardless of quick-kill outcome — quick-kill only gates the vendor_matching
+auto-enqueue). Each artifact is written directly to its `solicitations` column
 (matching the external govcon Laravel portal's column names, per
 specs/vision-ai-brief.md) AND mirrored into the case's workspace (`drafts`
 table, folder='artifacts', file_type='html') so it's viewable in Vision's
@@ -162,6 +163,11 @@ RUN the quick-kill checklist. Answer true only if you find clear evidence:
 If any apply, quick_kill=true and quick_kill_reason must quote the specific
 language that triggered it. If none apply, quick_kill=false and
 quick_kill_reason should be null.
+
+IMPORTANT: quick_kill only blocks automatic vendor matching — your
+classification and the 5 artifact extractors will still run regardless.
+Set quick_kill honestly based on the checklist above; don't avoid flagging
+just because you want artifact extraction to proceed (it will either way).
 
 When ready, call save_triage_result with your findings. Do not respond with
 findings as chat text — they must go through the tool."""
@@ -550,10 +556,11 @@ async def _run_extractor(case_id: int, solicitation_id: int, spec: dict[str, str
 async def run_solicitation_triage(case_id: int, solicitation_id: int) -> dict:
     """Run the full unattended triage pipeline for one solicitation.
 
-    Sets triage_status through 'running' -> 'complete'|'failed'. Quick-kill
-    stops after Phase 1 with no artifacts generated. Otherwise runs all 5
-    extractors concurrently; individual extractor failures are tolerated
-    (has_partial_artifacts=true) rather than failing the whole run.
+    Sets triage_status through 'running' -> 'complete'|'failed'. Artifacts
+    are ALWAYS extracted (even when quick_kill=true) — quick-kill only gates
+    the vendor_matching auto-enqueue. All 5 extractors run concurrently;
+    individual extractor failures are tolerated (has_partial_artifacts=true)
+    rather than failing the whole run.
     """
     from core.solicitation import SolicitationManager
 
@@ -571,14 +578,9 @@ async def run_solicitation_triage(case_id: int, solicitation_id: int) -> dict:
         mgr.update(solicitation_id, triage_status="failed", triage_error=err)
         return {"error": err}
 
-    if triage_result["quick_kill"]:
-        mgr.update(solicitation_id, triage_status="complete")
-        return {
-            "quick_kill": True,
-            "notice_type": triage_result["notice_type"],
-            "reason": triage_result.get("quick_kill_reason"),
-        }
-
+    # Always run artifact extraction regardless of quick-kill status.
+    # Quick-kill only gates the vendor_matching auto-enqueue below —
+    # we still need the 5 artifacts to understand the solicitation fully.
     results = await asyncio.gather(
         *[_run_extractor(case_id, solicitation_id, spec) for spec in ARTIFACT_SPECS]
     )
@@ -597,22 +599,26 @@ async def run_solicitation_triage(case_id: int, solicitation_id: int) -> dict:
         triage_error="; ".join(errors) if errors else None,
     )
 
-    # Auto-trigger vendor matching — only reached on a non-quick-killed,
-    # completed triage run (mirrors the sam_fetch -> solicitation_triage
-    # chain in worker.py's process_sam_fetch_job).
-    try:
-        from ingestion.jobs import enqueue
+    # Auto-trigger vendor matching — only for non-quick-killed,
+    # fully artifact-completed triage runs.
+    if not triage_result.get("quick_kill"):
+        try:
+            from ingestion.jobs import enqueue
 
-        enqueue(
-            case_id=case_id,
-            job_type="vendor_matching",
-            metadata={"solicitation_id": solicitation_id},
-        )
-    except Exception as e:
-        print(f"Failed to enqueue vendor_matching for solicitation_id={solicitation_id}: {e}")
+            enqueue(
+                case_id=case_id,
+                job_type="vendor_matching",
+                metadata={"solicitation_id": solicitation_id},
+            )
+        except Exception as e:
+            print(
+                f"Failed to enqueue vendor_matching for "
+                f"solicitation_id={solicitation_id}: {e}"
+            )
 
     return {
-        "quick_kill": False,
+        "quick_kill": triage_result["quick_kill"],
+        "quick_kill_reason": triage_result.get("quick_kill_reason"),
         "notice_type": triage_result["notice_type"],
         "has_partial_artifacts": has_partial,
         "errors": errors,

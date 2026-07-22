@@ -16,7 +16,7 @@ A federal solicitation created with `source_type='federal'` runs through three c
 | Gate | Location | Condition | If it fails |
 |---|---|---|---|
 | **Triage gate** | `worker.py: process_sam_fetch_job` (end) | `has_missing_docs == False` | `solicitation_triage` is NOT enqueued — solicitation sits with `ingestion_status='complete'`; user must click "Run Triage" manually |
-| **Matching gate** | `solicitation_triage.py: run_solicitation_triage` (end) | `quick_kill == False` | `vendor_matching` is NOT enqueued; `matching_status` stays `'pending'` forever unless manually triggered (and manual trigger also blocks quick-killed sols) |
+| **Matching gate** | `solicitation_triage.py: run_solicitation_triage` (end) | `quick_kill == False` | `vendor_matching` is NOT auto-enqueued; `matching_status` stays `'pending'` forever unless manually triggered (manual trigger also blocks quick-killed sols). **Artifacts are always extracted regardless of quick-kill status.** |
 | **NAICS gate** | `vendor_matching.py: run_vendor_matching_pipeline` | `solicitations.naics_code` is non-null | `matching_status='failed'`, no agent call |
 | **Empty-pool short-circuit** | same | `build_candidate_pool()` returns `[]` | `matching_status='complete'` with 0 matches — a legitimate outcome, not a failure. No LLM call (cost-saving). |
 
@@ -55,13 +55,13 @@ POST /api/solicitations {source_type: "federal", url}
 │   → solicitation_triage.py: run_solicitation_triage)          │
 │  Phase 1: TRIAGE_SYSTEM_PROMPT agent (read tools) classifies  │
 │    notice_type + quick_kill (+ reason)                        │
-│  IF quick_kill: triage_status='complete', STOP (no artifacts, │
-│    no vendor_matching enqueue)                                 │
-│  ELSE: 5 extractor agents run concurrently (asyncio.gather),  │
-│    each writes its own artifact_* column + mirrors an HTML    │
+│  Phase 2: 5 extractor agents run concurrently (asyncio.gather) │
+│    regardless of quick_kill result — artifacts are always     │
+│    generated for full solicitation understanding.             │
+│    Each writes its own artifact_* column + mirrors an HTML    │
 │    draft into the workspace (drafts table, folder='artifacts')│
 │  triage_status='complete', has_partial_artifacts=T/F           │
-│  enqueue(job_type="vendor_matching")  ────────────────────────┐│
+│  IF NOT quick_kill: enqueue(job_type="vendor_matching") ──────┐│
 └────────────────────────────────────────────────────────────┼┘
                                                                 │
         ┌───────────────────────────────────────────────────────┘
