@@ -5,4 +5,5 @@
 ALTER TABLE vision.saved_reports ALTER COLUMN case_id DROP NOT NULL;
 
 INSERT INTO vision.schema_migrations (version, name)
-VALUES (30, 'saved_reports_nullable_case_id');
+VALUES (30, 'saved_reports_nullable_case_id')
+ON CONFLICT (version) DO NOTHING;
