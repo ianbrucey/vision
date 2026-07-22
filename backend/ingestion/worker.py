@@ -251,63 +251,107 @@ def process_sam_fetch_job(job: dict) -> None:
     else:
         TEMP_DIR.mkdir(parents=True, exist_ok=True)
         total = len(resource_links)
-        for i, link in enumerate(resource_links):
-            pct = 30 + int((i / total) * 60)
-            update_progress(job_id, pct)
-            local_path = TEMP_DIR / f"{job_id}_sam_{i}"
+
+        # ── Phase 1: download all attachments in parallel ──────────
+        # Each resource link is a SAM.gov S3-presigned URL — purely I/O bound.
+        # Threading cuts wall-clock time from Σ(downloads) to max(downloads).
+        downloads: list[dict | Exception] = [None] * total  # type: ignore[list-item]
+
+        def _download_one(idx: int, link: str) -> tuple[int, dict | Exception]:
+            local_path = TEMP_DIR / f"{job_id}_sam_{idx}"
             try:
-                print(f"[{WORKER_ID}] Job {job_id}: downloading resource {i+1}/{total}...")
-                downloaded = download_resource_link(link, local_path)
-                filename = downloaded["filename"]
-                fpath = downloaded["path"]
+                return (idx, download_resource_link(link, local_path))
+            except Exception as e:
+                return (idx, e)
 
-                # ingest_file dispatches on file_path.suffix, but the temp
-                # download path has no extension (real filename/extension is
-                # only known after the download, from Content-Disposition).
-                # Rename to carry the correct suffix before dispatching.
-                suffix = Path(filename).suffix
-                if suffix and fpath.suffix != suffix:
-                    renamed = fpath.with_suffix(suffix)
-                    fpath.rename(renamed)
-                    fpath = renamed
-                    local_path = renamed
+        with ThreadPoolExecutor(max_workers=min(total, 6)) as pool:
+            futures = [
+                pool.submit(_download_one, i, link)
+                for i, link in enumerate(resource_links)
+            ]
+            for future in as_completed(futures):
+                idx, result = future.result()
+                downloads[idx] = result
 
-                result = ingest_file(
+        update_progress(job_id, 60)
+
+        # ── Phase 2: ingest each download sequentially ─────────────
+        # OCR is CPU-bound and ingest_file writes to the DB — keep
+        # sequential to avoid contention.
+        for i, result in enumerate(downloads):
+            pct = 60 + int((i / total) * 35)
+            update_progress(job_id, pct)
+
+            if isinstance(result, Exception):
+                print(
+                    f"[{WORKER_ID}] Job {job_id}: resource {i+1}/{total} "
+                    f"download FAILED — {result}"
+                )
+                has_missing_docs = True
+                continue
+
+            filename = result["filename"]
+            fpath = result["path"]
+
+            # Rename to carry the correct suffix before dispatching.
+            suffix = Path(filename).suffix
+            if suffix and fpath.suffix != suffix:
+                renamed = fpath.with_suffix(suffix)
+                fpath.rename(renamed)
+                fpath = renamed
+
+            try:
+                print(
+                    f"[{WORKER_ID}] Job {job_id}: ingesting resource "
+                    f"{i+1}/{total} — {filename}"
+                )
+                ingest_result = ingest_file(
                     case_id=case_id,
                     file_path=fpath,
                     document_name=filename,
                 )
-                doc_id = result.get("document_id")
+                doc_id = ingest_result.get("document_id")
 
-                # Upload to MinIO for durable storage/preview — ingest_file only
-                # OCRs and normalizes; it never persists the file itself.
+                # Upload to MinIO for durable storage/preview.
                 storage_ref = _upload_to_minio(fpath, filename)
                 storage_path = f"{storage_ref['bucket']}/{storage_ref['object_key']}"
 
-                # ingest_file/insert_document has no source override param —
-                # tag provenance with a follow-up UPDATE (per 05-implementation-plan.md T04).
                 if doc_id:
                     from core.db import tx
                     with tx() as conn:
                         with conn.cursor() as cur:
                             cur.execute(
-                                "UPDATE documents SET source = 'sam_gov', storage_path = %s WHERE id = %s",
+                                "UPDATE documents SET source = 'sam_gov', "
+                                "storage_path = %s WHERE id = %s",
                                 (storage_path, doc_id),
                             )
                     try:
-                        enqueue(case_id=case_id, job_type="enrich", metadata={"document_id": doc_id})
+                        enqueue(
+                            case_id=case_id,
+                            job_type="enrich",
+                            metadata={"document_id": doc_id},
+                        )
                     except Exception as e:
-                        print(f"[{WORKER_ID}] Job {job_id}: failed to enqueue enrich — {e}")
+                        print(
+                            f"[{WORKER_ID}] Job {job_id}: failed to enqueue "
+                            f"enrich — {e}"
+                        )
 
-                print(f"[{WORKER_ID}] Job {job_id}: ingested {filename} (doc_id={doc_id})")
+                print(
+                    f"[{WORKER_ID}] Job {job_id}: ingested {filename} "
+                    f"(doc_id={doc_id})"
+                )
             except Exception as e:
-                print(f"[{WORKER_ID}] Job {job_id}: resource {i+1}/{total} FAILED — {e}")
+                print(
+                    f"[{WORKER_ID}] Job {job_id}: resource {i+1}/{total} "
+                    f"ingest FAILED — {e}"
+                )
                 traceback.print_exc()
                 has_missing_docs = True
             finally:
                 try:
-                    if local_path.exists():
-                        local_path.unlink()
+                    if fpath.exists():
+                        fpath.unlink()
                 except OSError:
                     pass
 
