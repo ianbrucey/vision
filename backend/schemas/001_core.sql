@@ -441,7 +441,7 @@ CREATE TABLE IF NOT EXISTS jobs (
                         'ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
                         'analyze', 'export', 'ocr', 'embed', 'enrich',
                         'synthesize', 'profile_synthesis', 'capability_statement',
-                        'sam_fetch', 'solicitation_triage', 'vendor_matching', 'other'
+                        'sam_fetch', 'solicitation_triage', 'vendor_matching', 'inbound_email', 'sam_notice_import', 'other'
                     )),
     status          TEXT NOT NULL DEFAULT 'queued' CHECK (
                         status IN ('queued', 'processing', 'complete', 'failed')
@@ -499,7 +499,7 @@ BEGIN
         CHECK (job_type IN ('ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
                              'analyze', 'export', 'ocr', 'embed', 'enrich',
                              'synthesize', 'profile_synthesis', 'capability_statement',
-                             'sam_fetch', 'solicitation_triage', 'vendor_matching', 'other'));
+                             'sam_fetch', 'solicitation_triage', 'vendor_matching', 'inbound_email', 'sam_notice_import', 'other'));
 END $$;
 
 INSERT INTO schema_migrations (version, name) VALUES (2, 'add_enrich_job_type')
@@ -513,7 +513,7 @@ BEGIN
         CHECK (job_type IN ('ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
                              'analyze', 'export', 'ocr', 'embed', 'enrich',
                              'synthesize', 'profile_synthesis', 'capability_statement',
-                             'sam_fetch', 'solicitation_triage', 'vendor_matching', 'other'));
+                             'sam_fetch', 'solicitation_triage', 'vendor_matching', 'inbound_email', 'sam_notice_import', 'other'));
 END $$;
 
 INSERT INTO schema_migrations (version, name) VALUES (3, 'add_synthesize_job_type')

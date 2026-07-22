@@ -67,7 +67,7 @@ ALTER TABLE jobs ADD CONSTRAINT jobs_job_type_check
     CHECK (job_type IN ('ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
                          'analyze', 'export', 'ocr', 'embed', 'enrich',
                          'synthesize', 'profile_synthesis', 'capability_statement',
-                         'sam_fetch', 'solicitation_triage', 'vendor_matching', 'other'));
+                         'sam_fetch', 'solicitation_triage', 'vendor_matching', 'inbound_email', 'sam_notice_import', 'other'));
 
 -- ============================================================================
 -- Migration Bookkeeping
