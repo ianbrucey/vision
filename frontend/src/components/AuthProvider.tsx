@@ -18,6 +18,11 @@ export function useAuth() {
 
 const PUBLIC_PATHS = ["/login", "/register"];
 
+function isPublicPath(pathname: string): boolean {
+  if (pathname === "/") return true;
+  return PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+}
+
 export default function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
@@ -39,20 +44,20 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!ready || !pathname) return;
-    const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+    const isPublic = isPublicPath(pathname);
     const authed = !!getToken();
 
     if (!authed && !isPublic) {
       router.replace("/login");
-    } else if (authed && isPublic) {
-      router.replace("/");
+    } else if (authed && isPublic && pathname !== "/solicitations") {
+      router.replace("/solicitations");
     }
   }, [pathname, ready, router]);
 
   const handleLogout = () => {
     setUser(null);
     clearAuth();
-    router.replace("/login");
+    router.replace("/");
   };
 
   return (

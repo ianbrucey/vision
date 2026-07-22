@@ -22,8 +22,10 @@ two public hostnames. Deploys are manual via `deploy.sh` — no CI/CD.
       Linode IP. Caddy obtains Let's Encrypt certs automatically on boot.
 - [ ] **`.env.prod` is gitignored** and contains real secrets. It lives only
       on the server at `/root/vision-new/.env.prod`. Never commit it.
-- [ ] **1 worker replica** (not 3) — the server has 1.9GB RAM. Scaling up
-      workers requires more RAM.
+- [ ] **3 worker replicas** — the server has 1.9GB RAM. Workers are mostly
+      idle waiting on DeepSeek API calls, so the incremental memory cost per
+      replica is low when not actively processing an agent run. If the server
+      OOMs under heavy load, scale back to 2 or upgrade the Linode.
 - [ ] **Old deployment preserved** at `/root/vision/` (rsync'd, not git).
       The active deployment is at `/root/vision-new/` (git clone, branch
       `talentlynk`). Do not delete the old directory without confirming.
@@ -237,9 +239,8 @@ force a re-run: `docker compose -f docker-compose.prod.yml restart vision-api`
 
 ## 7. Known Issues & Technical Debt
 
-- [ ] **Worker replicas capped at 1** — server has 1.9GB RAM. Scaling to 3
-      workers (as `start.sh` defaults for local dev) will OOM. Upgrade server
-      RAM or move workers to a separate host.
+- [ ] **Worker replicas at 3** — server has 1.9GB RAM. Monitor for OOM under
+      heavy concurrent agent load. If swapping becomes excessive, scale to 2.
 - [ ] **Old deployment at `/root/vision/`** — still on disk (35 GB used
       total). Safe to delete once the new deployment is confirmed stable,
       but confirm with the user first.

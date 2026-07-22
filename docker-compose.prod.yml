@@ -81,7 +81,7 @@ services:
         condition: service_started
     restart: unless-stopped
     deploy:
-      replicas: 1
+      replicas: 3
 
   vision-frontend:
     build:
