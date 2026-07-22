@@ -257,7 +257,7 @@ export const listSolicitations = (
 };
 
 export const createSolicitation = (
-  data: { source_type: string; url: string; title?: string; description?: string },
+  data: { source_type: string; url?: string; title?: string; description?: string },
 ): Promise<{ solicitation: Solicitation; job_id: number | null }> =>
   fetchAPI("/api/solicitations", { method: "POST", body: JSON.stringify(data) });
 

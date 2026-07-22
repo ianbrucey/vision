@@ -33,7 +33,7 @@ vendor_mgr = VendorManager()
 
 class CreateSolicitationRequest(BaseModel):
     source_type: str
-    url: str
+    url: str = ""
     title: str | None = None
     description: str | None = None
 
@@ -58,7 +58,7 @@ def create_solicitation_endpoint(
     user: dict = Depends(get_current_user),
 ):
     notice_id = None
-    if body.source_type == "federal":
+    if body.source_type == "federal" and body.url:
         notice_id = extract_notice_id(body.url)
 
     try:
@@ -84,7 +84,7 @@ def create_solicitation_endpoint(
         )
 
     job_id = None
-    if body.source_type == "federal":
+    if body.source_type == "federal" and body.url:
         job = _enqueue_job(
             case_id=sol["case_id"],
             job_type="sam_fetch",

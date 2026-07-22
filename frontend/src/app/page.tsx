@@ -43,6 +43,7 @@ export default function SolicitationsPage() {
   const router = useRouter();
   const [solicitations, setSolicitations] = useState<Solicitation[]>([]);
   const [sourceType, setSourceType] = useState<SourceType>("federal");
+  const [manualFederal, setManualFederal] = useState(false);
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -89,23 +90,25 @@ export default function SolicitationsPage() {
     setCreateError("");
   };
 
+  const isManualEntry = sourceType === "federal" && manualFederal;
+  const needsManualFields = sourceType !== "federal" || isManualEntry;
+
   const handleCreate = async () => {
-    if (!url.trim()) return;
-    if (sourceType !== "federal" && !title.trim()) return;
-    if (sourceType !== "federal" && !description.trim()) return;
+    if (!needsManualFields && !url.trim()) return;
+    if (needsManualFields && !title.trim()) return;
     setCreateError("");
     setCreating(true);
     try {
       const { solicitation } = await createSolicitation({
         source_type: sourceType,
-        url,
-        ...(sourceType !== "federal" ? { title, description } : {}),
+        url: needsManualFields ? "" : url,
+        ...(needsManualFields ? { title, description } : {}),
       });
       resetForm();
       setShowCreateMobile(false);
-      if (sourceType !== "federal") {
-        // No async fetch job for state/local — send the user straight to the
-        // Documents tab to upload the RFP/RFQ files via the existing uploader.
+      setManualFederal(false);
+      if (needsManualFields) {
+        // No sam_fetch job — send user to Documents tab to upload files.
         router.push(`/cases/${solicitation.case_id}?tab=documents`);
       } else {
         refresh();
@@ -191,13 +194,13 @@ export default function SolicitationsPage() {
     "transition-colors duration-150";
 
   const sourceTypeSelector = (
-    <div className="flex gap-1.5 mb-3">
+    <div className="flex gap-1.5 mb-3 flex-wrap">
       {(["federal", "state", "local"] as const).map((t) => (
         <button
           key={t}
-          onClick={() => setSourceType(t)}
+          onClick={() => { setSourceType(t); setManualFederal(false); }}
           className={`text-[11px] px-3 py-1.5 rounded-md border transition-colors ${
-            sourceType === t
+            sourceType === t && !manualFederal
               ? "bg-brand-bg border-brand text-brand"
               : "border-border text-text-secondary hover:border-border-strong active:border-brand"
           }`}
@@ -205,6 +208,18 @@ export default function SolicitationsPage() {
           {t === "federal" ? "Federal (SAM.gov)" : t[0].toUpperCase() + t.slice(1)}
         </button>
       ))}
+      {sourceType === "federal" && (
+        <button
+          onClick={() => setManualFederal(true)}
+          className={`text-[11px] px-3 py-1.5 rounded-md border transition-colors ${
+            manualFederal
+              ? "bg-brand-bg border-brand text-brand"
+              : "border-border text-text-secondary hover:border-border-strong active:border-brand"
+          }`}
+        >
+          DIBBs / Manual Entry
+        </button>
+      )}
     </div>
   );
 
@@ -255,7 +270,7 @@ export default function SolicitationsPage() {
           <h2 className="text-sm font-medium text-text-secondary mb-3">New Solicitation</h2>
           {sourceTypeSelector}
           <div className="flex gap-3">
-            {sourceType !== "federal" && (
+            {needsManualFields && (
               <input
                 required
                 className={inputClasses}
@@ -264,14 +279,16 @@ export default function SolicitationsPage() {
                 onChange={(e) => setTitle(e.target.value)}
               />
             )}
-            <input
-              required
-              className={`flex-1 ${inputClasses}`}
-              placeholder={urlPlaceholder}
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-            />
+            {!needsManualFields && (
+              <input
+                required
+                className={`flex-1 ${inputClasses}`}
+                placeholder={urlPlaceholder}
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+              />
+            )}
             <button
               onClick={handleCreate}
               disabled={creating}
@@ -284,7 +301,7 @@ export default function SolicitationsPage() {
               {creating ? "Creating..." : "Create"}
             </button>
           </div>
-          {sourceType !== "federal" && (
+          {needsManualFields && (
             <textarea
               required
               rows={2}
@@ -328,7 +345,7 @@ export default function SolicitationsPage() {
               <h2 className="text-lg font-semibold mb-4">New Solicitation</h2>
               <div className="flex flex-col gap-3">
                 {sourceTypeSelector}
-                {sourceType !== "federal" && (
+                {needsManualFields && (
                   <input
                     required
                     className={`${inputClasses} text-[16px]`}
@@ -338,14 +355,16 @@ export default function SolicitationsPage() {
                     autoFocus
                   />
                 )}
-                <input
-                  required
-                  className={`${inputClasses} text-[16px]`}
-                  placeholder={urlPlaceholder}
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                />
-                {sourceType !== "federal" && (
+                {!needsManualFields && (
+                  <input
+                    required
+                    className={`${inputClasses} text-[16px]`}
+                    placeholder={urlPlaceholder}
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                  />
+                )}
+                {needsManualFields && (
                   <textarea
                     required
                     rows={2}
