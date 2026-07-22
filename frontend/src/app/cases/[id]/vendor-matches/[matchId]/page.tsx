@@ -202,18 +202,22 @@ export default function VendorMatchThreadPage() {
             const isOutbound = msg.direction === "outbound";
             const isDraft = msg.status === "draft";
             const isFailed = msg.status === "failed";
+            const isReceived = msg.status === "received";
+            const editable = isDraft; // only outbound drafts are editable
 
             return (
               <div
                 key={msg.id}
                 className={`bg-surface-1 border rounded-lg overflow-hidden ${
-                  isFailed ? "border-danger/40" : "border-border"
+                  isFailed ? "border-danger/40"
+                : isReceived ? "border-success/30"
+                : "border-border"
                 }`}
               >
                 {/* Message header bar */}
                 <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border-light bg-surface-2">
                   <span className={`text-[11px] font-semibold uppercase tracking-wide ${
-                    isOutbound ? "text-brand" : "text-info"
+                    isOutbound ? "text-brand" : "text-success"
                   }`}>
                     {isOutbound ? "To Vendor" : "From Vendor"}
                   </span>
@@ -223,8 +227,13 @@ export default function VendorMatchThreadPage() {
                     </span>
                   )}
                   {msg.status === "sent" && (
-                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-sm bg-success-bg text-success">
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-sm bg-info-bg text-info">
                       Sent
+                    </span>
+                  )}
+                  {isReceived && (
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-sm bg-success-bg text-success">
+                      Received
                     </span>
                   )}
                   {isFailed && (
@@ -239,7 +248,7 @@ export default function VendorMatchThreadPage() {
 
                 <div className="p-4">
                   {/* Subject */}
-                  {isDraft ? (
+                  {editable ? (
                     <div className="mb-3">
                       <label className="block mb-1.5 text-xs font-medium text-text-secondary">
                         Subject
@@ -263,7 +272,7 @@ export default function VendorMatchThreadPage() {
                   )}
 
                   {/* Body */}
-                  {isDraft ? (
+                  {editable ? (
                     <div>
                       <label className="block mb-1.5 text-xs font-medium text-text-secondary">
                         Message
@@ -294,7 +303,7 @@ export default function VendorMatchThreadPage() {
                   )}
 
                   {/* Actions */}
-                  {(isDraft || (!isDraft && msg.document_id) || saving === msg.id) && (
+                  {(editable || isReceived || saving === msg.id) && (
                     <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border-light">
                       {isDraft && (
                         <button
@@ -310,7 +319,19 @@ export default function VendorMatchThreadPage() {
                           Send
                         </button>
                       )}
-                      {!isDraft && msg.document_id && (
+                      {isReceived && (
+                        <button
+                          onClick={handleCreateDraft}
+                          className="inline-flex items-center gap-2 bg-brand text-white border-brand
+                                     hover:bg-brand-hover active:bg-brand-active
+                                     px-4 py-2 rounded-lg text-sm font-medium
+                                     transition-colors duration-150"
+                        >
+                          <Send size={14} />
+                          Reply
+                        </button>
+                      )}
+                      {msg.document_id && (
                         <button
                           onClick={() => setPreviewDocId(msg.document_id)}
                           className="inline-flex items-center gap-2 bg-surface-2 text-text-primary border-border

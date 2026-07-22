@@ -467,20 +467,21 @@ def ensure_vendor_outreach_email_schema() -> list[str]:
 
 
 def ensure_vendor_outreach_messages_schema() -> list[str]:
-    """Apply the vendor outreach messages migration (T10c).
+    """Apply vendor outreach messages migrations (T10c, v31).
 
-    Creates vendor_outreach_messages table — one row per outbound/inbound
-    message per vendor match. Idempotent.
+    Creates vendor_outreach_messages table, then adds 'received' status.
+    Idempotent.
     """
-    sql_path = _SCHEMA_DIR / "015_vendor_outreach_messages.sql"
-    if not sql_path.exists():
-        raise FileNotFoundError(
-            f"Vendor outreach messages schema file not found: {sql_path}"
-        )
-    with tx() as conn:
-        with conn.cursor() as cur:
-            cur.execute(sql_path.read_text())
-    return [str(sql_path)]
+    applied = []
+    for filename in ("015_vendor_outreach_messages.sql", "022_vendor_outreach_received_status.sql"):
+        sql_path = _SCHEMA_DIR / filename
+        if not sql_path.exists():
+            raise FileNotFoundError(f"Vendor outreach messages schema file not found: {sql_path}")
+        with tx() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql_path.read_text())
+        applied.append(str(sql_path))
+    return applied
 
 
 def ensure_workspace_pdf_filetype_schema() -> list[str]:

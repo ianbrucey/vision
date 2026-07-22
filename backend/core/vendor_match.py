@@ -650,9 +650,9 @@ class VendorMatchManager:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     """INSERT INTO vendor_outreach_messages
-                       (vendor_match_id, direction, subject, body,
+                       (vendor_match_id, direction, status, subject, body,
                         document_id, received_at)
-                       VALUES (%s, 'inbound', %s, %s, %s, now())
+                       VALUES (%s, 'inbound', 'received', %s, %s, %s, now())
                        RETURNING *""",
                     (vendor_match_id, subject, body, document_id),
                 )
