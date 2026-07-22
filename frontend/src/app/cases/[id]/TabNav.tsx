@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Eye, MessageCircle, FolderOpen, FolderTree, PenLine, Mail, CheckSquare, CalendarDays, MoreHorizontal, FileSearch, Building2, Users, Send, Database } from "lucide-react";
+import { Eye, MessageCircle, FolderOpen, FolderTree, PenLine, Mail, CheckSquare, CalendarDays, MoreHorizontal, FileSearch, Building2, Users, Send, Database, TrendingUp } from "lucide-react";
 
-export type TabId = "overview" | "chat" | "documents" | "drafts" | "workspace" | "correspondence" | "tasks" | "calendar" | "triage" | "vendors" | "vendor_matches" | "outreach" | "sam_notices";
+export type TabId = "overview" | "chat" | "documents" | "drafts" | "workspace" | "correspondence" | "tasks" | "calendar" | "triage" | "vendors" | "vendor_matches" | "outreach" | "sam_notices" | "forecasts";
 
 interface TabNavProps {
   activeTab: TabId;
@@ -34,6 +34,7 @@ const BASE_TABS: TabDef[] = [
   { id: "calendar", label: "Calendar", shortLabel: "Cal", icon: CalendarDays },
   { id: "vendors", label: "Vendors", shortLabel: "Vendors", icon: Building2 },
   { id: "sam_notices", label: "Sam Notices", shortLabel: "SAM", icon: Database },
+  { id: "forecasts", label: "Forecasts", shortLabel: "Forecast", icon: TrendingUp },
 ];
 
 /** First 4 tabs are always visible on mobile */

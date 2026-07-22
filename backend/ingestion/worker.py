@@ -778,6 +778,128 @@ def process_inbound_email_job(job: dict) -> None:
         mark_failed(job_id, str(e))
 
 
+def process_sam_notice_import_job(job: dict) -> None:
+    """Import a SAM.gov databank CSV into the sam_notices table.
+
+    job['metadata'] = {"file_path": str, "original_name": str, "batch_id": str}
+    set by api/routes/sam_notices.py at upload time.
+    """
+    import csv as _csv
+    import uuid
+    from datetime import datetime as _dt
+    from pathlib import Path as _Path
+
+    job_id = job["id"]
+    meta = job.get("metadata") or {}
+    file_path = meta.get("file_path")
+    original_name = meta.get("original_name", "unknown.csv")
+    batch_id = meta.get("batch_id", str(uuid.uuid4()))
+
+    if not file_path:
+        mark_failed(job_id, "Missing file_path in job metadata")
+        return
+
+    csv_path = _Path(file_path)
+    if not csv_path.exists():
+        mark_failed(job_id, f"CSV file not found: {file_path}")
+        return
+
+    _DATE_COLS = {"current_response_date", "last_published_date",
+                  "inactive_date", "last_updated_date"}
+
+    _COL_MAP = {
+        "Notice ID": "notice_id", "Opportunity Title": "opportunity_title",
+        "Contract Opportunity Type": "contract_opportunity_type",
+        "Description": "description", "Status": "status",
+        "Current Response Date": "current_response_date",
+        "Last Published Date": "last_published_date",
+        "Inactive Date": "inactive_date", "Last Updated Date": "last_updated_date",
+        "NAICS": "naics_code", "PSC": "psc_code",
+        "Current Set Aside": "current_set_aside",
+        "Current Set Aside Code": "current_set_aside_code", "Initiative": "initiative",
+        "Contracting Office": "contracting_office",
+        "Procurement AAC Code": "procurement_aac_code",
+        "Sub Tier Code": "sub_tier_code", "Sub Tier Name": "sub_tier_name",
+        "Place of Performance - Country": "pop_country",
+        "Place of Performance - Zip": "pop_zip",
+        "Place of Performance - City": "pop_city",
+        "Place of Performance - State": "pop_state",
+        "POC Name": "poc_name", "POC Email": "poc_email",
+        "Unique Entity ID": "awardee_uei", "Legal Business Name": "awardee_name",
+        "Package Attachment Count (Public)": "attachment_count",
+        "Interested Vendor List (IVL) Enabled": "ivl_enabled",
+    }
+
+    try:
+        db_cols = list(_COL_MAP.values()) + ["upload_batch_id", "source_csv"]
+        placeholders = ", ".join(["%s"] * len(db_cols))
+        col_list = ", ".join(db_cols)
+        sql = f"INSERT INTO sam_notices ({col_list}) VALUES ({placeholders})"
+
+        rows_inserted = 0
+        with open(csv_path, newline="", encoding="utf-8-sig") as f:
+            reader = _csv.DictReader(f)
+            batch = []
+            with tx() as conn:
+                with conn.cursor() as cur:
+                    for row in reader:
+                        vals = []
+                        for db_col in db_cols:
+                            if db_col in ("upload_batch_id", "source_csv"):
+                                continue
+                            csv_col = db_col  # same name in our mapped dict
+                            val = (row.get(csv_col) or "").strip()
+                            if not val:
+                                vals.append(None)
+                            elif db_col in _DATE_COLS:
+                                parsed = None
+                                for fmt in ["%b %d, %Y %I:%M %p UTC", "%b %d, %Y", "%Y-%m-%d", "%m/%d/%Y"]:
+                                    try:
+                                        parsed = _dt.strptime(val, fmt)
+                                        break
+                                    except ValueError:
+                                        continue
+                                vals.append(parsed)
+                            elif db_col == "attachment_count":
+                                try: vals.append(int(val))
+                                except: vals.append(None)
+                            elif db_col == "ivl_enabled":
+                                vals.append(val.lower() in ("true", "yes", "1", "t"))
+                            else:
+                                vals.append(val)
+                        vals.append(batch_id)
+                        vals.append(original_name)
+                        batch.append(vals)
+
+                        if len(batch) >= 500:
+                            for b in batch:
+                                cur.execute(sql, b)
+                            rows_inserted += len(batch)
+                            batch = []
+
+                    for b in batch:
+                        cur.execute(sql, b)
+                    rows_inserted += len(batch)
+
+        # Clean up temp file
+        try:
+            csv_path.unlink()
+        except Exception:
+            pass
+
+        mark_complete(job_id)
+        print(f"[{WORKER_ID}] Job {job_id}: imported {rows_inserted} SAM notices from {original_name}")
+
+    except Exception as e:
+        print(f"[{WORKER_ID}] Job {job_id}: SAM notice import FAILED — {e}")
+        traceback.print_exc()
+        try:
+            csv_path.unlink()
+        except Exception:
+            pass
+        mark_failed(job_id, str(e))
+
+
 def main():
     """Main loop — poll for jobs, process, repeat."""
     print(f"[{WORKER_ID}] Worker started. Polling every {POLL_INTERVAL}s...")
@@ -810,6 +932,8 @@ def main():
                 process_vendor_matching_job(job)
             elif job["job_type"] == "inbound_email":
                 process_inbound_email_job(job)
+            elif job["job_type"] == "sam_notice_import":
+                process_sam_notice_import_job(job)
             else:
                 mark_failed(job["id"], f"Unknown job type: {job['job_type']}")
 

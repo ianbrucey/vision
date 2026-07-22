@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAM.gov Active Solicitations & Sources Sought — No DIBBS Required</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --border: #2a2d3a;
+    --text: #e4e6ed; --muted: #8b8fa3; --brand: #5b8def;
+    --success: #34d399; --warning: #fbbf24; --danger: #f87171;
+    --info: #60a5fa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.6 -apple-system, BlinkMacSystemFont, sans-serif; padding: 40px 20px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 28px; margin-bottom: 4px; }
+  h2 { font-size: 20px; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .subtitle { color: var(--muted); margin-bottom: 32px; }
+  .note { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; margin-bottom: 24px; font-size: 13px; color: var(--muted); }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 32px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .stat-value { font-size: 32px; font-weight: 700; color: var(--brand); }
+  .stat-value.good { color: var(--success); }
+  .stat-value.warn { color: var(--warning); }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 13px; }
+  th { text-align: left; padding: 10px 12px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .bar-wrap { background: var(--border); border-radius: 4px; height: 8px; min-width: 60px; overflow: hidden; }
+  .bar-fill { background: var(--brand); border-radius: 4px; height: 100%; }
+  .bar-fill.sb { background: var(--success); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .tag-sb { background: rgba(52,211,153,0.15); color: var(--success); }
+  .tag-unrestricted { background: rgba(248,113,113,0.15); color: var(--danger); }
+  .tag-sdvosb { background: rgba(96,165,250,0.15); color: var(--info); }
+  .insight { background: var(--surface); border-left: 3px solid var(--brand); padding: 12px 16px; margin: 16px 0; border-radius: 0 6px 6px 0; font-size: 13px; }
+  .insight strong { color: var(--brand); }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+  .deadline-list { max-height: 600px; overflow-y: auto; }
+  .deadline-list td { font-size: 12px; }
+  .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>SAM.gov — Active Opportunities (No DIBBS)</h1>
+<p class="subtitle">855 Combined Synopsis/Solicitations &amp; Sources Sought &middot; DLA excluded &middot; 612 due within 30 days &middot; July 22, 2026</p>
+
+<div class="note">
+  <strong>Filter applied:</strong> Combined Synopsis/Solicitation and Sources Sought notices only. Status = active. <strong>Defense Logistics Agency excluded</strong> (935 DLA notices require DIBBS registration). All remaining notices are from 60+ agencies that use standard SAM.gov submission.
+</div>
+
+<!-- ====== KEY METRICS ====== -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-value">855</div>
+    <div class="stat-label">Active Solicitations + Sources Sought</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value good">313</div>
+    <div class="stat-label">Small Business Set-Asides</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value warn">481</div>
+    <div class="stat-label">Unrestricted</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">37%</div>
+    <div class="stat-label">SB Set-Aside Rate</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value good">612</div>
+    <div class="stat-label">Due in Next 30 Days</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">72%</div>
+    <div class="stat-label">Urgency Rate (30-day window)</div>
+  </div>
+</div>
+
+<!-- ====== AGENCY BREAKDOWN ====== -->
+<h2>1. Agency Breakdown</h2>
+
+<table>
+  <thead><tr><th>Agency</th><th>Total</th><th>SB</th><th>SDVOSB</th><th>Sol.</th><th>SS</th><th>Due 30d</th><th>SB Rate</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Dept of the Air Force</strong></td><td>153</td><td>38</td><td>1</td><td>76</td><td>77</td><td>85</td><td>24.8%</td></tr>
+    <tr><td><strong>Dept of the Army</strong></td><td>138</td><td>54</td><td>3</td><td>92</td><td>46</td><td>109</td><td>39.1%</td></tr>
+    <tr><td><strong>Dept of the Navy</strong></td><td>111</td><td>48</td><td>0</td><td>81</td><td>30</td><td>71</td><td>43.2%</td></tr>
+    <tr><td><strong>Veterans Affairs</strong></td><td>67</td><td>9</td><td><strong>23</strong></td><td>45</td><td>22</td><td>51</td><td>13.4%</td></tr>
+    <tr><td><strong>Forest Service</strong></td><td>44</td><td><strong>43</strong></td><td>0</td><td>43</td><td>1</td><td>38</td><td><strong>97.7%</strong></td></tr>
+    <tr><td><strong>State Department</strong></td><td>42</td><td>1</td><td>0</td><td>41</td><td>1</td><td>31</td><td>2.4%</td></tr>
+    <tr><td><strong>U.S. Coast Guard</strong></td><td>40</td><td>18</td><td>0</td><td>33</td><td>7</td><td>25</td><td>45.0%</td></tr>
+    <tr><td><strong>Agricultural Research Service</strong></td><td>23</td><td>16</td><td>0</td><td>22</td><td>1</td><td>22</td><td>69.6%</td></tr>
+    <tr><td><strong>National Park Service</strong></td><td>18</td><td>12</td><td>0</td><td>17</td><td>1</td><td>18</td><td>66.7%</td></tr>
+    <tr><td><strong>Department of Energy</strong></td><td>16</td><td>2</td><td>0</td><td>3</td><td>13</td><td>5</td><td>12.5%</td></tr>
+    <tr><td><strong>NIST</strong></td><td>16</td><td>8</td><td>0</td><td>9</td><td>7</td><td>14</td><td>50.0%</td></tr>
+    <tr><td><strong>DISA</strong></td><td>15</td><td>8</td><td>0</td><td>13</td><td>2</td><td>15</td><td>53.3%</td></tr>
+    <tr><td><strong>Indian Health Service</strong></td><td>15</td><td>4</td><td>1</td><td>12</td><td>3</td><td>13</td><td>26.7%</td></tr>
+    <tr><td><strong>Bureau of Prisons</strong></td><td>13</td><td>7</td><td>0</td><td>9</td><td>4</td><td>9</td><td>53.8%</td></tr>
+    <tr><td><strong>Bureau of Indian Affairs</strong></td><td>10</td><td>0</td><td>0</td><td>5</td><td>5</td><td>5</td><td>0.0%</td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> DoD still dominates (402 of 855 = 47%) but the playing field is more level without DLA. <strong>Forest Service is the SB champion</strong> — 43 of 44 notices (98%) are SB set-aside. Army has the highest absolute SB count at 54. <strong>VA is the SDVOSB target</strong> with 23 SDVOSB set-asides (77% of all SDVOSB in this filtered set). State Department and Bureau of Indian Affairs are almost entirely unrestricted — focus your SB energy elsewhere.
+</div>
+
+<!-- ====== SET-ASIDE ====== -->
+<h2>2. Set-Aside Analysis</h2>
+
+<table>
+  <thead><tr><th>Category</th><th>Total</th><th>Solicitations</th><th>Sources Sought</th><th>Distribution</th></tr></thead>
+  <tbody>
+    <tr><td><span class="tag tag-unrestricted">Unrestricted / None</span></td><td>481</td><td>246</td><td>235</td><td><div class="bar-wrap"><div class="bar-fill" style="width:100%"></div></div></td></tr>
+    <tr><td><span class="tag tag-sb">Small Business</span></td><td>313</td><td><strong>291</strong></td><td>22</td><td><div class="bar-wrap"><div class="bar-fill sb" style="width:65%"></div></div></td></tr>
+    <tr><td><span class="tag tag-sdvosb">SDVOSB</span></td><td>30</td><td>27</td><td>3</td><td></td></tr>
+    <tr><td>ISBEE</td><td>9</td><td>9</td><td>0</td><td></td></tr>
+    <tr><td>8(a)</td><td>5</td><td>5</td><td>0</td><td></td></tr>
+    <tr><td>Women-Owned</td><td>3</td><td>3</td><td>0</td><td></td></tr>
+    <tr><td>HUBZone</td><td>2</td><td>2</td><td>0</td><td></td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> 56% unrestricted, 37% SB. <strong>The SB set-asides are overwhelmingly formal solicitations</strong> (291 of 313) — not market research. Sources Sought are 96% unrestricted (market research, no SB carve-out). SDVOSB is 3.5% of the filtered set, concentrated in VA and Army.
+</div>
+
+<div class="two-col">
+<div>
+<!-- ====== WHAT THEY'RE BUYING ====== -->
+<h2>3. Top NAICS</h2>
+<table>
+  <thead><tr><th>NAICS Description</th><th>Total</th><th>SB</th></tr></thead>
+  <tbody>
+    <tr><td>Commercial Building Construction</td><td>52</td><td>31</td></tr>
+    <tr><td>R&D in Physical/Engineering/Life Sciences</td><td>30</td><td>1</td></tr>
+    <tr><td>Analytical Laboratory Instruments</td><td>30</td><td>6</td></tr>
+    <tr><td>Electrical Contractors</td><td>27</td><td>14</td></tr>
+    <tr><td>Plumbing &amp; HVAC</td><td>24</td><td><strong>17</strong></td></tr>
+    <tr><td>Electronic Equipment Repair</td><td>21</td><td>2</td></tr>
+    <tr><td>Engineering Services</td><td>19</td><td>3</td></tr>
+    <tr><td>Ship Building &amp; Repairing</td><td>19</td><td>8</td></tr>
+    <tr><td>Nonresidential Building Lessors</td><td>16</td><td>0</td></tr>
+    <tr><td>Roofing Contractors</td><td>14</td><td><strong>13</strong></td></tr>
+  </tbody>
+</table>
+</div>
+<div>
+<!-- ====== TOP STATES ====== -->
+<h2>4. Top States</h2>
+<table>
+  <thead><tr><th>State</th><th>Total</th><th>SB</th></tr></thead>
+  <tbody>
+    <tr><td>MD</td><td>49</td><td>25</td></tr>
+    <tr><td>OK</td><td>45</td><td>6</td></tr>
+    <tr><td>VA</td><td>32</td><td>7</td></tr>
+    <tr><td>CA</td><td>29</td><td>14</td></tr>
+    <tr><td>TX</td><td>27</td><td>9</td></tr>
+    <tr><td>DC</td><td>23</td><td>3</td></tr>
+    <tr><td>NC</td><td>23</td><td><strong>19</strong></td></tr>
+    <tr><td>GA</td><td>19</td><td>6</td></tr>
+    <tr><td>ID</td><td>16</td><td>5</td></tr>
+    <tr><td>FL</td><td>16</td><td>8</td></tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+<!-- ====== TOP OFFICES ====== -->
+<h2>5. Top Contracting Offices</h2>
+
+<table>
+  <thead><tr><th>Office</th><th>Agency</th><th>Total</th><th>SB</th><th>SB%</th></tr></thead>
+  <tbody>
+    <tr><td>AFSC PZAAB (Tinker AFB)</td><td>Air Force</td><td>27</td><td>0</td><td>0%</td></tr>
+    <tr><td>USDA ARS AFM APD</td><td>Ag Research</td><td>23</td><td>16</td><td>70%</td></tr>
+    <tr><td>NSWC Indian Head Division</td><td>Navy</td><td>20</td><td><strong>19</strong></td><td><strong>95%</strong></td></tr>
+    <tr><td>NAVFAC Mid-Atlantic</td><td>Navy</td><td>19</td><td><strong>18</strong></td><td><strong>95%</strong></td></tr>
+    <tr><td>Dept of Commerce NIST</td><td>NIST</td><td>16</td><td>8</td><td>50%</td></tr>
+    <tr><td>Coast Guard Aviation Logistics</td><td>USCG</td><td>11</td><td>2</td><td>18%</td></tr>
+    <tr><td>Coast Guard SFLC</td><td>USCG</td><td>11</td><td>5</td><td>45%</td></tr>
+    <tr><td>American Embassy Bogota</td><td>State</td><td>11</td><td>0</td><td>0%</td></tr>
+    <tr><td>Battelle Energy Alliance</td><td>Energy</td><td>10</td><td>0</td><td>0%</td></tr>
+    <tr><td>DISA Telecommunications</td><td>DISA</td><td>9</td><td>8</td><td>89%</td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> <strong>NSWC Indian Head and NAVFAC Mid-Atlantic are SB goldmines</strong> — 95% SB rate each, 37 opportunities combined. These are Navy facilities/construction offices, not weapons systems. AFSC PZAAB (Tinker AFB) is all unrestricted — 27 notices, zero SB. If you want SB Navy work, target NAVFAC and NSWC Indian Head. Embassy work (State Dept) and DOE labs (Battelle) are functionally closed to SB.
+</div>
+
+<!-- ====== UPCOMING DEADLINES ====== -->
+<h2>6. Soonest Deadlines — Next 20</h2>
+
+<div class="deadline-list">
+<table>
+  <thead><tr><th>Due</th><th>Title</th><th>Agency</th><th>Set-Aside</th><th>Notice ID</th></tr></thead>
+  <tbody>
+    <tr><td>Aug 1</td><td>Respiratory Fit Testing Equipment &amp; Calibrations</td><td>VA</td><td><span class="tag tag-sb">SB</span></td><td>36C26026Q0672</td></tr>
+    <tr><td>Aug 1</td><td>Reference Laboratory Testing — VA Portland</td><td>VA</td><td><span class="tag tag-unrestricted">None</span></td><td>36C26026Q0825_1</td></tr>
+    <tr><td>Aug 1</td><td>RFI Advanced Emission Suppression Missile</td><td>Navy</td><td><span class="tag tag-unrestricted">None</span></td><td>N00019-26RF...023</td></tr>
+    <tr><td>Aug 1</td><td>Sources Sought: Spectrum Proof IV&amp;V</td><td>WHS</td><td><span class="tag tag-unrestricted">None</span></td><td>IVV271</td></tr>
+    <tr><td>Aug 1</td><td>NORCAL Repaving Headwaters Trail</td><td>BLM</td><td><span class="tag tag-sb">SB</span></td><td>140L1226Q0019</td></tr>
+    <tr><td>Aug 1</td><td>Dumont Dunes Road Shoulder Stabilization</td><td>BLM</td><td><span class="tag tag-sb">SB</span></td><td>140L1226Q0025</td></tr>
+    <tr><td>Aug 1</td><td>NFPC Three Year Filter IDIQ</td><td>Navy</td><td><span class="tag tag-sb">SB</span></td><td>N6449826Q5204</td></tr>
+    <tr><td>Aug 1</td><td>Replacement Onity Locks — Alpena CRTC, MI</td><td>Army</td><td><span class="tag tag-unrestricted">None</span></td><td>W50S8626QA003</td></tr>
+    <tr><td>Aug 1</td><td>Multi-Band Multi-Orbit SATCOM Terminals</td><td>Navy</td><td><span class="tag tag-unrestricted">None</span></td><td>M67854-26-I-0162</td></tr>
+    <tr><td>Aug 1</td><td>HUMIMIC Starter Kit Control Unit</td><td>FDA</td><td><span class="tag tag-unrestricted">None</span></td><td>75F40126Q135669</td></tr>
+    <tr><td>Aug 1</td><td>MAF Electronic Flight Bag Support</td><td>Air Force</td><td><span class="tag tag-unrestricted">None</span></td><td>MAFEFBSS2026</td></tr>
+    <tr><td>Aug 2</td><td>Next-Gen Combat Vehicle Crew Stations</td><td>Army</td><td><span class="tag tag-unrestricted">None</span></td><td>OPSEC10785</td></tr>
+    <tr><td>Aug 2</td><td>Gate Motor Replacement — Kisatchie NF</td><td>Forest Svc</td><td><span class="tag tag-sb">SB</span></td><td>12444026Q0141</td></tr>
+    <tr><td>Aug 2</td><td>Peanut Products for Food Assistance</td><td>AMS</td><td><span class="tag tag-unrestricted">None</span></td><td>12-3J14-26-B-0367</td></tr>
+    <tr><td>Aug 2</td><td>SKC NoiseCHEK Kits — Naval Medical Portsmouth</td><td>DHA</td><td><span class="tag tag-unrestricted">None</span></td><td>12450194</td></tr>
+    <tr><td>Aug 2</td><td>F-15 Data Transfer Module Hardware</td><td>Air Force</td><td><span class="tag tag-unrestricted">None</span></td><td>F15-0002</td></tr>
+    <tr><td>Aug 2</td><td>Overhaul B-52 Aircraft Control Column</td><td>Air Force</td><td><span class="tag tag-sb">SB</span></td><td>1680-01-527-8154</td></tr>
+    <tr><td>Aug 3</td><td>USS Rushmore Well Deck Overhead Structure Repair</td><td>Navy</td><td><span class="tag tag-unrestricted">None</span></td><td>N6264926Q0387</td></tr>
+    <tr><td>Aug 3</td><td>Oily Wastewater Treatment — Sasebo Japan</td><td>Navy</td><td><span class="tag tag-unrestricted">None</span></td><td>N6264926QE025</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ====== STRATEGIC ====== -->
+<h2>7. Strategic Recommendations</h2>
+
+<div class="insight">
+  <strong>1. 72% are due within 30 days — this is the Q4 surge.</strong><br>
+  612 of 855 notices have deadlines in the next month. Agencies are obligating FY26 funds before the September 30 deadline. <strong>The next 4-6 weeks are the busiest procurement window of the year.</strong> Prioritize outreach and proposal turnaround speed.
+</div>
+
+<div class="insight">
+  <strong>2. Forest Service is the easiest win for SB.</strong><br>
+  43 of 44 notices (98%) are SB set-aside. Mostly construction, maintenance, and land management. Low competition compared to DoD. If you have any construction or forestry vendors, match them here immediately — 38 of the 44 are due within 30 days.
+</div>
+
+<div class="insight">
+  <strong>3. NAVFAC Mid-Atlantic and NSWC Indian Head are Navy SB hubs.</strong><br>
+  37 opportunities combined at 95% SB rate. These are facilities/support contracts, not weapons systems. NAVFAC does base construction/maintenance; NSWC Indian Head does energetics/ordnance support. Both are accessible to small businesses.
+</div>
+
+<div class="insight">
+  <strong>4. 313 SB set-asides are direct targets. 481 unrestricted are subcontracting plays.</strong><br>
+  Of the 481 unrestricted notices, 246 are formal solicitations (Combined Synopsis/Solicitation). The prime contractors winning these will need subs. Cross-reference with the forecast data to identify the likely primes. The other 235 unrestricted are Sources Sought — market research where you can influence the eventual set-aside determination.
+</div>
+
+<div class="insight">
+  <strong>5. Roofing, plumbing/HVAC, and electrical have the best SB rates.</strong><br>
+  Roofing: 13/14 SB. Plumbing/HVAC: 17/24 SB. Electrical: 14/27 SB. These construction trades consistently have the highest small business participation. If your vendor database has these trades, they should be your first-tier matching priority.
+</div>
+
+<!-- ====== METHODOLOGY ====== -->
+<h2>8. Methodology — SQL Queries Used</h2>
+
+<p style="color:var(--muted);margin-bottom:12px;">All queries run against the <code>sam_notices</code> table in PostgreSQL. The table is populated from the SAM.gov databank CSV via PostgreSQL COPY, deduplicated on <code>notice_id</code>.</p>
+
+<h3>Filter: Exclude DLA, keep only Solicitations + Sources Sought</h3>
+<pre style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;font-size:12px;overflow-x:auto;color:var(--text);"><code>-- Core filter: active, solicitation-types only, no DIBBS
+SELECT COUNT(*) FROM sam_notices
+WHERE status = 'active'
+  AND contract_opportunity_type IN ('Combined Synopsis/Solicitation', 'Sources Sought')
+  AND sub_tier_name != 'DEFENSE LOGISTICS AGENCY';
+
+-- Count by set-aside
+SELECT COUNT(*) FROM sam_notices
+WHERE status = 'active'
+  AND contract_opportunity_type IN ('Combined Synopsis/Solicitation', 'Sources Sought')
+  AND sub_tier_name != 'DEFENSE LOGISTICS AGENCY'
+  AND current_set_aside_code = 'SBA';  -- Small Business
+
+SELECT COUNT(*) FROM sam_notices
+WHERE status = 'active'
+  AND contract_opportunity_type IN ('Combined Synopsis/Solicitation', 'Sources Sought')
+  AND sub_tier_name != 'DEFENSE LOGISTICS AGENCY'
+  AND (current_set_aside_code IS NULL
+       OR current_set_aside_code = ''
+       OR current_set_aside_code = 'NONE');  -- Unrestricted
+
+-- Due within 30 days
+SELECT COUNT(*) FROM sam_notices
+WHERE status = 'active'
+  AND contract_opportunity_type IN ('Combined Synopsis/Solicitation', 'Sources Sought')
+  AND sub_tier_name != 'DEFENSE LOGISTICS AGENCY'
+  AND current_response_date IS NOT NULL
+  AND current_response_date >= NOW()
+  AND current_response_date <= NOW() + INTERVAL '30 days';</code></pre>
+
+<h3>Agency Breakdown</h3>
+<pre style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;font-size:12px;overflow-x:auto;color:var(--text);"><code>SELECT sub_tier_name, COUNT(*) as total,
+       COUNT(*) FILTER (WHERE current_set_aside_code = 'SBA') as sba,
+       COUNT(*) FILTER (WHERE current_set_aside_code = 'SDVOSBC') as sdvosb,
+       COUNT(*) FILTER (WHERE contract_opportunity_type = 'Combined Synopsis/Solicitation') as sols,
+       COUNT(*) FILTER (WHERE contract_opportunity_type = 'Sources Sought') as ss,
+       COUNT(*) FILTER (WHERE current_response_date >= NOW()
+                        AND current_response_date <= NOW() + INTERVAL '30 days') as due_30d
+FROM sam_notices
+WHERE status = 'active'
+  AND contract_opportunity_type IN ('Combined Synopsis/Solicitation', 'Sources Sought')
+  AND sub_tier_name != 'DEFENSE LOGISTICS AGENCY'
+GROUP BY sub_tier_name
+ORDER BY total DESC;</code></pre>
+
+<h3>Set-Aside Categorization</h3>
+<pre style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;font-size:12px;overflow-x:auto;color:var(--text);"><code>SELECT CASE
+    WHEN current_set_aside_code = 'SBA' THEN 'Small Business'
+    WHEN current_set_aside_code = 'SDVOSBC' THEN 'SDVOSB'
+    WHEN current_set_aside_code = 'WOSB' THEN 'Women-Owned'
+    WHEN current_set_aside_code = 'HZC' THEN 'HUBZone'
+    WHEN current_set_aside_code = '8A' THEN '8(a)'
+    WHEN current_set_aside_code IS NULL OR current_set_aside_code = ''
+         OR current_set_aside_code = 'NONE' THEN 'Unrestricted/None'
+    ELSE current_set_aside_code END as category,
+    COUNT(*) as total,
+    COUNT(*) FILTER (WHERE contract_opportunity_type = 'Combined Synopsis/Solicitation') as sols,
+    COUNT(*) FILTER (WHERE contract_opportunity_type = 'Sources Sought') as ss
+FROM sam_notices
+WHERE status = 'active'
+  AND contract_opportunity_type IN ('Combined Synopsis/Solicitation', 'Sources Sought')
+  AND sub_tier_name != 'DEFENSE LOGISTICS AGENCY'
+GROUP BY category
+ORDER BY total DESC;</code></pre>
+
+<h3>Top NAICS, Offices, States</h3>
+<pre style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;font-size:12px;overflow-x:auto;color:var(--text);"><code>-- Top NAICS codes
+SELECT naics_code, COUNT(*) as cnt,
+       COUNT(*) FILTER (WHERE current_set_aside_code = 'SBA') as sba
+FROM sam_notices
+WHERE status = 'active'
+  AND contract_opportunity_type IN ('Combined Synopsis/Solicitation', 'Sources Sought')
+  AND sub_tier_name != 'DEFENSE LOGISTICS AGENCY'
+  AND naics_code IS NOT NULL AND naics_code != ''
+GROUP BY naics_code ORDER BY cnt DESC LIMIT 15;
+
+-- Top contracting offices
+SELECT contracting_office, sub_tier_name, COUNT(*) as cnt,
+       COUNT(*) FILTER (WHERE current_set_aside_code = 'SBA') as sba
+FROM sam_notices
+WHERE status = 'active'
+  AND contract_opportunity_type IN ('Combined Synopsis/Solicitation', 'Sources Sought')
+  AND sub_tier_name != 'DEFENSE LOGISTICS AGENCY'
+  AND contracting_office IS NOT NULL AND contracting_office != ''
+GROUP BY contracting_office, sub_tier_name ORDER BY cnt DESC LIMIT 12;
+
+-- Top states
+SELECT pop_state, COUNT(*) as cnt,
+       COUNT(*) FILTER (WHERE current_set_aside_code = 'SBA') as sba
+FROM sam_notices
+WHERE status = 'active'
+  AND contract_opportunity_type IN ('Combined Synopsis/Solicitation', 'Sources Sought')
+  AND sub_tier_name != 'DEFENSE LOGISTICS AGENCY'
+  AND pop_state IS NOT NULL AND pop_state != ''
+GROUP BY pop_state ORDER BY cnt DESC LIMIT 15;</code></pre>
+
+<h3>Upcoming Deadlines (Next 20)</h3>
+<pre style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;font-size:12px;overflow-x:auto;color:var(--text);"><code>SELECT opportunity_title, sub_tier_name, current_set_aside,
+       current_response_date, naics_code, contracting_office, notice_id
+FROM sam_notices
+WHERE status = 'active'
+  AND contract_opportunity_type IN ('Combined Synopsis/Solicitation', 'Sources Sought')
+  AND sub_tier_name != 'DEFENSE LOGISTICS AGENCY'
+  AND current_response_date IS NOT NULL
+  AND current_response_date >= NOW()
+ORDER BY current_response_date ASC LIMIT 20;</code></pre>
+
+<h3>Full Dataset Query (for comparison)</h3>
+<pre style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;font-size:12px;overflow-x:auto;color:var(--text);"><code>-- What we excluded: 935 DLA notices requiring DIBBS
+SELECT COUNT(*) FROM sam_notices
+WHERE status = 'active'
+  AND contract_opportunity_type IN ('Combined Synopsis/Solicitation', 'Sources Sought')
+  AND sub_tier_name = 'DEFENSE LOGISTICS AGENCY';  -- Result: 935
+
+-- Total before filtering
+SELECT COUNT(*) FROM sam_notices
+WHERE status = 'active'
+  AND contract_opportunity_type IN ('Combined Synopsis/Solicitation', 'Sources Sought');
+  -- Result: 1,790 (935 DLA + 855 everything else)
+
+-- DLA's share of all active solicitations: 935 / 1,790 = 52.2%
+-- After excluding DLA: 855 from 60+ other agencies</code></pre>
+
+<div class="footer">
+  <p>Data source: SAM.gov databank CSV (Contract_Notice_Details.csv) &middot; Filtered to Combined Synopsis/Solicitation + Sources Sought, active only, DLA excluded &middot; Generated July 22, 2026</p>
+  <p>Methodology: 935 DLA notices excluded (require DIBBS). Remaining 855 notices from 60+ agencies. 612 with response deadlines within 30 days. SB set-aside = SBA code. Unrestricted = no set-aside code or NONE.</p>
+</div>
+
+</div>
+</body>
+</html>

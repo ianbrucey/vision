@@ -4416,6 +4416,299 @@ def create_vision_server(case_id: int):
         except Exception as exc:
             return _error(f"query_sam_notices failed: {exc}")
 
+    # -- Layer 15: Acquisition Gateway Forecasts ------------------------------
+
+    @tool(
+        "query_forecast_opportunities",
+        "Query the Acquisition Gateway forecast opportunities database. "
+        "These are future procurement projections from federal agencies — "
+        "what they plan to buy, estimated values, timelines, and set-aside "
+        "strategies. Use this to identify upcoming opportunities before "
+        "they hit SAM.gov.\n\n"
+        "FILTERS (all optional):\n"
+        "  q: full-text search across title, description, agency\n"
+        "  agency: agency name (e.g. 'Department of Labor')\n"
+        "  naics_code: exact NAICS code\n"
+        "  set_aside: partial match (e.g. 'Small Business', 'To Be Determined')\n"
+        "  fiscal_year: fiscal year (e.g. '2026')\n"
+        "  estimated_value_text: value range (e.g. 'Below $150K')\n"
+        "  value_under: max estimated value in dollars (e.g. 350000 for SAT)\n"
+        "  value_over: min estimated value in dollars (e.g. 1000000 for $1M+)\n"
+        "  limit: max results (default 100, max 1000)\n\n"
+        "EXAMPLES:\n"
+        "  - IT forecasts for 2026: {q: 'IT services', fiscal_year: '2026'}\n"
+        "  - Under SAT + SB: {value_under: 350000, set_aside: 'Small Business'}\n"
+        "  - VA forecasts by agency: {agency: 'Veterans', fiscal_year: '2026'}",
+        {
+            "type": "object",
+            "properties": {
+                "q": {"type": "string", "description": "Full-text search."},
+                "agency": {"type": "string"},
+                "naics_code": {"type": "string"},
+                "set_aside": {"type": "string"},
+                "fiscal_year": {"type": "string"},
+                "estimated_value_text": {"type": "string"},
+                "value_under": {"type": "number", "description": "Max value in dollars (e.g. 350000)."},
+                "value_over": {"type": "number", "description": "Min value in dollars (e.g. 1000000)."},
+                "office": {"type": "string"},
+                "place_of_performance": {"type": "string"},
+                "limit": {"type": "integer"},
+                "offset": {"type": "integer"},
+                "order_by": {"type": "string"},
+                "order_dir": {"type": "string", "enum": ["ASC", "DESC"]},
+            },
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def query_forecast_opportunities(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                where_parts = []
+                params: list[Any] = []
+
+                q = args.get("q")
+                if q and str(q).strip():
+                    where_parts.append("search_vector @@ plainto_tsquery('english', %s)")
+                    params.append(str(q).strip())
+
+                # Numeric value filters
+                val_under = args.get("value_under")
+                if val_under is not None:
+                    where_parts.append("(estimated_value_high <= %s OR (estimated_value_high IS NULL AND estimated_value_low <= %s))")
+                    params.extend([float(val_under), float(val_under)])
+                val_over = args.get("value_over")
+                if val_over is not None:
+                    where_parts.append("estimated_value_low >= %s")
+                    params.append(float(val_over))
+
+                for col, arg_name, match_type in [
+                    ("agency", "agency", "like"), ("naics_code", "naics_code", "exact"),
+                    ("set_aside", "set_aside", "like"), ("fiscal_year", "fiscal_year", "exact"),
+                    ("estimated_value_text", "estimated_value_text", "like"),
+                    ("office", "office", "like"), ("place_of_performance", "place_of_performance", "like"),
+                ]:
+                    val = args.get(arg_name)
+                    if val and str(val).strip():
+                        if match_type == "exact":
+                            where_parts.append(f"{col} = %s")
+                            params.append(str(val).strip())
+                        else:
+                            where_parts.append(f"{col} ILIKE %s")
+                            params.append(f"%{str(val).strip()}%")
+
+                where_clause = "WHERE " + " AND ".join(where_parts) if where_parts else ""
+                limit = min(args.get("limit", 100), 1000)
+                offset = max(args.get("offset", 0), 0)
+
+                with conn.cursor() as cur:
+                    cur.execute(f"SELECT COUNT(*) FROM forecast_opportunities {where_clause}", tuple(params))
+                    total = cur.fetchone()[0]
+
+                    cur.execute(
+                        f"""SELECT id, title, description, source_url,
+                                   agency, office, naics_code, naics_description,
+                                   set_aside, place_of_performance, period_of_performance,
+                                   fiscal_year, estimated_value_text,
+                                   estimated_value_low, estimated_value_high,
+                                   created_date, last_updated_date
+                            FROM forecast_opportunities {where_clause}
+                            ORDER BY created_date DESC LIMIT %s OFFSET %s""",
+                        tuple(params + [limit, offset]),
+                    )
+                    rows = cur.fetchall()
+                    columns = [desc[0] for desc in cur.description]
+
+                results = [dict(zip(columns, row)) for row in rows]
+                for r in results:
+                    if r.get("description") and len(r["description"]) > 1000:
+                        r["description"] = r["description"][:1000] + "..."
+
+                return _result({"total": total, "limit": limit, "offset": offset, "count": len(results), "results": results})
+            finally:
+                conn.close()
+        except Exception as exc:
+            return _error(f"query_forecast_opportunities failed: {exc}")
+
+    # -- Layer 15b: Summarization --------------------------------------------
+
+    _DIMENSIONS_SAM = ["agency", "naics_code", "set_aside_code", "notice_type", "state", "office"]
+    _DIMENSIONS_FC = ["agency", "naics_code", "set_aside", "fiscal_year", "value_range", "office", "state"]
+
+    @tool(
+        "summarize_sam_notices",
+        "Get aggregate breakdowns of SAM.gov notices by a dimension. "
+        "Returns counts, SB set-aside counts, unrestricted counts, and "
+        "solicitation counts grouped by the specified dimension. "
+        "Optionally filter before aggregating.\n\n"
+        "Dimensions: agency, naics_code, set_aside_code, notice_type, state, office\n\n"
+        "Use this to answer questions like:\n"
+        "  - 'Which agencies have the most active solicitations?'\n"
+        "  - 'What NAICS codes are most common in SB set-asides?'\n"
+        "  - 'Break down active notices by state'\n"
+        "  - 'Show me the set-aside distribution for the Army'",
+        {
+            "type": "object",
+            "properties": {
+                "group_by": {
+                    "type": "string",
+                    "enum": _DIMENSIONS_SAM,
+                    "description": "Dimension to group by.",
+                },
+                "agency": {"type": "string", "description": "Optional: filter by agency (ILIKE)."},
+                "naics_code": {"type": "string", "description": "Optional: filter by NAICS."},
+                "set_aside_code": {"type": "string", "description": "Optional: filter by set-aside code (SBA, SDVOSBC, etc.)."},
+                "notice_type": {"type": "string", "description": "Optional: filter by notice type."},
+                "status": {"type": "string", "description": "Optional: filter by status (default: active)."},
+                "limit": {"type": "integer", "description": "Max groups to return (default: 20)."},
+            },
+            "required": ["group_by"],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def summarize_sam_notices(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            group_by = args["group_by"]
+            col_map = {
+                "agency": "sub_tier_name", "naics_code": "naics_code",
+                "set_aside_code": "current_set_aside_code", "notice_type": "contract_opportunity_type",
+                "state": "pop_state", "office": "contracting_office",
+            }
+            col = col_map[group_by]
+            limit = min(args.get("limit", 20), 100)
+
+            where_parts = ["status = 'active'"]
+            params: list[Any] = []
+            for arg_name, db_col in [("agency", "sub_tier_name"), ("naics_code", "naics_code"),
+                                       ("set_aside_code", "current_set_aside_code"),
+                                       ("notice_type", "contract_opportunity_type")]:
+                val = args.get(arg_name)
+                if val and str(val).strip():
+                    where_parts.append(f"{db_col} ILIKE %s")
+                    params.append(f"%{str(val).strip()}%")
+            if args.get("status"):
+                where_parts[0] = f"status = %s"
+                params.insert(0, args["status"])
+
+            where_clause = "WHERE " + " AND ".join(where_parts)
+
+            conn = _conn()
+            try:
+                with conn.cursor() as cur:
+                    cur.execute(f"""
+                        SELECT {col} as dimension, COUNT(*) as total,
+                               COUNT(*) FILTER (WHERE current_set_aside_code = 'SBA') as sba,
+                               COUNT(*) FILTER (WHERE current_set_aside_code = 'SDVOSBC') as sdvosb,
+                               COUNT(*) FILTER (WHERE current_set_aside_code IS NULL OR current_set_aside_code = '' OR current_set_aside_code = 'NONE') as unrestricted,
+                               COUNT(*) FILTER (WHERE contract_opportunity_type = 'Combined Synopsis/Solicitation') as sols,
+                               COUNT(*) FILTER (WHERE contract_opportunity_type = 'Sources Sought') as ss,
+                               COUNT(*) FILTER (WHERE current_response_date IS NOT NULL AND current_response_date >= NOW()) as upcoming,
+                               COUNT(*) FILTER (WHERE current_response_date IS NOT NULL AND current_response_date >= NOW() AND current_response_date <= NOW() + INTERVAL '30 days') as due_30d
+                        FROM sam_notices {where_clause}
+                        GROUP BY {col} ORDER BY total DESC LIMIT %s
+                    """, tuple(params + [limit]))
+                    rows = cur.fetchall()
+                    columns = [d[0] for d in cur.description]
+                results = [dict(zip(columns, r)) for r in rows]
+                return _result({"group_by": group_by, "groups": len(results), "results": results})
+            finally:
+                conn.close()
+        except Exception as exc:
+            return _error(f"summarize_sam_notices failed: {exc}")
+
+    @tool(
+        "summarize_forecasts",
+        "Get aggregate breakdowns of forecast opportunities by a dimension. "
+        "Returns counts, SB set-aside counts, under-SAT counts, $1M+ counts, "
+        "and TBD counts grouped by the specified dimension. "
+        "Optionally filter before aggregating.\n\n"
+        "Dimensions: agency, naics_code, set_aside, fiscal_year, value_range, office, state\n"
+        "'value_range' groups by estimated_value_text buckets. Other dimensions "
+        "return standard breakdowns.\n\n"
+        "Use this to answer questions like:\n"
+        "  - 'Which agencies have the most forecast opportunities?'\n"
+        "  - 'Break down VA forecasts by NAICS'\n"
+        "  - 'What's the value distribution for Interior?'\n"
+        "  - 'Show SB vs unrestricted by fiscal year'",
+        {
+            "type": "object",
+            "properties": {
+                "group_by": {
+                    "type": "string",
+                    "enum": _DIMENSIONS_FC,
+                    "description": "Dimension to group by.",
+                },
+                "agency": {"type": "string", "description": "Optional: filter by agency (ILIKE)."},
+                "naics_code": {"type": "string", "description": "Optional: filter by NAICS."},
+                "set_aside": {"type": "string", "description": "Optional: filter by set-aside."},
+                "fiscal_year": {"type": "string", "description": "Optional: filter by fiscal year."},
+                "value_under": {"type": "number", "description": "Optional: max estimated value."},
+                "value_over": {"type": "number", "description": "Optional: min estimated value."},
+                "limit": {"type": "integer", "description": "Max groups to return (default: 20)."},
+            },
+            "required": ["group_by"],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def summarize_forecasts(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            group_by = args["group_by"]
+            if group_by == "value_range":
+                col = "estimated_value_text"
+            else:
+                col_map = {
+                    "agency": "agency", "naics_code": "naics_code",
+                    "set_aside": "set_aside", "fiscal_year": "fiscal_year",
+                    "office": "office", "state": "place_of_performance",
+                }
+                col = col_map[group_by]
+            limit = min(args.get("limit", 20), 100)
+
+            where_parts = []
+            params: list[Any] = []
+            for arg_name, db_col, match in [
+                ("agency", "agency", "like"), ("naics_code", "naics_code", "exact"),
+                ("set_aside", "set_aside", "like"), ("fiscal_year", "fiscal_year", "exact"),
+            ]:
+                val = args.get(arg_name)
+                if val and str(val).strip():
+                    where_parts.append(f"{db_col} {'ILIKE' if match == 'like' else '='} %s")
+                    params.append(f"%{str(val).strip()}%" if match == "like" else str(val).strip())
+            val_under = args.get("value_under")
+            if val_under is not None:
+                where_parts.append("(estimated_value_high <= %s OR (estimated_value_high IS NULL AND estimated_value_low <= %s))")
+                params.extend([float(val_under), float(val_under)])
+            val_over = args.get("value_over")
+            if val_over is not None:
+                where_parts.append("estimated_value_low >= %s")
+                params.append(float(val_over))
+
+            where_clause = "WHERE " + " AND ".join(where_parts) if where_parts else ""
+
+            conn = _conn()
+            try:
+                with conn.cursor() as cur:
+                    cur.execute(f"""
+                        SELECT {col} as dimension, COUNT(*) as total,
+                               COUNT(*) FILTER (WHERE estimated_value_high <= 350000) as under_sat,
+                               COUNT(*) FILTER (WHERE estimated_value_low >= 1000000) as over_1m,
+                               COUNT(*) FILTER (WHERE set_aside ILIKE '%small business%') as sb,
+                               COUNT(*) FILTER (WHERE set_aside ILIKE '%veteran%' OR set_aside ILIKE '%sdvosb%') as sdvosb,
+                               COUNT(*) FILTER (WHERE set_aside = 'To Be Determined') as tbd,
+                               ROUND(AVG(estimated_value_high) FILTER (WHERE estimated_value_high IS NOT NULL)) as avg_high_value
+                        FROM forecast_opportunities {where_clause}
+                        GROUP BY {col} ORDER BY total DESC LIMIT %s
+                    """, tuple(params + [limit]))
+                    rows = cur.fetchall()
+                    columns = [d[0] for d in cur.description]
+                results = [dict(zip(columns, r)) for r in rows]
+                return _result({"group_by": group_by, "groups": len(results), "results": results})
+            finally:
+                conn.close()
+        except Exception as exc:
+            return _error(f"summarize_forecasts failed: {exc}")
+
     # -- Build server --------------------------------------------------------
 
     return create_sdk_mcp_server(
@@ -4484,5 +4777,8 @@ def create_vision_server(case_id: int):
             upload_filled_document,
             convert_docx_to_pdf,
             query_sam_notices,
+            query_forecast_opportunities,
+            summarize_sam_notices,
+            summarize_forecasts,
         ],
     )

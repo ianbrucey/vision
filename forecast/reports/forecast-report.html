@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Federal Procurement Forecast — Data Report</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --border: #2a2d3a;
+    --text: #e4e6ed; --muted: #8b8fa3; --brand: #5b8def;
+    --success: #34d399; --warning: #fbbf24; --danger: #f87171;
+    --info: #60a5fa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.6 -apple-system, BlinkMacSystemFont, sans-serif; padding: 40px 20px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 28px; margin-bottom: 4px; }
+  h2 { font-size: 20px; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 15px; margin: 24px 0 12px; color: var(--muted); }
+  .subtitle { color: var(--muted); margin-bottom: 32px; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 32px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .stat-value { font-size: 32px; font-weight: 700; color: var(--brand); }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 13px; }
+  th { text-align: left; padding: 10px 12px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .bar-wrap { background: var(--border); border-radius: 4px; height: 8px; min-width: 60px; overflow: hidden; }
+  .bar-fill { background: var(--brand); border-radius: 4px; height: 100%; }
+  .bar-fill.sb { background: var(--success); }
+  .bar-fill.warn { background: var(--warning); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .tag-sb { background: rgba(52,211,153,0.15); color: var(--success); }
+  .tag-tbd { background: rgba(251,191,36,0.15); color: var(--warning); }
+  .tag-unrestricted { background: rgba(248,113,113,0.15); color: var(--danger); }
+  .tag-sdvosb { background: rgba(96,165,250,0.15); color: var(--info); }
+  .insight { background: var(--surface); border-left: 3px solid var(--brand); padding: 12px 16px; margin: 16px 0; border-radius: 0 6px 6px 0; font-size: 13px; }
+  .insight strong { color: var(--brand); }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+  .rank { color: var(--muted); font-size: 11px; margin-right: 6px; }
+  .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Federal Procurement Forecast — Data Report</h1>
+<p class="subtitle">Acquisition Gateway forecast data &middot; 7,398 opportunities across 8 agencies &middot; July 22, 2026</p>
+
+<!-- ====== KEY METRICS ====== -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-value">7,398</div>
+    <div class="stat-label">Total Forecast Opportunities</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">8</div>
+    <div class="stat-label">Federal Agencies</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">1,881</div>
+    <div class="stat-label">Under SAT ($350K)</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">3,548</div>
+    <div class="stat-label">Small Business Set-Asides</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">795</div>
+    <div class="stat-label">SB Set-Aside + Under SAT</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">16</div>
+    <div class="stat-label">Unrestricted Under $500K</div>
+  </div>
+</div>
+
+<!-- ====== AGENCY BREAKDOWN ====== -->
+<h2>1. Agency Breakdown</h2>
+
+<table>
+  <thead>
+    <tr><th>Agency</th><th>Total</th><th>Under SAT</th><th>$1M+</th><th>SB Set-Aside</th><th>TBD</th><th>Unrestricted</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Department of the Interior</strong></td><td>3,101</td><td>1,301</td><td>705</td><td>1,635</td><td>1,407</td><td>14</td></tr>
+    <tr><td><strong>Department of Agriculture</strong></td><td>2,317</td><td>137</td><td>1,470</td><td>1,379</td><td>925</td><td>0</td></tr>
+    <tr><td><strong>Department of Veterans Affairs</strong></td><td>697</td><td>203</td><td>341</td><td>84</td><td>513</td><td>0</td></tr>
+    <tr><td><strong>Department of Transportation</strong></td><td>628</td><td>45</td><td>400</td><td>211</td><td>338</td><td>8</td></tr>
+    <tr><td><strong>General Services Administration</strong></td><td>324</td><td>51</td><td>78</td><td>141</td><td>155</td><td>6</td></tr>
+    <tr><td><strong>Department of Labor</strong></td><td>210</td><td>87</td><td>85</td><td>86</td><td>101</td><td>11</td></tr>
+    <tr><td><strong>Nuclear Regulatory Commission</strong></td><td>89</td><td>50</td><td>19</td><td>3</td><td>85</td><td>0</td></tr>
+    <tr><td><strong>National Science Foundation</strong></td><td>32</td><td>7</td><td>18</td><td>9</td><td>17</td><td>0</td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> The Department of the Interior is the largest forecaster (42% of all opportunities) and has the most Under-SAT opportunities (1,301). However, <strong>1,407 of their opportunities are "To Be Determined" on set-aside</strong> — these could flip to Small Business when the actual solicitation drops. Agriculture is heavily SB (1,379 out of 2,317) but skews toward larger contracts — only 137 under SAT.
+</div>
+
+<!-- ====== VALUE DISTRIBUTION ====== -->
+<h2>2. Value Distribution</h2>
+
+<table>
+  <thead><tr><th>Value Range</th><th>Count</th><th>% of Total</th><th>Small Business</th><th>Distribution</th></tr></thead>
+  <tbody>
+    <tr><td>Below $150K</td><td>1,413</td><td>19.1%</td><td>589</td><td><div class="bar-wrap"><div class="bar-fill" style="width:54%"></div></div></td></tr>
+    <tr><td>$150K – $350K</td><td>468</td><td>6.3%</td><td>206</td><td><div class="bar-wrap"><div class="bar-fill" style="width:18%"></div></div></td></tr>
+    <tr><td>$350K – $1M</td><td>2,227</td><td>30.1%</td><td>984</td><td><div class="bar-wrap"><div class="bar-fill" style="width:85%"></div></div></td></tr>
+    <tr><td>$1M – $5M</td><td>1,646</td><td>22.2%</td><td>842</td><td><div class="bar-wrap"><div class="bar-fill" style="width:63%"></div></div></td></tr>
+    <tr><td>$5M+</td><td>1,470</td><td>19.9%</td><td>868</td><td><div class="bar-wrap"><div class="bar-fill sb" style="width:56%"></div></div></td></tr>
+    <tr><td>TBD</td><td>10</td><td>0.1%</td><td>—</td><td></td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> Only 25.4% of forecast opportunities fall at or below $350K (the Simplified Acquisition Threshold). The sweet spot for small business outreach is the <strong>$350K–$5M range</strong> (52% of all opportunities), where set-aside rates are high. Above $5M, nearly 60% are still SB set-asides — the government is actively carving out large contracts for small business competition.
+</div>
+
+<!-- ====== SET-ASIDE ANALYSIS ====== -->
+<h2>3. Set-Aside Strategy Analysis</h2>
+
+<table>
+  <thead><tr><th>Set-Aside Category</th><th>Count</th><th>% of Total</th><th>Under SAT</th><th>$1M+</th><th>Avg High Value</th></tr></thead>
+  <tbody>
+    <tr><td><span class="tag tag-sb">Small Business</span></td><td>3,548</td><td>48.0%</td><td>795</td><td>1,710</td><td>$17.6M</td></tr>
+    <tr><td><span class="tag tag-tbd">To Be Determined</span></td><td>3,541</td><td>47.9%</td><td>1,029</td><td>1,237</td><td>$16.7M</td></tr>
+    <tr><td><span class="tag tag-sdvosb">8(a)</span></td><td>142</td><td>1.9%</td><td>29</td><td>71</td><td>$11.3M</td></tr>
+    <tr><td><span class="tag tag-sdvosb">SDVOSB</span></td><td>101</td><td>1.4%</td><td>19</td><td>56</td><td>$22.3M</td></tr>
+    <tr><td><span class="tag tag-unrestricted">Unrestricted/Other</span></td><td>38</td><td>0.5%</td><td>9</td><td>22</td><td>$5.1M</td></tr>
+    <tr><td>HUBZone</td><td>26</td><td>0.4%</td><td>0</td><td>20</td><td>$14.6M</td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> The "To Be Determined" category is the wildcard — <strong>3,541 opportunities (48%) haven't had their set-aside strategy decided yet.</strong> When these convert to actual solicitations, a significant portion will likely become Small Business or other socio-economic set-asides. Of the TBD opportunities, 1,029 are under SAT — these are prime targets for early engagement with the contracting office. <strong>Unrestricted/Other is only 0.5% of all forecasts</strong> — the government overwhelmingly prefers set-asides for forecasted procurements.
+</div>
+
+<!-- ====== WHAT THEY NEED ====== -->
+<h2>4. What They're Buying — Top NAICS Codes</h2>
+
+<table>
+  <thead><tr><th>#</th><th>NAICS</th><th>Description</th><th>Total</th><th>Under SAT</th><th>SB</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>541519</td><td>Other Computer Related Services</td><td>866</td><td>271</td><td>217</td></tr>
+    <tr><td>2</td><td>237310</td><td>Highway, Street, and Bridge Construction</td><td>322</td><td>13</td><td>107</td></tr>
+    <tr><td>3</td><td>236220</td><td>Commercial and Institutional Building Construction</td><td>293</td><td>53</td><td>130</td></tr>
+    <tr><td>4</td><td>311513</td><td>Cheese Manufacturing</td><td>244</td><td>16</td><td>232</td></tr>
+    <tr><td>5</td><td>311421</td><td>Fruit and Vegetable Canning</td><td>238</td><td>33</td><td>238</td></tr>
+    <tr><td>6</td><td>115310</td><td>Support Activities for Forestry</td><td>222</td><td>64</td><td>49</td></tr>
+    <tr><td>7</td><td>311612</td><td>Meat Processed from Carcasses</td><td>210</td><td>0</td><td>210</td></tr>
+    <tr><td>8</td><td>237990</td><td>Other Heavy and Civil Engineering Construction</td><td>206</td><td>34</td><td>64</td></tr>
+    <tr><td>9</td><td>541512</td><td>Computer Systems Design Services</td><td>160</td><td>20</td><td>25</td></tr>
+    <tr><td>10</td><td>541990</td><td>All Other Professional, Scientific, Technical Services</td><td>139</td><td>22</td><td>55</td></tr>
+    <tr><td>11</td><td>311615</td><td>Poultry Processing</td><td>130</td><td>4</td><td>130</td></tr>
+    <tr><td>12</td><td>238210</td><td>Electrical Contractors</td><td>118</td><td>22</td><td>13</td></tr>
+    <tr><td>13</td><td>541620</td><td>Environmental Consulting Services</td><td>112</td><td>29</td><td>49</td></tr>
+    <tr><td>14</td><td>237110</td><td>Water and Sewer Line Construction</td><td>111</td><td>21</td><td>63</td></tr>
+    <tr><td>15</td><td>238220</td><td>Plumbing and HVAC Contractors</td><td>111</td><td>27</td><td>41</td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> <strong>IT services (541519, 541512) dominate with 1,026 combined opportunities.</strong> Construction (237310, 236220, 237990, 237110, 238210, 238220) totals 1,161 — the largest category cluster. Food manufacturing (311xxx) is heavily concentrated in USDA and almost entirely Small Business set-aside. <strong>IT opportunities have 271 under SAT</strong> — the most accessible entry point for small IT vendors.
+</div>
+
+<!-- ====== UNRESTRICTED UNDER $500K ====== -->
+<h2>5. Unrestricted Opportunities Under $500K</h2>
+<p style="color:var(--muted);margin-bottom:12px;">Only 16 opportunities match this profile — these are rare targets where the SAT subcontracting strategy applies.</p>
+
+<table>
+  <thead><tr><th>Title</th><th>Agency</th><th>NAICS</th><th>Value</th><th>Set-Aside Type</th></tr></thead>
+  <tbody>
+    <tr><td>Cheerpj</td><td>Dept of Interior</td><td>541519</td><td>$250K–$499K</td><td>Indian Economic Enterprise</td></tr>
+    <tr><td>ONNR IDS Azure Monetary Commitment</td><td>Dept of Interior</td><td>511210</td><td>$250K–$499K</td><td>Mandatory Source</td></tr>
+    <tr><td>Marketscan Veradigm</td><td>Dept of Transportation</td><td>541720</td><td>$250K–$499K</td><td>Mandatory Source</td></tr>
+    <tr><td>Fortinet Support</td><td>Dept of Interior</td><td>541513</td><td>$150K–$249K</td><td>Indian Economic Enterprise</td></tr>
+    <tr><td>Heavy Industrial Equipment Inspection</td><td>Dept of Labor</td><td>811310</td><td>$150K–$249K</td><td>Mandatory Source</td></tr>
+    <tr><td>DOI-OCIO IT Security Initiatives</td><td>Dept of Interior</td><td>541519</td><td>$150K–$249K</td><td>Indian Economic Enterprise</td></tr>
+    <tr><td>Cisco Network Equipment</td><td>Dept of Transportation</td><td>334220</td><td>$150K–$249K</td><td>Mandatory Source</td></tr>
+    <tr><td>Verizon Cellular</td><td>Dept of Interior</td><td>517122</td><td>Below $150K</td><td>Indian Economic Enterprise</td></tr>
+    <tr><td>Dell Networker for Data Domain</td><td>Dept of Interior</td><td>518210</td><td>Below $150K</td><td>Indian Economic Enterprise</td></tr>
+    <tr><td>Secretary's Vehicle</td><td>Dept of Transportation</td><td>532112</td><td>Below $150K</td><td>Mandatory Source</td></tr>
+    <tr><td>Settlement Administration Services</td><td>Dept of Labor</td><td>541191</td><td>Below $150K</td><td>SDVOSB Sole Source</td></tr>
+    <tr><td>ProSystem FX Engagement Software</td><td>Dept of Labor</td><td>513210</td><td>Below $150K</td><td>Mandatory Source</td></tr>
+    <tr><td>Settlement Administration Services</td><td>Dept of Labor</td><td>541191</td><td>Below $150K</td><td>SDVOSB Sole Source</td></tr>
+    <tr><td>Settlement Administration Services</td><td>Dept of Labor</td><td>541191</td><td>Below $150K</td><td>SDVOSB Sole Source</td></tr>
+    <tr><td>ProSystem FX Engagement Software</td><td>Dept of Labor</td><td>513210</td><td>Below $150K</td><td>Mandatory Source</td></tr>
+    <tr><td>Settlement Administration Services</td><td>Dept of Labor</td><td>541191</td><td>Below $150K</td><td>SDVOSB Sole Source</td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> Truly "unrestricted" opportunities under $500K are <strong>extremely rare</strong> — only 16 out of 7,398. Most are actually specialty set-asides (Indian Economic Enterprise, Mandatory Source, SDVOSB Sole Source) rather than genuinely open competition. <strong>The unrestricted-under-SAT subcontracting strategy has very limited application in the forecast pipeline.</strong> The more viable play is Small Business set-asides at any value — there are 3,548 of those.
+</div>
+
+<!-- ====== TOP OFFICES ====== -->
+<h2>6. Top Buying Offices</h2>
+
+<table>
+  <thead><tr><th>Office</th><th>Agency</th><th>Total</th><th>Under SAT</th></tr></thead>
+  <tbody>
+    <tr><td>Agricultural Marketing Service</td><td>Agriculture</td><td>1,401</td><td>117</td></tr>
+    <tr><td>U.S. Bureau of Reclamation</td><td>Interior</td><td>885</td><td>564</td></tr>
+    <tr><td>Department of the Interior</td><td>Interior</td><td>837</td><td>78</td></tr>
+    <tr><td>Fish and Wildlife Service</td><td>Interior</td><td>710</td><td>547</td></tr>
+    <tr><td>Technology Acquisition Center NJ (36C10B)</td><td>Veterans Affairs</td><td>622</td><td>161</td></tr>
+    <tr><td>Forest Service</td><td>Agriculture</td><td>534</td><td>7</td></tr>
+    <tr><td>Bureau of Land Management</td><td>Interior</td><td>207</td><td>1</td></tr>
+    <tr><td>Bureau of Reclamation</td><td>Interior</td><td>202</td><td>91</td></tr>
+    <tr><td>Agricultural Research Service</td><td>Agriculture</td><td>191</td><td>2</td></tr>
+    <tr><td>Federal Highway Administration</td><td>Transportation</td><td>186</td><td>9</td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> The <strong>U.S. Bureau of Reclamation and Fish &amp; Wildlife Service</strong> stand out for having the most Under-SAT opportunities — 564 and 547 respectively. These two Interior offices alone account for <strong>59% of all Under-SAT forecasts.</strong> The VA's Technology Acquisition Center (36C10B) is the largest non-Interior buyer with 622 total, 161 under SAT. The Forest Service and BLM are large buyers but almost entirely above SAT — not accessible via the SAT subcontracting strategy.
+</div>
+
+<!-- ====== TIMING ====== -->
+<h2>7. Timing — Fiscal Year Distribution</h2>
+
+<table>
+  <thead><tr><th>Fiscal Year</th><th>Total</th><th>SB Set-Aside</th><th>Under SAT</th></tr></thead>
+  <tbody>
+    <tr><td>2026</td><td>5,405</td><td>2,433</td><td>1,586</td></tr>
+    <tr><td>2027</td><td>927</td><td>708</td><td>68</td></tr>
+    <tr><td>2028</td><td>34</td><td>24</td><td>0</td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> <strong>73% of all forecast opportunities are FY 2026</strong> — the pipeline is heavily front-loaded. FY 2027 has 927 opportunities, but only 68 under SAT (vs 1,586 in FY 2026). This suggests agencies are forecasting near-term procurements and haven't fully populated out-year projections yet. <strong>The next 6–12 months are the critical window for FY 2026 awards.</strong>
+</div>
+
+<!-- ====== STRATEGIC RECOMMENDATIONS ====== -->
+<h2>8. Strategic Recommendations</h2>
+
+<div class="insight">
+  <strong>1. Prioritize Small Business set-asides over unrestricted-under-SAT.</strong><br>
+  There are 3,548 SB set-aside opportunities vs. just 16 unrestricted under $500K. The SAT subcontracting strategy should be a fallback, not the primary play. Focus on SB set-asides at any dollar value — the government is actively carving out large contracts for small business.
+</div>
+
+<div class="insight">
+  <strong>2. Target Interior's Bureau of Reclamation and Fish &amp; Wildlife Service.</strong><br>
+  These two offices alone have 1,111 Under-SAT opportunities combined (59% of all Under-SAT). They're the most accessible entry points for small vendors. Their top NAICS codes are construction, environmental services, and facility maintenance.
+</div>
+
+<div class="insight">
+  <strong>3. The TBD pipeline is the opportunity.</strong><br>
+  3,541 opportunities (48%) haven't determined their set-aside strategy yet. Early engagement with these contracting offices — before the solicitation drops — could influence the set-aside determination. 1,029 of these are under SAT.
+</div>
+
+<div class="insight">
+  <strong>4. IT services is the largest accessible market.</strong><br>
+  NAICS 541519 (Other Computer Related Services) has 866 opportunities, 271 under SAT. This is the single largest accessible category for small IT vendors. Combined with 541512 (Computer Systems Design), there are over 1,000 IT opportunities.
+</div>
+
+<div class="insight">
+  <strong>5. Move fast on FY 2026.</strong><br>
+  73% of opportunities are FY 2026 with most response dates in the next 3–6 months. The pipeline thins dramatically for FY 2027+. New forecasts are likely still being added by agencies — refresh the data monthly to capture them.
+</div>
+
+<div class="footer">
+  <p>Data source: Acquisition Gateway forecast tool (acquisitiongateway.gov) &middot; 7,398 opportunities from 8 agencies &middot; Generated July 22, 2026</p>
+  <p>Methodology: HTML scraped from rendered forecast pages, parsed with BeautifulSoup, value ranges normalized into numeric columns for querying. Deduplication by source_id (nid).</p>
+</div>
+
+</div>
+</body>
+</html>

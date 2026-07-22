@@ -517,6 +517,40 @@ def ensure_sam_notices_schema() -> list[str]:
     return [str(sql_path)]
 
 
+def ensure_sam_notice_import_job_schema() -> list[str]:
+    """Apply the SAM notice import job type migration (v27).
+
+    Adds 'sam_notice_import' to jobs.job_type CHECK constraint.
+    Idempotent — drops and re-adds the constraint.
+    """
+    sql_path = _SCHEMA_DIR / "018_sam_notice_import_job.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"SAM notice import job schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_forecast_opportunities_schema() -> list[str]:
+    """Apply the forecast opportunities migration (v28).
+
+    Creates forecast_opportunities table with full-text search.
+    Idempotent.
+    """
+    sql_path = _SCHEMA_DIR / "019_forecast_opportunities.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Forecast opportunities schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
 # ---------------------------------------------------------------------------
 # Journal CRUD
 # ---------------------------------------------------------------------------
@@ -1689,4 +1723,6 @@ __all__ = [
     "ensure_vendor_outreach_messages_schema",
     "ensure_workspace_pdf_filetype_schema",
     "ensure_sam_notices_schema",
+    "ensure_sam_notice_import_job_schema",
+    "ensure_forecast_opportunities_schema",
 ]

@@ -8,6 +8,8 @@ import {
   listSamNoticeBatches,
   deleteSamNoticeBatch,
   lookupSolicitationUrl,
+  deleteSamNotice,
+  deleteAllSamNotices,
   type SamNotice,
   type SamNoticesQuery,
   type SamNoticeBatch,
@@ -149,11 +151,33 @@ export default function SamNoticesTab({ caseId }: SamNoticesTabProps) {
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Header */}
-      <div className="shrink-0 px-4 py-3 border-b border-border">
-        <p className="text-sm font-medium text-text-primary">SAM.gov Databank</p>
-        <p className="text-xs text-text-disabled">
-          Search federal contract opportunities from imported SAM.gov CSV exports.
-        </p>
+      <div className="shrink-0 px-4 py-3 border-b border-border flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-text-primary">SAM.gov Databank</p>
+          <p className="text-xs text-text-disabled">
+            Search federal contract opportunities from imported SAM.gov CSV exports.
+          </p>
+        </div>
+        {total > 0 && (
+          <button
+            onClick={async () => {
+              if (!confirm(`Delete all ${total.toLocaleString()} notices? This cannot be undone.`)) return;
+              try {
+                const result = await deleteAllSamNotices();
+                setUploadMsg(`✅ Deleted ${result.deleted.toLocaleString()} notices`);
+                search(0);
+                refreshBatches();
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "Delete failed");
+              }
+            }}
+            className="shrink-0 px-3 py-1.5 text-xs text-danger border border-danger/30 rounded
+                       hover:bg-danger-bg transition-colors"
+          >
+            <Trash2 size={12} className="inline mr-1" />
+            Delete All
+          </button>
+        )}
       </div>
 
       {/* Search bar */}
@@ -483,6 +507,25 @@ export default function SamNoticesTab({ caseId }: SamNoticesTabProps) {
                                 </p>
                               </div>
                             )}
+                          </div>
+                          <div className="mt-3 pt-3 border-t border-border flex justify-end">
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (!confirm("Delete this notice?")) return;
+                                try {
+                                  await deleteSamNotice(notice.id);
+                                  search(offset);
+                                } catch (err) {
+                                  setError(err instanceof Error ? err.message : "Delete failed");
+                                }
+                              }}
+                              className="px-2 py-1 text-[11px] text-danger border border-danger/30 rounded
+                                         hover:bg-danger-bg transition-colors"
+                            >
+                              <Trash2 size={10} className="inline mr-1" />
+                              Delete
+                            </button>
                           </div>
                         </td>
                       </tr>

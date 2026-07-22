@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agency Deep Dive — VA, GSA, HHS, Interior, Agriculture, BOP</title>
+<style>
+  :root { --bg:#0f1117; --surface:#1a1d27; --border:#2a2d3a; --text:#e4e6ed; --muted:#8b8fa3; --brand:#5b8def; --success:#34d399; --warning:#fbbf24; --danger:#f87171; --info:#60a5fa; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font:14px/1.6 -apple-system,BlinkMacSystemFont,sans-serif; padding:40px 20px; }
+  .container { max-width:1100px; margin:0 auto; }
+  h1 { font-size:28px; margin-bottom:4px; }
+  h2 { font-size:20px; margin:40px 0 16px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+  h3 { font-size:16px; margin:20px 0 10px; }
+  .subtitle { color:var(--muted); margin-bottom:32px; }
+  .note { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:12px 16px; margin-bottom:24px; font-size:13px; color:var(--muted); }
+  .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:20px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:16px; }
+  .stat-value { font-size:26px; font-weight:700; color:var(--brand); }
+  .stat-value.g { color:var(--success); }
+  .stat-value.w { color:var(--warning); }
+  .stat-label { font-size:11px; color:var(--muted); margin-top:2px; text-transform:uppercase; letter-spacing:0.5px; }
+  table { width:100%; border-collapse:collapse; margin:12px 0 20px; font-size:12px; }
+  th { text-align:left; padding:8px 10px; background:var(--surface); border-bottom:1px solid var(--border); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); }
+  td { padding:7px 10px; border-bottom:1px solid var(--border); }
+  .tag { display:inline-block; padding:1px 7px; border-radius:4px; font-size:10px; font-weight:600; }
+  .tag-sb { background:rgba(52,211,153,0.15); color:var(--success); }
+  .tag-un { background:rgba(248,113,113,0.15); color:var(--danger); }
+  .tag-sdv { background:rgba(96,165,250,0.15); color:var(--info); }
+  .insight { background:var(--surface); border-left:3px solid var(--brand); padding:10px 14px; margin:14px 0; border-radius:0 6px 6px 0; font-size:13px; }
+  .insight strong { color:var(--brand); }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media(max-width:768px){ .two-col{grid-template-columns:1fr;} }
+  .agency-section { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px 24px; margin-bottom:24px; }
+  .agency-section h2 { margin-top:0; border:none; padding:0; }
+  .section-label { font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); margin-bottom:8px; }
+  .source-tag { font-size:10px; padding:2px 6px; border-radius:3px; margin-right:4px; }
+  .src-fc { background:rgba(52,211,153,0.12); color:var(--success); }
+  .src-sam { background:rgba(96,165,250,0.12); color:var(--info); }
+  .footer { margin-top:60px; padding-top:20px; border-top:1px solid var(--border); color:var(--muted); font-size:12px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Agency Deep Dive — Multi-Source Intelligence</h1>
+<p class="subtitle">VA, GSA, HHS, Dept of Interior, Dept of Agriculture &amp; Bureau of Prisons &middot; Forecasts + SAM.gov &middot; July 22, 2026</p>
+
+<div class="note">
+  <strong>Data sources:</strong> <span class="source-tag src-fc">FC</span> = Acquisition Gateway forecasts (pre-solicitation pipeline) &middot; <span class="source-tag src-sam">SAM</span> = SAM.gov databank CSV (active solicitations). SAM data is mapped from sub-agency names to parent departments. GSA/HHS/Interior/Agriculture have limited or no SAM coverage in the current CSV export — the SAM data skews heavily DoD. Forecast data has broad civilian coverage.
+</div>
+
+<!-- ====== VA ====== -->
+<div class="agency-section">
+<h2>1. Department of Veterans Affairs</h2>
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-value">697</div><div class="stat-label"><span class="source-tag src-fc">FC</span> Forecasts</div></div>
+  <div class="stat-card"><div class="stat-value g">203</div><div class="stat-label"><span class="source-tag src-fc">FC</span> Under SAT</div></div>
+  <div class="stat-card"><div class="stat-value">84</div><div class="stat-label"><span class="source-tag src-fc">FC</span> SB Set-Aside</div></div>
+  <div class="stat-card"><div class="stat-value">513</div><div class="stat-label"><span class="source-tag src-fc">FC</span> TBD Set-Aside</div></div>
+  <div class="stat-card"><div class="stat-value">192</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> Active Notices</div></div>
+  <div class="stat-card"><div class="stat-value g">85</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> SDVOSB Set-Aside</div></div>
+  <div class="stat-card"><div class="stat-value">18</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> SB Set-Aside</div></div>
+  <div class="stat-card"><div class="stat-value w">51</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> Due in 30 Days</div></div>
+</div>
+
+<div class="two-col">
+<div>
+  <h3>Forecast — What They're Buying</h3>
+  <table>
+    <tr><th>NAICS</th><th>Count</th><th>SB</th></tr>
+    <tr><td>541519 — Other Computer Related Services</td><td>166</td><td>35</td></tr>
+    <tr><td>236220 — Commercial Building Construction</td><td>65</td><td>12</td></tr>
+    <tr><td>541512 — Computer Systems Design</td><td>37</td><td>2</td></tr>
+    <tr><td>621610 — Home Health Care Services</td><td>30</td><td>10</td></tr>
+    <tr><td>238220 — Plumbing/HVAC</td><td>28</td><td>0</td></tr>
+    <tr><td>339112 — Surgical/Medical Instruments</td><td>27</td><td>2</td></tr>
+  </table>
+</div>
+<div>
+  <h3>SAM.gov — Active Types</h3>
+  <table>
+    <tr><th>Notice Type</th><th>Count</th><th>SB</th></tr>
+    <tr><td>Combined Synopsis/Solicitation</td><td>45</td><td>11</td></tr>
+    <tr><td>Sources Sought</td><td>22</td><td>0</td></tr>
+    <tr><td>Presolicitation</td><td>34</td><td>4</td></tr>
+    <tr><td>Solicitation</td><td>56</td><td>3</td></tr>
+    <tr><td>Special Notice</td><td>35</td><td>0</td></tr>
+  </table>
+  <h3>SAM.gov — Top NAICS</h3>
+  <table>
+    <tr><th>NAICS</th><th>Count</th></tr>
+    <tr><td>Analytical Laboratory Instruments</td><td>29</td></tr>
+    <tr><td>Commercial Building Construction</td><td>12</td></tr>
+    <tr><td>Medical/Surgical Instruments</td><td>10</td></tr>
+    <tr><td>Electrical Contractors</td><td>8</td></tr>
+    <tr><td>Other Computer Related Services</td><td>7</td></tr>
+  </table>
+</div>
+</div>
+
+<div class="insight">
+  <strong>VA Strategy:</strong> The VA is the <strong>#1 SDVOSB target in the federal government</strong> — 85 of 192 active SAM notices (44%) are SDVOSB set-aside. Forecasts show 513 (74%) with TBD set-aside — when these convert to solicitations, expect many to become SDVOSB or SB. <strong>IT services (541519) dominates the forecast pipeline</strong> with 166 opportunities. The Technology Acquisition Center (36C10B) in NJ is the single largest VA buying office with 622 forecast entries. <strong>203 forecast opportunities are under SAT</strong> — accessible entry points for small businesses. The SAM pipeline is active with 51 deadlines in the next 30 days.
+</div>
+</div>
+
+<!-- ====== GSA ====== -->
+<div class="agency-section">
+<h2>2. General Services Administration</h2>
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-value">324</div><div class="stat-label"><span class="source-tag src-fc">FC</span> Forecasts</div></div>
+  <div class="stat-card"><div class="stat-value g">51</div><div class="stat-label"><span class="source-tag src-fc">FC</span> Under SAT</div></div>
+  <div class="stat-card"><div class="stat-value">141</div><div class="stat-label"><span class="source-tag src-fc">FC</span> SB Set-Aside</div></div>
+  <div class="stat-card"><div class="stat-value">155</div><div class="stat-label"><span class="source-tag src-fc">FC</span> TBD Set-Aside</div></div>
+  <div class="stat-card"><div class="stat-value">38</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> Active (PBS+FAS)</div></div>
+  <div class="stat-card"><div class="stat-value">0</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> SB Set-Aside</div></div>
+  <div class="stat-card"><div class="stat-value w">31</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> Unrestricted</div></div>
+</div>
+<div class="two-col">
+<div>
+  <h3>Forecast — What They're Buying</h3>
+  <table>
+    <tr><th>NAICS</th><th>Count</th><th>SB</th></tr>
+    <tr><td>237310 — Highway/Bridge Construction</td><td>38</td><td>28</td></tr>
+    <tr><td>236220 — Commercial Building Construction</td><td>37</td><td>28</td></tr>
+    <tr><td>531120 — Nonresidential Building Lessors</td><td>29</td><td>6</td></tr>
+    <tr><td>561210 — Facilities Support Services</td><td>26</td><td>10</td></tr>
+    <tr><td>561720 — Janitorial Services</td><td>18</td><td>2</td></tr>
+    <tr><td>541519 — Other Computer Related Services</td><td>15</td><td>2</td></tr>
+  </table>
+</div>
+<div>
+  <h3>SAM.gov — GSA Sub-Agencies</h3>
+  <table>
+    <tr><th>Sub-Agency</th><th>Notices</th></tr>
+    <tr><td>Public Buildings Service</td><td>21</td></tr>
+    <tr><td>Federal Acquisition Service</td><td>17</td></tr>
+  </table>
+  <p style="font-size:12px;color:var(--muted);margin-top:12px;">GSA has limited SAM coverage (38 notices across 2 sub-agencies). The forecast data (324 entries) is the more complete picture. SAM data skews DoD — GSA civilian procurement may not be fully captured in this CSV export.</p>
+</div>
+</div>
+
+<div class="insight">
+  <strong>GSA Strategy:</strong> GSA is <strong>facilities-heavy</strong> — construction, leasing, and building services dominate. PBS (Public Buildings Service) manages 8,700 federal buildings and consistently needs construction, maintenance, and leasing support. FAS (Federal Acquisition Service) runs the Schedules program and buys IT/services. <strong>141 of 324 forecasts are SB set-aside (44%)</strong> — strong SB participation. Highway/bridge construction and commercial building construction have the best SB rates. The SAM data is thin (38 notices) — the forecast data is the better targeting tool for GSA. <strong>51 forecast opportunities under SAT</strong> — mostly facilities maintenance and janitorial.
+</div>
+</div>
+
+<!-- ====== HHS ====== -->
+<div class="agency-section">
+<h2>3. Health and Human Services</h2>
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-value w">0</div><div class="stat-label"><span class="source-tag src-fc">FC</span> Forecasts</div></div>
+  <div class="stat-card"><div class="stat-value">82</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> Active Notices</div></div>
+  <div class="stat-card"><div class="stat-value g">24</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> SB Set-Aside</div></div>
+  <div class="stat-card"><div class="stat-value">55</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> Unrestricted</div></div>
+  <div class="stat-card"><div class="stat-value">43</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> Solicitations</div></div>
+  <div class="stat-card"><div class="stat-value w">32</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> Due in 30 Days</div></div>
+</div>
+<div class="two-col">
+<div>
+  <h3>SAM.gov — Sub-Agencies</h3>
+  <table>
+    <tr><th>Sub-Agency</th><th>Notices</th></tr>
+    <tr><td>National Institutes of Health (NIH)</td><td>20</td></tr>
+    <tr><td>Indian Health Service (IHS)</td><td>29</td></tr>
+    <tr><td>FDA</td><td>4</td></tr>
+    <tr><td>CDC</td><td>3</td></tr>
+    <tr><td>Other HHS</td><td>26</td></tr>
+  </table>
+</div>
+<div>
+  <h3>SAM.gov — Top NAICS</h3>
+  <table>
+    <tr><th>NAICS</th><th>Count</th></tr>
+    <tr><td>Analytical Laboratory Instruments</td><td>10</td></tr>
+    <tr><td>Plumbing/HVAC</td><td>8</td></tr>
+    <tr><td>Commercial Building Construction</td><td>8</td></tr>
+    <tr><td>Electrical Contractors</td><td>6</td></tr>
+    <tr><td>Electronic/Precision Equipment Repair</td><td>5</td></tr>
+  </table>
+</div>
+</div>
+
+<div class="insight">
+  <strong>HHS Strategy:</strong> HHS has <strong>no forecast data</strong> (not scraped from Acquisition Gateway) but 82 active SAM notices across 7+ sub-agencies. NIH and IHS are the largest buyers. <strong>29% SB set-aside rate</strong> — lower than VA or GSA. HHS procurement skews heavily toward laboratory/medical equipment, facilities maintenance, and IT. IHS has a unique set-aside (ISBEE — Indian Small Business Economic Enterprise) that appears 9 times. <strong>32 notices due in 30 days.</strong> The forecast gap means you're operating blind on HHS pipeline — prioritize scraping HHS forecast data from the Acquisition Gateway.
+</div>
+</div>
+
+<!-- ====== INTERIOR ====== -->
+<div class="agency-section">
+<h2>4. Department of the Interior</h2>
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-value">3,101</div><div class="stat-label"><span class="source-tag src-fc">FC</span> Forecasts</div></div>
+  <div class="stat-card"><div class="stat-value g">1,301</div><div class="stat-label"><span class="source-tag src-fc">FC</span> Under SAT</div></div>
+  <div class="stat-card"><div class="stat-value">1,635</div><div class="stat-label"><span class="source-tag src-fc">FC</span> SB Set-Aside</div></div>
+  <div class="stat-card"><div class="stat-value">1,407</div><div class="stat-label"><span class="source-tag src-fc">FC</span> TBD Set-Aside</div></div>
+  <div class="stat-card"><div class="stat-value">163</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> Active (6 sub-agencies)</div></div>
+  <div class="stat-card"><div class="stat-value g">87</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> SB Set-Aside</div></div>
+  <div class="stat-card"><div class="stat-value">0</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> SDVOSB</div></div>
+</div>
+<div class="two-col">
+<div>
+  <h3>Forecast — Top NAICS</h3>
+  <table>
+    <tr><th>NAICS</th><th>Count</th><th>SB</th></tr>
+    <tr><td>541519 — Other Computer Related Services</td><td>315</td><td>44</td></tr>
+    <tr><td>237310 — Highway/Bridge Construction</td><td>202</td><td>59</td></tr>
+    <tr><td>115310 — Support Activities for Forestry</td><td>222</td><td>49</td></tr>
+    <tr><td>237990 — Heavy/Civil Engineering Construction</td><td>131</td><td>40</td></tr>
+    <tr><td>541620 — Environmental Consulting</td><td>98</td><td>40</td></tr>
+    <tr><td>238220 — Plumbing/HVAC</td><td>86</td><td>35</td></tr>
+  </table>
+</div>
+<div>
+  <h3>SAM.gov — Sub-Agencies</h3>
+  <table>
+    <tr><th>Sub-Agency</th><th>Notices</th></tr>
+    <tr><td>Forest Service</td><td>67</td></tr>
+    <tr><td>National Park Service</td><td>63</td></tr>
+    <tr><td>Bureau of Land Management</td><td>27</td></tr>
+    <tr><td>Bureau of Reclamation</td><td>23</td></tr>
+    <tr><td>Fish &amp; Wildlife Service</td><td>21</td></tr>
+    <tr><td>Bureau of Indian Affairs</td><td>14</td></tr>
+  </table>
+  <h3>Forecast — Top Offices</h3>
+  <table>
+    <tr><th>Office</th><th>Count</th></tr>
+    <tr><td>U.S. Bureau of Reclamation</td><td>885</td></tr>
+    <tr><td>Department of the Interior (direct)</td><td>837</td></tr>
+    <tr><td>Fish &amp; Wildlife Service</td><td>710</td></tr>
+    <tr><td>Bureau of Land Management</td><td>207</td></tr>
+    <tr><td>USGS</td><td>95</td></tr>
+  </table>
+</div>
+</div>
+
+<div class="insight">
+  <strong>Interior Strategy:</strong> Interior is the <strong>largest forecaster by far</strong> — 3,101 opportunities (42% of all forecasts). <strong>1,301 are under SAT</strong> (69% of all under-SAT forecasts nationwide). This is your single best agency for the SAT subcontracting strategy. IT services (315) leads, but construction trades have the best SB rates. <strong>The Bureau of Reclamation (885) and Fish &amp; Wildlife (710) are the top buying offices</strong> — together they account for 1,595 opportunities. <strong>1,407 TBD set-asides</strong> — massive pipeline that hasn't been classified yet. SAM data is limited (163 notices across 6 sub-agencies) — the CSV export underrepresents Interior. <strong>87 of 163 SAM notices are SB set-aside (53%)</strong>.
+</div>
+</div>
+
+<!-- ====== AGRICULTURE ====== -->
+<div class="agency-section">
+<h2>5. Department of Agriculture</h2>
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-value">2,317</div><div class="stat-label"><span class="source-tag src-fc">FC</span> Forecasts</div></div>
+  <div class="stat-card"><div class="stat-value">137</div><div class="stat-label"><span class="source-tag src-fc">FC</span> Under SAT</div></div>
+  <div class="stat-card"><div class="stat-value g">1,379</div><div class="stat-label"><span class="source-tag src-fc">FC</span> SB Set-Aside</div></div>
+  <div class="stat-card"><div class="stat-value">925</div><div class="stat-label"><span class="source-tag src-fc">FC</span> TBD Set-Aside</div></div>
+  <div class="stat-card"><div class="stat-value">59</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> Active (3 sub-agencies)</div></div>
+  <div class="stat-card"><div class="stat-value g">42</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> SB Set-Aside</div></div>
+</div>
+<div class="two-col">
+<div>
+  <h3>Forecast — Top NAICS</h3>
+  <table>
+    <tr><th>NAICS</th><th>Count</th><th>SB</th></tr>
+    <tr><td>311513 — Cheese Manufacturing</td><td>244</td><td>232</td></tr>
+    <tr><td>311421 — Fruit/Vegetable Canning</td><td>238</td><td>238</td></tr>
+    <tr><td>311612 — Meat Processed from Carcasses</td><td>210</td><td>210</td></tr>
+    <tr><td>541519 — Other Computer Related Services</td><td>173</td><td>23</td></tr>
+    <tr><td>311615 — Poultry Processing</td><td>130</td><td>130</td></tr>
+    <tr><td>311411 — Frozen Fruit/Juice/Vegetable</td><td>96</td><td>96</td></tr>
+  </table>
+</div>
+<div>
+  <h3>SAM.gov — Sub-Agencies</h3>
+  <table>
+    <tr><th>Sub-Agency</th><th>Notices</th></tr>
+    <tr><td>Forest Service</td><td>67</td></tr>
+    <tr><td>Agricultural Research Service</td><td>25</td></tr>
+    <tr><td>Agricultural Marketing Service</td><td>12</td></tr>
+    <tr><td>Animal &amp; Plant Health Inspection</td><td>11</td></tr>
+  </table>
+  <h3>SAM.gov — Notice Types</h3>
+  <table>
+    <tr><th>Type</th><th>Count</th></tr>
+    <tr><td>Combined Synopsis/Solicitation</td><td>43</td></tr>
+    <tr><td>Presolicitation</td><td>7</td></tr>
+    <tr><td>Sources Sought</td><td>1</td></tr>
+  </table>
+</div>
+</div>
+
+<div class="insight">
+  <strong>Agriculture Strategy:</strong> USDA is <strong>dominated by food procurement</strong> — cheese, fruit/vegetables, meat, and poultry processing account for 918 of 2,317 forecasts (40%). These are almost entirely SB set-aside (90%+ rates) and are recurring commodity purchases — stable, predictable work. <strong>Only 137 under SAT</strong> — USDA skews toward larger contracts. <strong>1,379 SB set-asides (60%)</strong> — the highest SB rate of any agency. The Agricultural Marketing Service alone handles 1,401 forecast entries (food commodity purchases). <strong>SAM data is thin (59 notices)</strong> — most USDA procurement goes through the forecast/commodity pipeline rather than SAM.gov solicitations. IT services at USDA (173 forecast entries) is the #1 non-food NAICS — USDA has a significant IT modernization effort underway.
+</div>
+</div>
+
+<!-- ====== BOP ====== -->
+<div class="agency-section">
+<h2>6. Bureau of Prisons</h2>
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-value w">0</div><div class="stat-label"><span class="source-tag src-fc">FC</span> Forecasts</div></div>
+  <div class="stat-card"><div class="stat-value">27</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> Active Notices</div></div>
+  <div class="stat-card"><div class="stat-value g">8</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> SB Set-Aside</div></div>
+  <div class="stat-card"><div class="stat-value">13</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> Unrestricted</div></div>
+  <div class="stat-card"><div class="stat-value">9</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> Solicitations</div></div>
+  <div class="stat-card"><div class="stat-value w">9</div><div class="stat-label"><span class="source-tag src-sam">SAM</span> Due in 30 Days</div></div>
+</div>
+<div class="two-col">
+<div>
+  <h3>SAM.gov — Notice Types</h3>
+  <table>
+    <tr><th>Type</th><th>Count</th></tr>
+    <tr><td>Combined Synopsis/Solicitation</td><td>9</td></tr>
+    <tr><td>Sources Sought</td><td>4</td></tr>
+    <tr><td>Presolicitation</td><td>7</td></tr>
+    <tr><td>Special Notice</td><td>4</td></tr>
+    <tr><td>Solicitation</td><td>3</td></tr>
+  </table>
+</div>
+<div>
+  <h3>SAM.gov — Top NAICS</h3>
+  <table>
+    <tr><th>NAICS</th><th>Count</th></tr>
+    <tr><td>Roofing Contractors</td><td>3</td></tr>
+    <tr><td>Other Computer Related Services</td><td>2</td></tr>
+    <tr><td>Plumbing/HVAC</td><td>2</td></tr>
+    <tr><td>Commercial Building Construction</td><td>2</td></tr>
+    <tr><td>Water/Sewer Line Construction</td><td>1</td></tr>
+  </table>
+</div>
+</div>
+
+<div class="insight">
+  <strong>BOP Strategy:</strong> BOP has no forecast data and only 27 active SAM notices. This is a small-volume agency. <strong>30% SB set-aside rate</strong> — lower than the civilian average. The work is mostly <strong>facilities maintenance and construction</strong> — roofing, plumbing/HVAC, building repair. BOP procurement is highly decentralized across individual prison facilities. <strong>9 notices due in 30 days.</strong> BOP should be a secondary target — the volume doesn't justify primary focus, but individual facilities contracts are accessible entry points for small construction/maintenance vendors. The earlier databank CSV analysis showed BOP had many sub-$350K food contracts as award notices — those aren't in the active solicitations.
+</div>
+</div>
+
+<!-- ====== CROSS-CUTTING ====== -->
+<h2>7. Cross-Cutting Insights</h2>
+
+<div class="insight">
+  <strong>1. Forecast data and SAM data serve different purposes.</strong><br>
+  Forecasts tell you what's coming (12-18 months out). SAM tells you what's active right now. Interior has 3,101 forecasts but only 163 SAM notices — that pipeline is real, just not yet live. Agriculture has 2,317 forecasts / 59 SAM notices — same pattern. Use forecasts to plan, SAM to execute.
+</div>
+
+<div class="insight">
+  <strong>2. The SAM CSV export underrepresents civilian agencies.</strong><br>
+  Interior, Agriculture, GSA, and HHS combined have only ~340 SAM notices — less than DLA alone (935). This is a data quality issue with the CSV export, not a reflection of actual procurement volume. These agencies use SAM.gov extensively — the CSV simply didn't capture them.
+</div>
+
+<div class="insight">
+  <strong>3. SB set-aside rates vary dramatically by agency.</strong><br>
+  Agriculture: 60% SB (food commodity dominance). Interior: 53% SB (construction + IT). GSA: 44% SB. VA: 13% SB (but 44% SDVOSB). HHS: 29% SB. BOP: 30% SB. The "SB-friendly" agencies are Agriculture and Interior — they actively carve out work for small business. VA favors SDVOSB over general SB.
+</div>
+
+<div class="insight">
+  <strong>4. The TBD pipeline is the biggest opportunity.</strong><br>
+  Across these 6 agencies, there are 3,017 forecast opportunities where the set-aside hasn't been determined yet (VA 513, GSA 155, Interior 1,407, Agriculture 925). Early engagement before the solicitation drops could influence these toward SB set-aside.
+</div>
+
+<div class="footer">
+  <p>Data sources: Acquisition Gateway forecast tool &middot; SAM.gov databank CSV (Contract_Notice_Details.csv) &middot; July 22, 2026</p>
+  <p>Methodology: Forecast data scraped from rendered HTML, value ranges normalized. SAM data imported via PostgreSQL COPY, deduplicated on notice_id. SAM.gov sub-agencies mapped to parent departments manually. HHS and BOP have no forecast coverage. GSA/Interior/Agriculture have limited SAM coverage in the current CSV export.</p>
+  <p>SQL queries available in the sam-notices-no-dibbs.html report methodology section — same patterns apply with different agency filters.</p>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAM.gov Active Notices — Data Report</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --border: #2a2d3a;
+    --text: #e4e6ed; --muted: #8b8fa3; --brand: #5b8def;
+    --success: #34d399; --warning: #fbbf24; --danger: #f87171;
+    --info: #60a5fa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.6 -apple-system, BlinkMacSystemFont, sans-serif; padding: 40px 20px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 28px; margin-bottom: 4px; }
+  h2 { font-size: 20px; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 15px; margin: 24px 0 12px; color: var(--muted); }
+  .subtitle { color: var(--muted); margin-bottom: 32px; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 32px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .stat-value { font-size: 32px; font-weight: 700; color: var(--brand); }
+  .stat-value.warn { color: var(--warning); }
+  .stat-value.success { color: var(--success); }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 13px; }
+  th { text-align: left; padding: 10px 12px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .bar-wrap { background: var(--border); border-radius: 4px; height: 8px; min-width: 60px; overflow: hidden; }
+  .bar-fill { background: var(--brand); border-radius: 4px; height: 100%; }
+  .bar-fill.sb { background: var(--success); }
+  .bar-fill.warn { background: var(--warning); }
+  .bar-fill.danger { background: var(--danger); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .tag-sb { background: rgba(52,211,153,0.15); color: var(--success); }
+  .tag-unrestricted { background: rgba(248,113,113,0.15); color: var(--danger); }
+  .tag-sdvosb { background: rgba(96,165,250,0.15); color: var(--info); }
+  .tag-active { background: rgba(52,211,153,0.15); color: var(--success); }
+  .insight { background: var(--surface); border-left: 3px solid var(--brand); padding: 12px 16px; margin: 16px 0; border-radius: 0 6px 6px 0; font-size: 13px; }
+  .insight strong { color: var(--brand); }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+  .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>SAM.gov Active Notices — Data Report</h1>
+<p class="subtitle">SAM.gov databank CSV &middot; 4,357 active notices across 94 agencies &middot; July 22, 2026</p>
+
+<!-- ====== KEY METRICS ====== -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-value">4,357</div>
+    <div class="stat-label">Total Active Notices</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">94</div>
+    <div class="stat-label">Federal Agencies</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">878</div>
+    <div class="stat-label">Small Business Set-Asides</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">3,265</div>
+    <div class="stat-label">Unrestricted / No Set-Aside</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value success">2,391</div>
+    <div class="stat-label">Due in Next 30 Days</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">3,635</div>
+    <div class="stat-label">Have Attachments</div>
+  </div>
+</div>
+
+<!-- ====== AGENCY BREAKDOWN ====== -->
+<h2>1. Agency Breakdown — Top 20 of 94</h2>
+<p style="color:var(--muted);margin-bottom:12px;">The Department of Defense dominates — DLA, Navy, Air Force, and Army account for 71% of all active notices. Civilian agencies have far fewer active solicitations in this export.</p>
+
+<table>
+  <thead><tr><th>Agency</th><th>Total</th><th>SB Set-Aside</th><th>SDVOSB</th><th>Unrestricted</th><th>Solicitations</th><th>Sources Sought</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Defense Logistics Agency</strong></td><td>935</td><td>116</td><td>5</td><td>797</td><td>146</td><td>40</td></tr>
+    <tr><td><strong>Dept of the Navy</strong></td><td>927</td><td>179</td><td>2</td><td>736</td><td>81</td><td>30</td></tr>
+    <tr><td><strong>Dept of the Air Force</strong></td><td>688</td><td>90</td><td>5</td><td>586</td><td>76</td><td>77</td></tr>
+    <tr><td><strong>Dept of the Army</strong></td><td>535</td><td>162</td><td>10</td><td>350</td><td>92</td><td>46</td></tr>
+    <tr><td><strong>Veterans Affairs</strong></td><td>192</td><td>18</td><td><strong>85</strong></td><td>86</td><td>45</td><td>22</td></tr>
+    <tr><td><strong>State Department</strong></td><td>153</td><td>6</td><td>0</td><td>145</td><td>41</td><td>1</td></tr>
+    <tr><td><strong>Department of Energy</strong></td><td>85</td><td>10</td><td>0</td><td>72</td><td>3</td><td>13</td></tr>
+    <tr><td><strong>Forest Service</strong></td><td>67</td><td><strong>59</strong></td><td>0</td><td>8</td><td>43</td><td>1</td></tr>
+    <tr><td><strong>National Park Service</strong></td><td>63</td><td>34</td><td>4</td><td>23</td><td>17</td><td>1</td></tr>
+    <tr><td><strong>U.S. Coast Guard</strong></td><td>60</td><td>27</td><td>0</td><td>33</td><td>33</td><td>7</td></tr>
+    <tr><td><strong>NASA</strong></td><td>36</td><td>2</td><td>0</td><td>34</td><td>5</td><td>4</td></tr>
+    <tr><td><strong>Indian Health Service</strong></td><td>29</td><td>5</td><td>1</td><td>5</td><td>12</td><td>3</td></tr>
+    <tr><td><strong>Bureau of Land Management</strong></td><td>27</td><td>23</td><td>0</td><td>4</td><td>7</td><td>0</td></tr>
+    <tr><td><strong>Agricultural Research Service</strong></td><td>25</td><td>17</td><td>0</td><td>8</td><td>22</td><td>1</td></tr>
+    <tr><td><strong>NIST</strong></td><td>23</td><td>10</td><td>0</td><td>12</td><td>9</td><td>7</td></tr>
+    <tr><td><strong>Bureau of Reclamation</strong></td><td>23</td><td>10</td><td>1</td><td>11</td><td>6</td><td>0</td></tr>
+    <tr><td><strong>DARPA</strong></td><td>22</td><td>0</td><td>0</td><td>22</td><td>0</td><td>0</td></tr>
+    <tr><td><strong>Bureau of Prisons</strong></td><td>22</td><td>8</td><td>0</td><td>13</td><td>9</td><td>4</td></tr>
+    <tr><td><strong>Defense Health Agency</strong></td><td>21</td><td>2</td><td>1</td><td>16</td><td>6</td><td>1</td></tr>
+    <tr><td><strong>Public Buildings Service</strong></td><td>21</td><td>0</td><td>0</td><td>21</td><td>4</td><td>0</td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> The 4 Defense agencies (DLA, Navy, Air Force, Army) control 3,085 notices — <strong>71% of all active opportunities.</strong> Within DoD, SB set-aside rates are low (12–30%). The <strong>VA is the SDVOSB powerhouse</strong> with 85 SDVOSB set-asides (72% of all SDVOSB notices nationwide). Civilian agencies like Forest Service and BLM have high SB set-aside rates (88% and 85% respectively) but much lower volume.
+</div>
+
+<!-- ====== NOTICE TYPE ====== -->
+<h2>2. Notice Type Distribution</h2>
+
+<table>
+  <thead><tr><th>Notice Type</th><th>Count</th><th>% of Total</th><th>SB Set-Aside</th><th>Distribution</th></tr></thead>
+  <tbody>
+    <tr><td>Solicitation</td><td>1,560</td><td>35.8%</td><td>288</td><td><div class="bar-wrap"><div class="bar-fill" style="width:100%"></div></div></td></tr>
+    <tr><td>Special Notice</td><td>1,064</td><td>24.4%</td><td>26</td><td><div class="bar-wrap"><div class="bar-fill" style="width:68%"></div></div></td></tr>
+    <tr><td>Combined Synopsis/Solicitation</td><td>744</td><td>17.1%</td><td><strong>366</strong></td><td><div class="bar-wrap"><div class="bar-fill sb" style="width:48%"></div></div></td></tr>
+    <tr><td>Presolicitation</td><td>674</td><td>15.5%</td><td>174</td><td><div class="bar-wrap"><div class="bar-fill" style="width:43%"></div></div></td></tr>
+    <tr><td>Sources Sought</td><td>313</td><td>7.2%</td><td>24</td><td><div class="bar-wrap"><div class="bar-fill" style="width:20%"></div></div></td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> <strong>Combined Synopsis/Solicitation notices have the highest SB set-aside rate (49%).</strong> These are the most actionable for small business — they're formal solicitations with clear SB designation. Sources Sought are the lowest (8% SB) — most are market research. Special Notices are overwhelmingly unrestricted (98%) — they're typically sole-source justifications or intent-to-award notices.
+</div>
+
+<!-- ====== SET-ASIDE ====== -->
+<h2>3. Set-Aside Analysis</h2>
+
+<table>
+  <thead><tr><th>Set-Aside Category</th><th>Count</th><th>% of Total</th><th>Solicitations</th><th>Awards</th></tr></thead>
+  <tbody>
+    <tr><td><span class="tag tag-unrestricted">Unrestricted / None</span></td><td>3,265</td><td>74.9%</td><td>315</td><td>0</td></tr>
+    <tr><td><span class="tag tag-sb">Small Business</span></td><td>878</td><td>20.2%</td><td><strong>366</strong></td><td>0</td></tr>
+    <tr><td><span class="tag tag-sdvosb">SDVOSB</span></td><td>118</td><td>2.7%</td><td>30</td><td>0</td></tr>
+    <tr><td>8(a)</td><td>19</td><td>0.4%</td><td>6</td><td>0</td></tr>
+    <tr><td>Women-Owned</td><td>18</td><td>0.4%</td><td>11</td><td>0</td></tr>
+    <tr><td>HUBZone</td><td>10</td><td>0.2%</td><td>3</td><td>0</td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> <strong>75% of active notices are unrestricted.</strong> This is the opposite of the forecast data (where 48% are SB). The SAM.gov pipeline is dominated by unrestricted procurements — many of which are below the SAT and could be targeted via the subcontracting strategy. <strong>Only 366 of the 744 Combined Synopsis/Solicitations are SB set-aside</strong> — the other 378 are unrestricted solicitations where small business could compete or subcontract.
+</div>
+
+<!-- ====== WHAT THEY'RE BUYING ====== -->
+<h2>4. What They're Buying — Top NAICS</h2>
+
+<p style="color:var(--muted);margin-bottom:12px;">Military hardware dominates — aircraft parts, engines, ship repair, weapons systems. Construction and facilities maintenance are the strongest civilian/small-business categories.</p>
+
+<table>
+  <thead><tr><th>#</th><th>Description</th><th>Total</th><th>SB</th><th>SB %</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Commercial and Institutional Building Construction</td><td>207</td><td>84</td><td>40.6%</td></tr>
+    <tr><td>2</td><td>Other Aircraft Parts and Auxiliary Equipment Manufacturing</td><td>206</td><td>25</td><td>12.1%</td></tr>
+    <tr><td>3</td><td>R&D in Physical, Engineering, and Life Sciences</td><td>183</td><td>6</td><td>3.3%</td></tr>
+    <tr><td>4</td><td>Aircraft Engine and Engine Parts Manufacturing</td><td>173</td><td>3</td><td>1.7%</td></tr>
+    <tr><td>5</td><td>Other Heavy and Civil Engineering Construction</td><td>147</td><td>24</td><td>16.3%</td></tr>
+    <tr><td>6</td><td>Other Metal Valve and Pipe Fitting Manufacturing</td><td>120</td><td>3</td><td>2.5%</td></tr>
+    <tr><td>7</td><td>Bare Printed Circuit Board Manufacturing</td><td>76</td><td>0</td><td>0.0%</td></tr>
+    <tr><td>8</td><td>Ship Building and Repairing</td><td>71</td><td>14</td><td>19.7%</td></tr>
+    <tr><td>9</td><td>Engineering Services</td><td>62</td><td>7</td><td>11.3%</td></tr>
+    <tr><td>10</td><td>Plumbing, Heating, and Air-Conditioning Contractors</td><td>61</td><td><strong>32</strong></td><td><strong>52.5%</strong></td></tr>
+    <tr><td>11</td><td>Electrical Contractors</td><td>56</td><td>25</td><td>44.6%</td></tr>
+    <tr><td>12</td><td>All Other Miscellaneous General Purpose Machinery</td><td>55</td><td>2</td><td>3.6%</td></tr>
+    <tr><td>13</td><td>Highway, Street, and Bridge Construction</td><td>46</td><td><strong>36</strong></td><td><strong>78.3%</strong></td></tr>
+    <tr><td>14</td><td>Analytical Laboratory Instrument Manufacturing</td><td>46</td><td>7</td><td>15.2%</td></tr>
+    <tr><td>15</td><td>Electronic and Precision Equipment Repair</td><td>46</td><td>3</td><td>6.5%</td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> <strong>Construction trades have the best SB set-aside rates.</strong> Highway/bridge construction leads at 78% SB, plumbing/HVAC at 53%, electrical at 45%, general building construction at 41%. Military hardware (aircraft parts, engines, valves, circuit boards) is overwhelmingly unrestricted — typically sole-source to defense primes. <strong>R&D is only 3.3% SB</strong> — mostly going to universities and defense labs.
+</div>
+
+<!-- ====== TOP PSC ====== -->
+<div class="two-col">
+<div>
+<h2>5. Top Product/Service Codes</h2>
+<table>
+  <thead><tr><th>PSC</th><th>Count</th><th>SB</th></tr></thead>
+  <tbody>
+    <tr><td>Aircraft Engines &amp; Components</td><td>158</td><td>2</td></tr>
+    <tr><td>Electrical/Electronic Assemblies</td><td>106</td><td>15</td></tr>
+    <tr><td>Valves, Nonpowered</td><td>95</td><td>10</td></tr>
+    <tr><td>Construction of Dredging Facilities</td><td>79</td><td>2</td></tr>
+    <tr><td>Airframe Structural Components</td><td>74</td><td>6</td></tr>
+    <tr><td>Misc Aircraft Accessories</td><td>61</td><td>4</td></tr>
+    <tr><td>Repair/Maintenance of Buildings</td><td>51</td><td><strong>39</strong></td></tr>
+    <tr><td>Aircraft Landing Gear</td><td>51</td><td>4</td></tr>
+    <tr><td>Repair/Maintenance of Office Buildings</td><td>37</td><td><strong>25</strong></td></tr>
+    <tr><td>Ship Repair (West)</td><td>37</td><td>6</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div>
+<h2>6. Top States</h2>
+<table>
+  <thead><tr><th>State</th><th>Count</th><th>SB</th></tr></thead>
+  <tbody>
+    <tr><td>VA</td><td>127</td><td>28</td></tr>
+    <tr><td>MD</td><td>107</td><td><strong>40</strong></td></tr>
+    <tr><td>DC</td><td>87</td><td>5</td></tr>
+    <tr><td>CA</td><td>87</td><td><strong>32</strong></td></tr>
+    <tr><td>LA</td><td>80</td><td>3</td></tr>
+    <tr><td>OK</td><td>79</td><td>15</td></tr>
+    <tr><td>TX</td><td>70</td><td>18</td></tr>
+    <tr><td>PA</td><td>66</td><td>15</td></tr>
+    <tr><td>FL</td><td>57</td><td>13</td></tr>
+    <tr><td>NM</td><td>51</td><td>8</td></tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+<!-- ====== CONTRACTING OFFICES ====== -->
+<h2>7. Top Contracting Offices</h2>
+
+<table>
+  <thead><tr><th>Office</th><th>Agency</th><th>Total</th><th>SB</th></tr></thead>
+  <tbody>
+    <tr><td>NAVSUP Weapon Systems Support Mech</td><td>Navy</td><td>503</td><td>99</td></tr>
+    <tr><td>AFNWC PZBB (Hill AFB)</td><td>Air Force</td><td>210</td><td>0</td></tr>
+    <tr><td>Defense Logistics Agency</td><td>DLA</td><td>197</td><td>1</td></tr>
+    <tr><td>DLA Aviation at Ogden, UT</td><td>DLA</td><td>169</td><td>2</td></tr>
+    <tr><td>NAVSUP Weapon Systems Support</td><td>Navy</td><td>135</td><td>0</td></tr>
+    <tr><td>DLA Mechanicsburg</td><td>DLA</td><td>114</td><td>4</td></tr>
+    <tr><td>DLA Land and Maritime</td><td>DLA</td><td>114</td><td><strong>54</strong></td></tr>
+    <tr><td>DLA Aviation</td><td>DLA</td><td>78</td><td>15</td></tr>
+    <tr><td>Army Corps — New Orleans</td><td>Army</td><td>74</td><td>0</td></tr>
+    <tr><td>DLA Aviation at Oklahoma City</td><td>DLA</td><td>64</td><td>3</td></tr>
+    <tr><td>DLA Aviation at Philadelphia</td><td>DLA</td><td>53</td><td>4</td></tr>
+    <tr><td>NAVFAC Mid-Atlantic</td><td>Navy</td><td>40</td><td><strong>29</strong></td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> NAVSUP (Naval Supply Systems Command) is the largest single buyer with 638 notices across two offices — but only 16% SB. <strong>NAVFAC Mid-Atlantic stands out with 73% SB</strong> (29 of 40 notices) — facilities construction, not weapons. DLA Land and Maritime has the highest absolute SB count (54). Air Force offices (AFNWC, AFSC) are almost entirely unrestricted — 0–3% SB.
+</div>
+
+<!-- ====== TIMING ====== -->
+<h2>8. Publication Timeline — Last 12 Weeks</h2>
+
+<table>
+  <thead><tr><th>Week</th><th>Total</th><th>SB</th><th>Solicitations</th><th>Pace</th></tr></thead>
+  <tbody>
+    <tr><td>Jul 20</td><td>567</td><td>160</td><td>170</td><td><div class="bar-wrap"><div class="bar-fill" style="width:43%"></div></div></td></tr>
+    <tr><td>Jul 13</td><td>1,310</td><td>385</td><td>317</td><td><div class="bar-wrap"><div class="bar-fill" style="width:100%"></div></div></td></tr>
+    <tr><td>Jul 6</td><td>620</td><td>172</td><td>120</td><td><div class="bar-wrap"><div class="bar-fill" style="width:47%"></div></div></td></tr>
+    <tr><td>Jun 29</td><td>221</td><td>38</td><td>23</td><td><div class="bar-wrap"><div class="bar-fill" style="width:17%"></div></div></td></tr>
+    <tr><td>Jun 22</td><td>130</td><td>16</td><td>11</td><td><div class="bar-wrap"><div class="bar-fill" style="width:10%"></div></div></td></tr>
+    <tr><td>Jun 15</td><td>75</td><td>12</td><td>3</td><td><div class="bar-wrap"><div class="bar-fill" style="width:6%"></div></div></td></tr>
+    <tr><td>Jun 8</td><td>37</td><td>0</td><td>6</td><td></td></tr>
+    <tr><td>Jun 1</td><td>47</td><td>3</td><td>4</td><td></td></tr>
+    <tr><td>May 25</td><td>28</td><td>4</td><td>5</td><td></td></tr>
+    <tr><td>May 18</td><td>35</td><td>3</td><td>2</td><td></td></tr>
+    <tr><td>May 11</td><td>24</td><td>1</td><td>0</td><td></td></tr>
+    <tr><td>May 4</td><td>22</td><td>3</td><td>3</td><td></td></tr>
+  </tbody>
+</table>
+
+<div class="insight">
+  <strong>Key takeaway:</strong> <strong>July is a surge month.</strong> The week of July 13 saw 1,310 notices published (30% of all notices in the dataset). This aligns with the federal Q4 buying spree (fiscal year ends September 30). <strong>2,391 notices have response deadlines in the next 30 days</strong> — agencies are pushing to obligate funds before year-end. <strong>The next 8 weeks are the busiest procurement period of the year.</strong>
+</div>
+
+<!-- ====== STRATEGIC ====== -->
+<h2>9. Strategic Recommendations</h2>
+
+<div class="insight">
+  <strong>1. The FY-end surge is happening NOW.</strong><br>
+  July posted 1,310 notices in a single week — 3× the normal weekly pace. With 2,391 deadlines in the next 30 days, agencies are in full Q4 spending mode. This is the time to be aggressive on outreach and proposal submission.
+</div>
+
+<div class="insight">
+  <strong>2. Construction trades are the SB sweet spot.</strong><br>
+  Highway construction (78% SB), plumbing/HVAC (53%), electrical (45%), building repair (76%). These have the highest small business participation rates in SAM.gov. If your vendor database has construction contractors, match them to these notices aggressively.
+</div>
+
+<div class="insight">
+  <strong>3. DoD is 71% of the market — but hard to penetrate directly.</strong><br>
+  DLA, Navy, Air Force, and Army dominate volume but have low SB set-aside rates (12–30%). The play here is subcontracting — identify the primes winning these unrestricted contracts and position as a subcontractor. DLA Land and Maritime (54 SB) and NAVFAC Mid-Atlantic (29 SB) are the exceptions.
+</div>
+
+<div class="insight">
+  <strong>4. VA is the SDVOSB gateway.</strong><br>
+  The VA has 85 SDVOSB set-asides — 72% of all SDVOSB notices nationwide. If your vendor database has SDVOSB-certified companies, the VA should be their primary target. The Technology Acquisition Center (36C10B) alone handles 622 VA notices.
+</div>
+
+<div class="insight">
+  <strong>5. Unrestricted combined synopses are the subcontracting play.</strong><br>
+  378 Combined Synopsis/Solicitations are unrestricted (no set-aside). These are formal RFPs where the prime will need subcontractors. Cross-reference these with the forecast data to identify which primes are likely bidders.
+</div>
+
+<div class="footer">
+  <p>Data source: SAM.gov databank CSV export (Contract_Notice_Details.csv) &middot; 4,357 active notices from 94 agencies &middot; Generated July 22, 2026</p>
+  <p>Methodology: CSV imported via PostgreSQL COPY, deduplicated on notice_id. All 4,357 notices are "active" status. No award notices are included (CSV export limited to active solicitations). NAICS descriptions may be unreliable — some rows have descriptions in the NAICS code field.</p>
+  <p>Note: This CSV export has known gaps — the 4,357 notices represent a partial snapshot. Award notice data was not included in this export. Full SAM.gov API integration would provide more complete coverage.</p>
+</div>
+
+</div>
+</body>
+</html>

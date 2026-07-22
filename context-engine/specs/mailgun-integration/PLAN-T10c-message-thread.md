@@ -1,3 +1,53 @@
+ext, give n
+
+Yes, absolutely. Here is the complete high-level recap of your business model, strategy, and system architecture.
+
+---
+
+## Executive Summary
+
+You are running a **government contracting broker and fulfillment engine**. You leverage small business set-asides and simplified acquisition rules to capture government contracts, outsourcing the physical fulfillment to pre-vetted wholesale distributors or established small business partners—capturing the profit margin while keeping overhead lean.
+
+---
+
+## 1. The Core Business Model
+
+* **The Simplified Acquisition Threshold ($15K–$350K):** By focusing heavily on contracts under $350,000, you operate in a sweet spot where small business set-asides do not trigger strict *Limitations on Subcontracting* self-performance penalties, allowing you to legally outsource 100% of physical product fulfillment.
+* **The "Similarly Situated Entity" Loophole (13 CFR § 125.6):** For larger service or IT contracts over $350K, you team up with other small businesses (e.g., Four Points Technology). Because they are *also* small businesses under the NAICS code, 100% of the work they perform counts toward your performance quota, allowing you to act as the Prime/Project Manager without needing massive internal staff.
+* **The Reverse-Broker Play:** Pitching large defense primes ($50M+ awardees) to handle their required small-business software or supply lines so they can hit their mandatory small business subcontracting goals.
+
+---
+
+## 2. Core Industry Verticals & Fulfillment Networks
+
+1. **IT & Software Licenses (PSC 7030 / NAICS 541519):** High-density target (ServiceNow, Datadog, GitLab renewals). Sourced via **Carahsoft** (Master Aggregator) and **EC America**.
+2. **Medical & Surgical Supplies (PSC 6515 / NAICS 423450):** Dominated by the VA. Sourced via **Medline** and **Cardinal Health** (using your Georgia Form ST-5 tax exemption).
+3. **Facilities, MRO & Janitorial (PSC M1JZ / NAICS 561720):** High-volume regional needs. Sourced via **W.W. Grainger**.
+4. **Commercial Aviation Electronics (PSC 1680 / NAICS 423860):** Off-the-shelf components without JCP red tape. Sourced via **Mouser** and **Digi-Key**.
+
+---
+
+## 3. Operational Execution Tracks
+
+* **Track A (Transactional Quoting):** Danielle & Zamaya monitor active SAM.gov RFQs under $350K $\rightarrow$ Request wholesale quotes from Carahsoft/Medline $\rightarrow$ Apply markup $\rightarrow$ Submit auto-filled SF-1449.
+* **Track B (Strategic Teaming):** Pipeline-building off VA forecast data $\rightarrow$ Sourcing capable partners from SBA DSBS & GSA eLibrary $\rightarrow$ Executing Master Teaming Agreements (MTAs) and NDAs $\rightarrow$ Bidding as a Prime coalition.
+
+---
+
+## 4. The Automated System Architecture (The Software Blueprint)
+
+You are building a custom Python/Postgres pipeline to automate the tedious paperwork:
+
+1. **Ingestion:** Auto-pulling SAM.gov solicitations via API (or manual URL input) and extracting Notice IDs, deadlines, NAICS/PSC codes, and missing attachments.
+2. **AI Triage:** Classifying RFQs vs. RFPs, parsing CLIN tables, and identifying required line items.
+3. **Database Matching:** Querying your local Postgres DB populated with SBA DSBS and GSA eLibrary vendor exports.
+4. **Human-in-the-Loop Email Queue:** Auto-drafting quote-request emails to vendors that sit in a review dashboard for your approval before sending (via Resend/Mailtrap).
+5. **Proposal Generation:** Auto-populating SF-1449 PDFs and pricing schedules to submit before deadlines.
+
+---
+
+Now that the entire strategy is mapped back out, **where would you like to focus next—writing the Python scripts for the SBA DSBS vendor scraper, or detailing the proposal auto-fill logic for SF-1449 PDFs?**
+
 # T10c — Per-Vendor Outreach Message Thread: Implementation Plan
 
 Status: ready for implementation. No architectural decisions left to the
@@ -14,6 +64,7 @@ received messages), not just a status pill.
 
 Rejected alternative: reusing `correspondence_threads`/`correspondence_items`
 (existing feature in `004_correspondence.sql`). Rejected because:
+
 - Those tables FK `sender_party_id`/`receiver_party_id` to `parties`
   (litigation parties — plaintiff/defendant/counsel), not vendors. Forcing
   vendor contacts into `parties` is a semantic misuse of that table.
@@ -73,6 +124,7 @@ ON CONFLICT (version) DO NOTHING;
 ```
 
 Notes:
+
 - `status='draft'` rows only exist for `direction='outbound'` (inbound
   messages are always terminal — created already `sent`... actually
   inbound has no `status` concept; see §3, inbound rows leave `status`
@@ -146,8 +198,7 @@ def send_message(self, message_id: int) -> dict:
 
 ## 3. Backend — `core/email_mailgun.py`
 
-No changes — `send_email()` signature (`to_email, to_name, subject,
-text_body, reply_to`) already fits `send_message()`'s needs exactly.
+No changes — `send_email()` signature (`to_email, to_name, subject, text_body, reply_to`) already fits `send_message()`'s needs exactly.
 
 ## 4. Backend — `backend/api/routes/webhooks_mailgun.py` changes
 
@@ -186,8 +237,7 @@ additionally insert a new `vendor_outreach_messages` row
 (`direction='inbound'`, `subject`, `body=text`, `document_id=doc_id`,
 `received_at=now()`) via a new `VendorMatchManager.record_inbound_message()`
 method, so the reply shows up in the thread view (§7) alongside the
-outbound message it replied to. Still call `update_outreach(...,
-outreach_status="received", outreach_doc_id=doc_id)` for OutreachTab/
+outbound message it replied to. Still call `update_outreach(..., outreach_status="received", outreach_doc_id=doc_id)` for OutreachTab/
 VendorMatchesTab rollup compatibility — no changes needed there.
 
 ## 6. Backend — `backend/api/routes/solicitations.py` changes
@@ -317,6 +367,7 @@ button with a link/button that navigates to the thread page:
   Messages
 </button>
 ```
+
 Always rendered (not gated on `outreach_status === "not_contacted"` —
 the thread page itself handles "no draft yet" vs "has messages" states).
 Requires `useRouter` import from `next/navigation` and `caseId` prop
@@ -332,6 +383,7 @@ following the simpler pattern of e.g. `login/page.tsx` rather than the
 `Suspense`-wrapped `cases/[id]/page.tsx`).
 
 Structure:
+
 - Header: vendor name, contact_email, back link.
 - Message list: chronological cards, `direction === "outbound"` right-
   aligned/brand-tinted, `inbound` left-aligned/neutral (standard chat-
@@ -368,8 +420,7 @@ No changes — this is a standalone route, not a tab.
 3. `POST /api/vendor-matches/{id}/messages/draft` on a match with a
    contact_email + template → 201, `status: "draft"`, subject/body
    substituted. Calling again on the same match → returns the same draft
-   (no duplicate row) — verify via `SELECT count(*) FROM
-   vendor_outreach_messages WHERE vendor_match_id = {id}` staying at 1.
+   (no duplicate row) — verify via `SELECT count(*) FROM vendor_outreach_messages WHERE vendor_match_id = {id}` staying at 1.
 4. `PATCH /api/vendor-match-messages/{id}` with edited body → 200,
    persisted; `GET .../messages` reflects the edit.
 5. Frontend: open thread page, confirm draft is editable, edit + blur
