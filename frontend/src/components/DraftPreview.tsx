@@ -4,10 +4,10 @@ import { useState, useCallback } from "react";
 import { Printer } from "lucide-react";
 import type { Block } from "@/lib/api";
 import "./drafting/draftStyles.css";
-import PleadingRenderer from "./drafting/PleadingRenderer";
-import LetterRenderer from "./drafting/LetterRenderer";
-import ContractRenderer from "./drafting/ContractRenderer";
-import MemoRenderer from "./drafting/MemoRenderer";
+import PleadingRenderer, { type PleadingCaption, type PleadingSignature } from "./drafting/PleadingRenderer";
+import LetterRenderer, { type LetterHeader, type LetterFooter } from "./drafting/LetterRenderer";
+import ContractRenderer, { type ContractHeader } from "./drafting/ContractRenderer";
+import MemoRenderer, { type MemoHeader } from "./drafting/MemoRenderer";
 import { printDraft } from "./drafting/printUtils";
 
 /* ------------------------------------------------------------------ */
@@ -134,8 +134,8 @@ export default function DraftPreview({
           {docType === "pleading" && (
             <PleadingRenderer
               {...rp}
-              caption={metadata?.caption as PleadingRenderer["caption"]}
-              signature={metadata?.signature as PleadingRenderer["signature"]}
+              caption={metadata?.caption as PleadingCaption}
+              signature={metadata?.signature as PleadingSignature}
               onCaptionChange={async (field, value) => {
                 const currentMeta = (metadata || {}) as Record<string, unknown>;
                 const currentCaption = (currentMeta.caption || {}) as Record<string, string>;
@@ -154,18 +154,18 @@ export default function DraftPreview({
           {docType === "letter" && (
             <LetterRenderer
               {...rp}
-              header={metadata as LetterRenderer["header"]}
-              footer={metadata as LetterRenderer["footer"]}
+              header={metadata as LetterHeader}
+              footer={metadata as LetterFooter}
             />
           )}
           {(docType === "contract" || docType === "settlement") && (
             <ContractRenderer
               {...rp}
-              header={metadata as ContractRenderer["header"]}
+              header={metadata as ContractHeader}
             />
           )}
           {docType === "memo" && (
-            <MemoRenderer {...rp} header={metadata as MemoRenderer["header"]} />
+            <MemoRenderer {...rp} header={metadata as MemoHeader} />
           )}
           {!["pleading", "letter", "contract", "settlement", "memo"].includes(docType) && (
             <LetterRenderer {...rp} />

@@ -3,7 +3,7 @@
 import type { Block } from "@/lib/api";
 import UniversalBodyRenderer from "./UniversalBodyRenderer";
 
-interface ContractHeader {
+export interface ContractHeader {
   party_a_name?: string;
   party_b_name?: string;
   effective_date?: string;

@@ -3,7 +3,7 @@
 import type { Block } from "@/lib/api";
 import UniversalBodyRenderer from "./UniversalBodyRenderer";
 
-interface LetterHeader {
+export interface LetterHeader {
   date?: string;
   recipient_name?: string;
   recipient_address?: string;
@@ -11,7 +11,7 @@ interface LetterHeader {
   subject_line?: string;
 }
 
-interface LetterFooter {
+export interface LetterFooter {
   sign_off?: string;
   sender_name?: string;
   sender_title?: string;

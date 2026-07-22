@@ -82,7 +82,7 @@ export default function ViewSwitcher({
 
     if (isNonLossy(view.viewType, toType)) {
       // Same data model ({headers, rows}) — just change viewType.
-      const v = currentView as { viewType: string; data: Record<string, unknown> };
+      const v = currentView as unknown as { viewType: string; data: Record<string, unknown> };
       v.viewType = toType;
       // Add/remove chartType field as needed
       if (toType === "chart") {

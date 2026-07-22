@@ -8,7 +8,7 @@ import UniversalBodyRenderer from "./UniversalBodyRenderer";
 /* Types                                                              */
 /* ------------------------------------------------------------------ */
 
-interface PleadingCaption {
+export interface PleadingCaption {
   court_name?: string;
   plaintiff?: string;
   defendant?: string;
@@ -16,7 +16,7 @@ interface PleadingCaption {
   document_title?: string;
 }
 
-interface PleadingSignature {
+export interface PleadingSignature {
   attorney_name?: string;
   bar_number?: string;
   firm_name?: string;

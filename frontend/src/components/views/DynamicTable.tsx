@@ -45,7 +45,7 @@ export default function DynamicTable({
     isSaving,
     saveError,
   } = useInlineEdit(itemId, (newContent) => {
-    onContentChange(newContent as ViewEnvelope);
+    onContentChange(newContent as unknown as ViewEnvelope);
   });
 
   const { headers, rows } = view.data;
@@ -104,7 +104,7 @@ export default function DynamicTable({
     if (row) {
       row[header] = editValue;
     }
-    await commitEdit(updated);
+    await commitEdit(updated as unknown as Record<string, unknown>);
   };
 
   const handleKeyDown = (

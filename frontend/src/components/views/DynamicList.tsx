@@ -38,7 +38,7 @@ export default function DynamicList({
     isSaving,
     saveError,
   } = useInlineEdit(itemId, (newContent) => {
-    onContentChange(newContent as ViewEnvelope);
+    onContentChange(newContent as unknown as ViewEnvelope);
   });
 
   const { listStyle, items } = view.data;
@@ -68,7 +68,7 @@ export default function DynamicList({
     if (item) {
       item.text = editValue;
     }
-    await commitEdit(updated);
+    await commitEdit(updated as unknown as Record<string, unknown>);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, itemId: string) => {
@@ -89,7 +89,7 @@ export default function DynamicList({
     if (item) {
       item.completed = !item.completed;
     }
-    await commitEdit(updated);
+    await commitEdit(updated as unknown as Record<string, unknown>);
   };
 
   /* ---- render ---- */

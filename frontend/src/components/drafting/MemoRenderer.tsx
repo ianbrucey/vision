@@ -3,7 +3,7 @@
 import type { Block } from "@/lib/api";
 import UniversalBodyRenderer from "./UniversalBodyRenderer";
 
-interface MemoHeader {
+export interface MemoHeader {
   to?: string;
   from?: string;
   date?: string;

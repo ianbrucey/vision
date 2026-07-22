@@ -59,7 +59,7 @@ export default function DynamicCards({
     isSaving,
     saveError,
   } = useInlineEdit(itemId, (newContent) => {
-    onContentChange(newContent as ViewEnvelope);
+    onContentChange(newContent as unknown as ViewEnvelope);
   });
 
   const pairs = view.data.pairs;
@@ -84,7 +84,7 @@ export default function DynamicCards({
     const updated = structuredClone(envelope);
     const cardsView = updated.views[viewIndex] as CardsView;
     cardsView.data.pairs[pairIndex].value = editValue;
-    await commitEdit(updated);
+    await commitEdit(updated as unknown as Record<string, unknown>);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, pairIndex: number) => {
