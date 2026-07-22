@@ -107,22 +107,22 @@ def _get_public_client() -> Minio | None:
 
     When MINIO_SERVER_URL is set, creates a client whose endpoint matches the
     public-facing URL so that presigned signatures include the correct Host
-    header.  The container must be able to reach the MinIO server at the public
-    hostname (e.g. via a Docker network alias).
+    header.  presigned_get_object() does NOT make a network call — it computes
+    the signature locally — so the fact that the SDK cannot actually connect
+    through this endpoint is irrelevant.
     """
     server_url = os.environ.get("MINIO_SERVER_URL")
     if not server_url:
         return None
-    # Parse host[:port] from the URL (strip scheme).
+    # Strip scheme; the endpoint is host-only (no port) so the presigned URL
+    # matches exactly what the browser will request.
     parsed = urlsplit(server_url)
-    host = parsed.netloc  # e.g. "files-vision.justicequest.pro"
-    if ":" not in host:
-        host = f"{host}:9000"  # default MinIO API port
+    host = parsed.netloc.split(":")[0]  # e.g. "files-vision.justicequest.pro"
     return Minio(
         host,
         access_key=_MINIO_ACCESS_KEY,
         secret_key=_MINIO_SECRET_KEY,
-        secure=False,  # container-to-container traffic, not TLS-terminated
+        secure=True,  # https scheme, default port 443 — matches browser request
     )
 
 
@@ -135,15 +135,12 @@ def get_public_url(bucket: str, object_key: str, expires_seconds: int = 3600) ->
     """
     public_client = _get_public_client()
     if public_client is not None:
-        url = public_client.presigned_get_object(
+        # Client is secure=True so URL is already https:// with the correct host.
+        return public_client.presigned_get_object(
             bucket, object_key,
             expires=timedelta(seconds=expires_seconds),
             response_headers={"response-content-disposition": "inline"},
         )
-        # Internally it's http://; rewrite scheme to https:// for browsers.
-        if url.startswith("http://"):
-            url = "https://" + url[7:]
-        return url
 
     # Fallback: internal client + host rewrite (local dev / no MINIO_SERVER_URL).
     client = _get_client()
