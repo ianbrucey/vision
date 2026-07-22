@@ -151,11 +151,6 @@ CLASSIFY the notice type:
   other            — Doesn't fit any of the above
 
 RUN the quick-kill checklist. Answer true only if you find clear evidence:
-  - Product buy: a specific COTS product by name, no "or Equal" clause
-  - Facility clearance required that a typical small subcontractor won't hold
-  - TS/SCI personnel clearance required for all key personnel
-  - On-site military base with no remote option
-  - Brand Name Only with no "or Equal" clause
   - Restricted contract vehicle (e.g. "must be JWCC awardee")
   - Due in under 5 days with no prior relationship
 
