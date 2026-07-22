@@ -465,6 +465,23 @@ def ensure_vendor_outreach_messages_schema() -> list[str]:
     return [str(sql_path)]
 
 
+def ensure_workspace_pdf_filetype_schema() -> list[str]:
+    """Apply the workspace PDF file type migration (v25).
+
+    Adds 'pdf' to the drafts.file_type CHECK constraint.
+    Idempotent — drops and re-adds the constraint.
+    """
+    sql_path = _SCHEMA_DIR / "016_workspace_pdf_filetype.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Workspace PDF file type schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
 # ---------------------------------------------------------------------------
 # Journal CRUD
 # ---------------------------------------------------------------------------
@@ -1579,4 +1596,5 @@ __all__ = [
     "ensure_vendor_outreach_schema",
     "ensure_vendor_outreach_email_schema",
     "ensure_vendor_outreach_messages_schema",
+    "ensure_workspace_pdf_filetype_schema",
 ]

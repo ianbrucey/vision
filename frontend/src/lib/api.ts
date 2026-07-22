@@ -386,7 +386,7 @@ export const deleteDraft = (draftId: number): Promise<{ deleted: boolean }> =>
   fetchAPI(`/api/drafts/${draftId}`, { method: "DELETE" });
 
 // Workspace
-export type FileType = "markdown" | "structured_draft" | "html" | "json_view";
+export type FileType = "markdown" | "structured_draft" | "html" | "json_view" | "pdf";
 
 export interface Workspace {
   id: number;

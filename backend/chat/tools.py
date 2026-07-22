@@ -1207,7 +1207,7 @@ def create_vision_server(case_id: int):
                 },
                 "file_type": {
                     "type": "string",
-                    "enum": ["markdown", "structured_draft", "html", "json_view"],
+                    "enum": ["markdown", "structured_draft", "html", "json_view", "pdf"],
                     "description": "Filter by file type.",
                 },
             },
@@ -1298,7 +1298,7 @@ def create_vision_server(case_id: int):
                 },
                 "file_type": {
                     "type": "string",
-                    "enum": ["markdown", "structured_draft", "html", "json_view"],
+                    "enum": ["markdown", "structured_draft", "html", "json_view", "pdf"],
                     "description": "Type of content this item holds.",
                 },
                 "folder": {
@@ -4023,6 +4023,25 @@ def create_vision_server(case_id: int):
                              "original_name": name},
             )
 
+            # Auto-create workspace PDF item so the filled form appears
+            # in the Workspace tab alongside the proposal narrative
+            from core.db import insert_draft as _insert_draft
+            ws_item_id = None
+            try:
+                with tx() as conn:
+                    ws_item_id = _insert_draft(
+                        conn,
+                        case_id=case_id,
+                        name=name,
+                        document_type=doc_type,
+                        content=[{"document_id": doc_id, "name": name}],
+                        created_by="agent",
+                        file_type="pdf",
+                        folder="artifacts",
+                    )
+            except Exception:
+                pass  # non-fatal — the document still exists
+
             return _result({
                 "document_id": doc_id,
                 "name": name,
@@ -4030,6 +4049,7 @@ def create_vision_server(case_id: int):
                 "size_bytes": size_bytes,
                 "job_id": job["id"],
                 "job_status": job["status"],
+                "workspace_item_id": ws_item_id,
             })
         except Exception as exc:
             return _error(f"upload_filled_document failed: {exc}")

@@ -23,6 +23,7 @@ import DraftPreview from "@/components/DraftPreview";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import HtmlRenderer from "@/components/HtmlRenderer";
 import JsonViewRenderer from "@/components/views/JsonViewRenderer";
+import PdfRenderer from "@/components/PdfRenderer";
 
 /* ------------------------------------------------------------------ */
 /* Props                                                              */
@@ -372,6 +373,8 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
             editMode={editMode}
           />
         );
+      case "pdf":
+        return <PdfRenderer content={activeItem.content} />;
       default:
         return null;
     }
