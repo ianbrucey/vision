@@ -67,7 +67,7 @@ Caddy (:80/:443) — TLS termination
     ↓
     ├─ vision.justicequest.pro/    → vision-frontend:3000 (Next.js)
     ├─ vision.justicequest.pro/api → vision-api:8400 (FastAPI)
-    └─ files.vision.justicequest.pro → vision-minio:9000 (presigned URLs)
+    └─ files-vision.justicequest.pro → vision-minio:9000 (presigned URLs)
 
 Internal Docker network:
     vision-api ──→ vision-db:5432 (Postgres + pgvector)
@@ -102,7 +102,7 @@ Internal Docker network:
 | Hostname | Routes To | Purpose |
 |----------|-----------|---------|
 | `vision.justicequest.pro` | Caddy → frontend + `/api/*` → API | Main app |
-| `files.vision.justicequest.pro` | Caddy → MinIO :9000 | Browser-accessible presigned URLs |
+| `files-vision.justicequest.pro` | Caddy → MinIO :9000 | Browser-accessible presigned URLs |
 
 ### Docker Services (docker-compose.prod.yml)
 | Service | Image | Purpose |
@@ -134,7 +134,7 @@ repo). Contains all secrets. Key groups:
 |-------|-----------|-------|
 | Database | `VISION_DB_HOST` (`vision-db`), `_PORT`, `_DATABASE`, `_USERNAME`, `_PASSWORD` | Internal Docker hostname |
 | LLM (DeepSeek) | `ANTHROPIC_BASE_URL`, `ANTHROPIC_AUTH_TOKEN`, `ANTHROPIC_MODEL`, `_OPUS_`, `_SONNET_`, `_HAIKU_` | Points at `api.deepseek.com/anthropic` |
-| MinIO | `MINIO_ENDPOINT` (`vision-minio:9000`), `_PUBLIC_ENDPOINT` (`files.vision.justicequest.pro`), `_ACCESS_KEY`, `_SECRET_KEY`, `_BUCKET`, `_SECURE` (`false`) | Internal for API, public for browser |
+| MinIO | `MINIO_ENDPOINT` (`vision-minio:9000`), `_PUBLIC_ENDPOINT` (`files-vision.justicequest.pro`), `_ACCESS_KEY`, `_SECRET_KEY`, `_BUCKET`, `_SECURE` (`false`) | Internal for API, public for browser |
 | JWT | `VISION_JWT_SECRET` | Generated via `openssl rand -hex 32` |
 | CORS | `CORS_ALLOWED_ORIGINS` (`https://vision.justicequest.pro`) | Restricts API to frontend origin |
 | Frontend | `NEXT_PUBLIC_API_URL` (`https://vision.justicequest.pro`) | Baked into Next.js build via Docker arg |
@@ -245,7 +245,7 @@ force a re-run: `docker compose -f docker-compose.prod.yml restart vision-api`
       but confirm with the user first.
 - [ ] **MinIO console not exposed** — `vision-minio` runs with
       `--console-address ":9003"` but Caddy only proxies the S3 API port
-      (:9000) at `files.vision.justicequest.pro`. The console is accessible
+      (:9000) at `files-vision.justicequest.pro`. The console is accessible
       only inside the Docker network.
 - [ ] **`deploy.sh` runs `git pull`** — if there are uncommitted changes on
       the server (shouldn't be, but possible), the pull will fail. The script
