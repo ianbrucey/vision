@@ -6,11 +6,11 @@
 
 {
     email admin@justicequest.pro
-    auto_https disable_redirects
 }
 
 # Main app — serves the Next.js frontend and proxies /api/* to the FastAPI backend.
-vision.justicequest.pro {
+# Bound to both HTTP and HTTPS so Cloudflare Flexible SSL mode works.
+vision.justicequest.pro, http://vision.justicequest.pro {
     # API routes
     handle /api/* {
         reverse_proxy vision-api:8400
