@@ -26,10 +26,6 @@ services:
       MINIO_SERVER_URL: https://files-vision.justicequest.pro
     volumes:
       - vision_minio_data:/data
-    networks:
-      default:
-        aliases:
-          - files-vision.justicequest.pro
     healthcheck:
       test: ['CMD-SHELL', 'mc ready local']
       interval: 3s
@@ -103,6 +99,10 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    networks:
+      default:
+        aliases:
+          - files-vision.justicequest.pro
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - vision_caddy_data:/data
