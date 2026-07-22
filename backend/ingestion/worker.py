@@ -22,7 +22,6 @@ import os
 import sys
 import time
 import traceback
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
@@ -252,65 +251,32 @@ def process_sam_fetch_job(job: dict) -> None:
         TEMP_DIR.mkdir(parents=True, exist_ok=True)
         total = len(resource_links)
 
-        # ── Phase 1: download all attachments in parallel ──────────
-        # Each resource link is a SAM.gov S3-presigned URL — purely I/O bound.
-        # Threading cuts wall-clock time from Σ(downloads) to max(downloads).
-        downloads: list[dict | Exception] = [None] * total  # type: ignore[list-item]
-
-        def _download_one(idx: int, link: str) -> tuple[int, dict | Exception]:
-            local_path = TEMP_DIR / f"{job_id}_sam_{idx}"
+        TEMP_DIR.mkdir(parents=True, exist_ok=True)
+        total = len(resource_links)
+        for i, link in enumerate(resource_links):
+            pct = 30 + int((i / total) * 60)
+            update_progress(job_id, pct)
+            local_path = TEMP_DIR / f"{job_id}_sam_{i}"
             try:
-                return (idx, download_resource_link(link, local_path))
-            except Exception as e:
-                return (idx, e)
+                print(f"[{WORKER_ID}] Job {job_id}: downloading resource {i+1}/{total}...")
+                downloaded = download_resource_link(link, local_path)
+                filename = downloaded["filename"]
+                fpath = downloaded["path"]
 
-        with ThreadPoolExecutor(max_workers=min(total, 6)) as pool:
-            futures = [
-                pool.submit(_download_one, i, link)
-                for i, link in enumerate(resource_links)
-            ]
-            for future in as_completed(futures):
-                idx, result = future.result()
-                downloads[idx] = result
+                suffix = Path(filename).suffix
+                if suffix and fpath.suffix != suffix:
+                    renamed = fpath.with_suffix(suffix)
+                    fpath.rename(renamed)
+                    fpath = renamed
+                    local_path = renamed
 
-        update_progress(job_id, 60)
-
-        # ── Phase 2: ingest all downloads in parallel ─────────────
-        # Each document is independent — download, OCR, MinIO upload,
-        # and DB writes don't contend on shared rows. ThreadPoolExecutor
-        # overlaps I/O (MinIO uploads) with CPU (OCR).
-        def _process_one(idx: int, result: dict | Exception) -> bool:
-            """Process a single downloaded file. Returns True on success."""
-            if isinstance(result, Exception):
-                print(
-                    f"[{WORKER_ID}] Job {job_id}: resource {idx+1}/{total} "
-                    f"download FAILED — {result}"
-                )
-                return False
-
-            filename = result["filename"]
-            fpath = result["path"]
-
-            # Rename to carry the correct suffix before dispatching.
-            suffix = Path(filename).suffix
-            if suffix and fpath.suffix != suffix:
-                renamed = fpath.with_suffix(suffix)
-                fpath.rename(renamed)
-                fpath = renamed
-
-            try:
-                print(
-                    f"[{WORKER_ID}] Job {job_id}: ingesting resource "
-                    f"{idx+1}/{total} — {filename}"
-                )
-                ingest_result = ingest_file(
+                result = ingest_file(
                     case_id=case_id,
                     file_path=fpath,
                     document_name=filename,
                 )
-                doc_id = ingest_result.get("document_id")
+                doc_id = result.get("document_id")
 
-                # Upload to MinIO for durable storage/preview.
                 storage_ref = _upload_to_minio(fpath, filename)
                 storage_path = f"{storage_ref['bucket']}/{storage_ref['object_key']}"
 
@@ -319,51 +285,25 @@ def process_sam_fetch_job(job: dict) -> None:
                     with tx() as conn:
                         with conn.cursor() as cur:
                             cur.execute(
-                                "UPDATE documents SET source = 'sam_gov', "
-                                "storage_path = %s WHERE id = %s",
+                                "UPDATE documents SET source = 'sam_gov', storage_path = %s WHERE id = %s",
                                 (storage_path, doc_id),
                             )
                     try:
-                        enqueue(
-                            case_id=case_id,
-                            job_type="enrich",
-                            metadata={"document_id": doc_id},
-                        )
+                        enqueue(case_id=case_id, job_type="enrich", metadata={"document_id": doc_id})
                     except Exception as e:
-                        print(
-                            f"[{WORKER_ID}] Job {job_id}: failed to enqueue "
-                            f"enrich — {e}"
-                        )
+                        print(f"[{WORKER_ID}] Job {job_id}: failed to enqueue enrich — {e}")
 
-                print(
-                    f"[{WORKER_ID}] Job {job_id}: ingested {filename} "
-                    f"(doc_id={doc_id})"
-                )
-                return True
+                print(f"[{WORKER_ID}] Job {job_id}: ingested {filename} (doc_id={doc_id})")
             except Exception as e:
-                print(
-                    f"[{WORKER_ID}] Job {job_id}: resource {idx+1}/{total} "
-                    f"ingest FAILED — {e}"
-                )
+                print(f"[{WORKER_ID}] Job {job_id}: resource {i+1}/{total} FAILED — {e}")
                 traceback.print_exc()
-                return False
+                has_missing_docs = True
             finally:
                 try:
-                    if fpath.exists():
-                        fpath.unlink()
+                    if local_path.exists():
+                        local_path.unlink()
                 except OSError:
                     pass
-
-        with ThreadPoolExecutor(max_workers=min(total, 6)) as pool:
-            results = list(pool.map(
-                _process_one,
-                range(total),
-                downloads,
-            ))
-
-        update_progress(job_id, 95)
-        if any(not ok for ok in results):
-            has_missing_docs = True
 
     update_progress(job_id, 100)
     mgr.update(solicitation_id, ingestion_status="complete", has_missing_docs=has_missing_docs)
