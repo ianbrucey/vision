@@ -173,7 +173,7 @@ export interface VendorOutreachMessage {
   id: number;
   vendor_match_id: number;
   direction: "outbound" | "inbound";
-  status: "draft" | "sent" | "failed";
+  status: "draft" | "sent" | "failed" | "received";
   subject: string;
   body: string;
   mailgun_message_id: string | null;
