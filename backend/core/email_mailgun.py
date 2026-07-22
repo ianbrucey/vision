@@ -13,6 +13,10 @@ import httpx
 
 _API_KEY = os.environ.get("MAILGUN_API_KEY", "")
 _BASE_URL = os.environ.get("MAILGUN_BASE_URL", "https://api.mailgun.net/v3")
+# Ensure the base URL includes the /v3 path prefix. If an operator sets
+# "https://api.mailgun.net" (without /v3), all domain lookups 404.
+if not _BASE_URL.rstrip("/").endswith("/v3"):
+    _BASE_URL = _BASE_URL.rstrip("/") + "/v3"
 # Prefer a real verified domain (MAILGUN_DOMAIN) if set; fall back to the
 # sandbox domain for local dev (sandbox can only send to authorized
 # recipients — see PLAN.md §0).
