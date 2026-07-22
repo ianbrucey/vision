@@ -408,6 +408,7 @@ export interface WorkspaceItemSummary {
   file_type: FileType;
   document_type: string;
   folder: string;
+  folder_id: number | null;
   status: string;
   created_by: string;
   workspace_id: number | null;
@@ -450,6 +451,9 @@ export const listFolders = (caseId: number, parentId?: number | null, workspaceI
 export const createFolder = (caseId: number, name: string, parentId?: number | null, workspaceId?: number | null): Promise<{ id: number; name: string }> =>
   fetchAPI("/api/folders", { method: "POST", body: JSON.stringify({ case_id: caseId, name, parent_id: parentId ?? null, workspace_id: workspaceId ?? null }) });
 
+export const deleteFolder = (folderId: number): Promise<{ deleted: boolean }> =>
+  fetchAPI(`/api/folders/${folderId}`, { method: "DELETE" });
+
 export const listWorkspaceItems = (
   caseId: number,
   params?: { folder?: string; file_type?: string },
@@ -470,6 +474,7 @@ export const createWorkspaceItem = (data: {
   file_type?: string;
   document_type?: string;
   folder?: string;
+  folder_id?: number | null;
   content?: unknown;
   workspace_id?: number | null;
 }): Promise<{ item: WorkspaceItemFull }> =>
@@ -1000,3 +1005,122 @@ export function streamChatMessage(
 
   return controller;
 }
+
+// ---------------------------------------------------------------------------
+// SAM.gov Databank Notices
+// ---------------------------------------------------------------------------
+
+export interface SamNotice {
+  id: number;
+  notice_id: string | null;
+  opportunity_title: string;
+  contract_opportunity_type: string | null;
+  naics_code: string | null;
+  naics_description: string | null;
+  psc_code: string | null;
+  current_set_aside: string | null;
+  current_set_aside_code: string | null;
+  sub_tier_name: string | null;
+  contracting_office: string | null;
+  pop_city: string | null;
+  pop_state: string | null;
+  pop_country: string | null;
+  current_response_date: string | null;
+  last_published_date: string | null;
+  status: string | null;
+  poc_name: string | null;
+  poc_email: string | null;
+  awardee_name: string | null;
+  awardee_uei: string | null;
+  attachment_count: number | null;
+  ivl_enabled: boolean | null;
+  description: string | null;
+  upload_batch_id: string | null;
+  source_csv: string | null;
+  created_at: string;
+}
+
+export interface SamNoticesQuery {
+  q?: string;
+  naics_code?: string;
+  naics_description?: string;
+  psc_code?: string;
+  contract_opportunity_type?: string;
+  current_set_aside?: string;
+  current_set_aside_code?: string;
+  sub_tier_name?: string;
+  pop_state?: string;
+  pop_city?: string;
+  status?: string;
+  awardee_name?: string;
+  awardee_uei?: string;
+  notice_id?: string;
+  contracting_office?: string;
+  initiative?: string;
+  response_date_from?: string;
+  response_date_to?: string;
+  published_date_from?: string;
+  published_date_to?: string;
+  has_attachments?: boolean;
+  ivl_enabled?: boolean;
+  limit?: number;
+  offset?: number;
+  order_by?: string;
+  order_dir?: string;
+}
+
+export interface SamNoticesResponse {
+  total: number;
+  limit: number;
+  offset: number;
+  count: number;
+  results: SamNotice[];
+}
+
+export const querySamNotices = (body: SamNoticesQuery): Promise<SamNoticesResponse> =>
+  fetchAPI("/api/sam-notices/query", { method: "POST", body: JSON.stringify(body) });
+
+export const uploadSamNoticesCsv = (file: File): Promise<{ batch_id: string; rows_inserted: number; source: string }> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const token = localStorage.getItem("vision_token");
+  return fetch(`${API_BASE}/api/sam-notices/upload`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  }).then((res) => {
+    if (res.status === 401) {
+      localStorage.removeItem("vision_token");
+      localStorage.removeItem("vision_user");
+      if (typeof window !== "undefined") window.location.href = "/login";
+      throw new Error("Session expired");
+    }
+    if (!res.ok) return res.json().then((err) => { throw new Error(err.detail || `HTTP ${res.status}`); });
+    return res.json();
+  });
+};
+
+export interface SamNoticeBatch {
+  batch_id: string;
+  source: string;
+  rows: number;
+  uploaded_at: string;
+}
+
+export const listSamNoticeBatches = (): Promise<{ batches: SamNoticeBatch[] }> =>
+  fetchAPI("/api/sam-notices/batches");
+
+export const deleteSamNoticeBatch = (batchId: string): Promise<{ deleted: number; batch_id: string }> =>
+  fetchAPI(`/api/sam-notices/batches/${batchId}`, { method: "DELETE" });
+
+export interface SolicitationLookup {
+  solicitation_number: string;
+  title: string;
+  notice_id: string;
+  ui_link: string;
+  response_deadline: string | null;
+  posted_date: string | null;
+}
+
+export const lookupSolicitationUrl = (sol: string): Promise<SolicitationLookup> =>
+  fetchAPI(`/api/sam-notices/lookup?sol=${encodeURIComponent(sol)}`);

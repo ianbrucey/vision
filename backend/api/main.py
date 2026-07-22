@@ -21,7 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from core.case import CaseManager
-from core.db import ensure_schema, ensure_strategy_schema, ensure_chat_schema, ensure_correspondence_schema, ensure_solicitations_schema, ensure_solicitation_triage_schema, ensure_vendors_schema, ensure_vendor_matching_schema, ensure_vendor_matches_manual_schema, ensure_vendor_matches_cap_schema, ensure_vendor_outreach_schema, ensure_vendor_outreach_email_schema, ensure_vendor_outreach_messages_schema, ensure_workspace_pdf_filetype_schema
+from core.db import ensure_schema, ensure_strategy_schema, ensure_chat_schema, ensure_correspondence_schema, ensure_solicitations_schema, ensure_solicitation_triage_schema, ensure_vendors_schema, ensure_vendor_matching_schema, ensure_vendor_matches_manual_schema, ensure_vendor_matches_cap_schema, ensure_vendor_outreach_schema, ensure_vendor_outreach_email_schema, ensure_vendor_outreach_messages_schema, ensure_workspace_pdf_filetype_schema, ensure_sam_notices_schema
 from core.vendor import VendorManager
 from ingestion.storage import upload_file as _upload_to_minio
 from ingestion.jobs import enqueue as _enqueue_job, get_job, list_jobs
@@ -76,6 +76,7 @@ def _apply_schemas():
     ensure_vendor_outreach_email_schema() # 014 — outreach email send/reply tracking (T10)
     ensure_vendor_outreach_messages_schema() # 015 — per-vendor message thread (T10c)
     ensure_workspace_pdf_filetype_schema()   # 016 — add 'pdf' file_type to workspace
+    ensure_sam_notices_schema()             # 017 — SAM.gov databank notices table
 
 
 mgr = CaseManager()
@@ -530,6 +531,7 @@ from api.routes.vault import router as vault_router
 from api.routes.calendar import router as calendar_router
 from api.routes.solicitations import router as solicitations_router
 from api.routes.webhooks_mailgun import router as webhooks_mailgun_router
+from api.routes.sam_notices import router as sam_notices_router
 app.include_router(chat_router)
 app.include_router(drafts_router)
 app.include_router(workspace_router)
@@ -540,6 +542,7 @@ app.include_router(vault_router)
 app.include_router(calendar_router)
 app.include_router(solicitations_router)
 app.include_router(webhooks_mailgun_router)
+app.include_router(sam_notices_router)
 
 # ---------------------------------------------------------------------------
 # Health check

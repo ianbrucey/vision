@@ -262,10 +262,19 @@ def list_folders(
     workspace_id: int | None = None,
     parent_id: int | None = 0,
 ) -> list[dict]:
-    """List folders for a case/workspace. parent_id=None returns root folders."""
+    """List folders for a case/workspace. parent_id=None/0 returns root folders, -1 returns all."""
     import psycopg2.extras
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        if parent_id == 0:  # sentinel for root folders
+        if parent_id == -1:  # sentinel for all folders
+            cur.execute(
+                """SELECT id, case_id, workspace_id, name, parent_id, sort_order,
+                          created_at, updated_at
+                   FROM folders WHERE case_id = %s
+                   AND workspace_id IS NOT DISTINCT FROM %s
+                   ORDER BY sort_order, name""",
+                (case_id, workspace_id),
+            )
+        elif parent_id == 0 or parent_id is None:  # sentinel for root folders
             cur.execute(
                 """SELECT id, case_id, workspace_id, name, parent_id, sort_order,
                           created_at, updated_at
@@ -286,6 +295,15 @@ def list_folders(
                 (case_id, workspace_id, parent_id),
             )
         return [dict(row) for row in cur.fetchall()]
+
+
+def get_folder(conn: connection, folder_id: int) -> dict | None:
+    """Fetch a single folder by ID."""
+    import psycopg2.extras
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("SELECT * FROM folders WHERE id = %s", (folder_id,))
+        row = cur.fetchone()
+        return dict(row) if row else None
 
 
 def ensure_journal_schema() -> list[str]:
@@ -475,6 +493,23 @@ def ensure_workspace_pdf_filetype_schema() -> list[str]:
     if not sql_path.exists():
         raise FileNotFoundError(
             f"Workspace PDF file type schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_sam_notices_schema() -> list[str]:
+    """Apply the SAM.gov databank notices migration (v26).
+
+    Creates sam_notices table with full-text search and indexes.
+    Idempotent.
+    """
+    sql_path = _SCHEMA_DIR / "017_sam_notices.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"SAM notices schema file not found: {sql_path}"
         )
     with tx() as conn:
         with conn.cursor() as cur:
@@ -845,16 +880,20 @@ def insert_draft(
     file_type: str = "structured_draft",
     folder: str = "artifacts",
     workspace_id: int | None = None,
+    folder_id: int | None = None,
+    metadata: dict | None = None,
 ) -> int:
     with conn.cursor() as cur:
         cur.execute(
             """INSERT INTO drafts (case_id, name, document_type, content,
-               created_by, status, file_type, folder, workspace_id)
-               VALUES (%s, %s, %s, %s::jsonb, %s, %s, %s, %s, %s)
+               created_by, status, file_type, folder, workspace_id, folder_id,
+               metadata)
+               VALUES (%s, %s, %s, %s::jsonb, %s, %s, %s, %s, %s, %s, %s::jsonb)
                RETURNING id""",
             (case_id, name, document_type,
              json.dumps(content if content is not None else []),
-             created_by, status, file_type, folder, workspace_id),
+             created_by, status, file_type, folder, workspace_id, folder_id,
+             json.dumps(metadata) if metadata else "{}"),
         )
         return cur.fetchone()[0]
 
@@ -869,6 +908,7 @@ def update_draft(
     file_type: str | None = None,
     folder: str | None = None,
     metadata: dict | None = None,
+    folder_id: int | None = None,
 ) -> dict | None:
     sets = []
     params: list[Any] = []
@@ -886,6 +926,8 @@ def update_draft(
         sets.append("folder = %s"); params.append(folder)
     if metadata is not None:
         sets.append("metadata = %s::jsonb"); params.append(json.dumps(metadata))
+    if folder_id is not None:
+        sets.append("folder_id = %s"); params.append(folder_id)
     if not sets:
         return None
     sets.append("updated_at = now()")
@@ -899,6 +941,51 @@ def update_draft(
         return dict(row) if row else None
 
 
+def update_folder(
+    conn: connection, folder_id: int, name: str | None = None, parent_id: int | None = None
+) -> dict | None:
+    """Update a folder's name or parent."""
+    updates = []
+    params = []
+    if name is not None:
+        updates.append("name = %s"); params.append(name)
+    if parent_id is not None:
+        updates.append("parent_id = %s"); params.append(parent_id)
+
+    if not updates:
+        return get_folder(conn, folder_id)
+
+    updates.append("updated_at = now()")
+    params.append(folder_id)
+
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            f"UPDATE folders SET {', '.join(updates)} WHERE id = %s RETURNING *",
+            tuple(params),
+        )
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def delete_folder(conn: connection, folder_id: int) -> bool:
+    """Delete a folder and cascade delete all its files and subfolders."""
+    with conn.cursor() as cur:
+        # 1. Delete all files (drafts) inside this folder and any subfolders
+        cur.execute("""
+            WITH RECURSIVE folder_tree AS (
+                SELECT id FROM folders WHERE id = %s
+                UNION ALL
+                SELECT f.id FROM folders f
+                INNER JOIN folder_tree ft ON f.parent_id = ft.id
+            )
+            DELETE FROM drafts WHERE folder_id IN (SELECT id FROM folder_tree)
+        """, (folder_id,))
+
+        # 2. Delete the folder (subfolders cascade automatically via ON DELETE CASCADE)
+        cur.execute("DELETE FROM folders WHERE id = %s", (folder_id,))
+        return cur.rowcount > 0
+
+
 def get_draft(conn: connection, draft_id: int) -> dict | None:
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute("SELECT * FROM drafts WHERE id = %s", (draft_id,))
@@ -910,10 +997,11 @@ def list_drafts(
     conn: connection,
     case_id: int,
     folder: str | None = None,
+    folder_id: int | None = None,
     workspace_id: int | None = None,
 ) -> list[dict]:
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        base_sql = """SELECT id, case_id, name, document_type, file_type, folder,
+        base_sql = """SELECT id, case_id, name, document_type, file_type, folder, folder_id,
                              status, created_by, workspace_id,
                              CASE
                                WHEN jsonb_typeof(content) = 'array'
@@ -931,6 +1019,9 @@ def list_drafts(
         if folder is not None:
             base_sql += " AND folder = %s"
             params.append(folder)
+        if folder_id is not None:
+            base_sql += " AND folder_id = %s"
+            params.append(folder_id)
         if workspace_id is not None:
             base_sql += " AND workspace_id = %s"
             params.append(workspace_id)
@@ -1597,4 +1688,5 @@ __all__ = [
     "ensure_vendor_outreach_email_schema",
     "ensure_vendor_outreach_messages_schema",
     "ensure_workspace_pdf_filetype_schema",
+    "ensure_sam_notices_schema",
 ]

@@ -19,6 +19,7 @@ import CorrespondenceTab from "./tabs/CorrespondenceTab";
 import TasksTab from "./tabs/TasksTab";
 import CalendarTab from "./tabs/CalendarTab";
 import VendorsTab from "./tabs/VendorsTab";
+import SamNoticesTab from "./tabs/SamNoticesTab";
 import FloatingChat, { FloatingChatButton } from "@/components/FloatingChat";
 
 /* ------------------------------------------------------------------ */
@@ -50,7 +51,7 @@ function CaseDashboardInner() {
   // Tab state lives in the URL — survives refresh
   const tabParam = searchParams.get("tab");
   const activeTab: TabId =
-    tabParam === "chat" || tabParam === "documents" || tabParam === "drafts" || tabParam === "triage" || tabParam === "vendor_matches" || tabParam === "outreach" || tabParam === "workspace" || tabParam === "correspondence" || tabParam === "tasks" || tabParam === "calendar" || tabParam === "vendors"
+    tabParam === "chat" || tabParam === "documents" || tabParam === "drafts" || tabParam === "triage" || tabParam === "vendor_matches" || tabParam === "outreach" || tabParam === "workspace" || tabParam === "correspondence" || tabParam === "tasks" || tabParam === "calendar" || tabParam === "vendors" || tabParam === "sam_notices"
       ? tabParam
       : "overview";
 
@@ -245,6 +246,7 @@ function CaseDashboardInner() {
         {activeTab === "tasks" && <TasksTab caseId={Number(id)} />}
         {activeTab === "calendar" && <CalendarTab caseId={Number(id)} />}
         {activeTab === "vendors" && <VendorsTab caseId={Number(id)} />}
+        {activeTab === "sam_notices" && <SamNoticesTab caseId={Number(id)} />}
       </div>
 
       {/* Tab Navigation */}

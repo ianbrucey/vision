@@ -36,6 +36,7 @@ from core.db import (
     ensure_vendor_outreach_email_schema,
     ensure_vendor_outreach_messages_schema,
     ensure_workspace_pdf_filetype_schema,
+    ensure_sam_notices_schema,
 )
 
 # ---------------------------------------------------------------------------
@@ -184,6 +185,10 @@ def main() -> int:
         workspace_pdf = ensure_workspace_pdf_filetype_schema()
         for path in workspace_pdf:
             print(f"  WkspPDF:   {path}")
+
+        sam_notices = ensure_sam_notices_schema()
+        for path in sam_notices:
+            print(f"  SamNotices:{path}")
     except Exception as e:
         print(f"  ERROR applying schemas: {e}", file=sys.stderr)
         return 1

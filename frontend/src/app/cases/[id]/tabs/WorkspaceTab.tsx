@@ -144,7 +144,29 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<number | null>(initialWsId);
   const [items, setItems] = useState<WorkspaceItemSummary[]>([]);
-  const [activeItem, setActiveItem] = useState<WorkspaceItemFull | null>(null);
+  const [activeTabId, setActiveTabId] = useState<number | null>(initialItemId);
+  const [openTabIds, setOpenTabIds] = useState<number[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(`vision_workspace_tabs_${caseId}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            if (initialItemId && !parsed.includes(initialItemId)) {
+              return [...parsed, initialItemId];
+            }
+            return parsed;
+          }
+        }
+      } catch (e) {}
+    }
+    return initialItemId ? [initialItemId] : [];
+  });
+  const [openItemsData, setOpenItemsData] = useState<Record<number, WorkspaceItemFull>>({});
+
+  useEffect(() => {
+    localStorage.setItem(`vision_workspace_tabs_${caseId}`, JSON.stringify(openTabIds));
+  }, [openTabIds, caseId]);
   const [loading, setLoading] = useState(true);
   const [contentLoading, setContentLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -155,6 +177,7 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [creatingWorkspace, setCreatingWorkspace] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
+  const [explorerRefreshKey, setExplorerRefreshKey] = useState(0);
 
   /* ---- fetch ---- */
 
@@ -182,37 +205,100 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
     }
   }, [caseId, activeWorkspaceId]);
 
+  // Shim to keep existing code working smoothly
+  const activeItem = activeTabId ? openItemsData[activeTabId] : null;
+
+  const setActiveItem = (itemOrUpdater: WorkspaceItemFull | null | ((prev: WorkspaceItemFull | null) => WorkspaceItemFull | null)) => {
+    if (!activeTabId) return;
+    setOpenItemsData(prev => {
+        const prevItem = prev[activeTabId] || null;
+        const newItem = typeof itemOrUpdater === 'function' ? itemOrUpdater(prevItem) : itemOrUpdater;
+        if (!newItem) {
+            const next = { ...prev };
+            delete next[activeTabId];
+            return next;
+        }
+        return { ...prev, [activeTabId]: newItem };
+    });
+  };
+
   useEffect(() => {
     let cancelled = false;
     refreshList().then((list) => {
       if (cancelled) return;
       setLoading(false);
-      if (list.length > 0 && !activeItem) {
-        // Restore the item from URL, or default to the first item
-        const targetId =
-          initialItemId && list.some((i) => i.id === initialItemId)
-            ? initialItemId
-            : list[0].id;
-        selectItem(targetId);
+      if (list.length > 0) {
+        if (activeTabId && !openItemsData[activeTabId]) {
+          // We know the ID but haven't fetched its full content yet
+          selectItem(activeTabId);
+        } else if (!activeTabId) {
+          // No active tab set, default to the last opened tab, or the first item
+          let targetId = list[0].id;
+          if (openTabIds.length > 0 && list.some(i => i.id === openTabIds[openTabIds.length - 1])) {
+            targetId = openTabIds[openTabIds.length - 1];
+          }
+          selectItem(targetId);
+        }
       }
     });
     return () => { cancelled = true; };
   }, [refreshList]);
 
+  // Listen for agent background updates
+  useEffect(() => {
+    const handleWorkspaceUpdated = async () => {
+      // Re-fetch the file list and tree
+      setExplorerRefreshKey(k => k + 1);
+      await refreshList();
+      // Silently re-fetch the active file's full content so the preview updates
+      if (activeTabId) {
+        try {
+          const res = await getWorkspaceItem(activeTabId);
+          setOpenItemsData(prev => ({...prev, [activeTabId]: res.item}));
+        } catch { /* silent */ }
+      }
+    };
+
+    window.addEventListener("vision_workspace_updated", handleWorkspaceUpdated);
+    return () => {
+      window.removeEventListener("vision_workspace_updated", handleWorkspaceUpdated);
+    };
+  }, [refreshList, activeTabId]);
+
   const selectItem = async (id: number) => {
-    setContentLoading(true);
     setEditMode(false);
     setSaveStatus("idle");
     setUrlParams({ item: id });
-    try {
-      const res = await getWorkspaceItem(id);
-      setActiveItem(res.item);
+    
+    setOpenTabIds(prev => prev.includes(id) ? prev : [...prev, id]);
+    setActiveTabId(id);
+
+    if (!openItemsData[id]) {
+      setContentLoading(true);
+      try {
+        const res = await getWorkspaceItem(id);
+        setOpenItemsData(prev => ({...prev, [id]: res.item}));
+      } catch {
+        refreshList();
+      } finally {
+        setContentLoading(false);
+      }
+    } else {
       if (window.innerWidth < 768) setMobileView("preview");
-    } catch {
-      refreshList();
-    } finally {
-      setContentLoading(false);
     }
+  };
+
+  const closeTab = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpenTabIds(prev => {
+      const next = prev.filter(tid => tid !== id);
+      if (activeTabId === id) {
+        const newActive = next.length > 0 ? next[next.length - 1] : null;
+        setActiveTabId(newActive);
+        setUrlParams({ item: newActive });
+      }
+      return next;
+    });
   };
 
   /* ---- actions ---- */
@@ -241,14 +327,20 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
             : "Untitled Letter",
         file_type: fileType,
         folder: "artifacts",  // deprecated but still required by API
+        folder_id: folderId,
         content,
         workspace_id: activeWorkspaceId,
       });
-      await refreshList();
-      setActiveItem(res.item);
+      const newId = res.item.id;
+      setOpenTabIds(prev => prev.includes(newId) ? prev : [...prev, newId]);
+      setOpenItemsData(prev => ({...prev, [newId]: res.item}));
+      setActiveTabId(newId);
       setEditMode(true);
       if (window.innerWidth < 768) setMobileView("preview");
       setShowNewFileMenu(null);
+      // Refresh explorer list AFTER state is settled to avoid duplicate rendering
+      setExplorerRefreshKey(k => k + 1);
+      refreshList();
     } catch { /* silent */ }
   };
 
@@ -305,10 +397,23 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
 
   const handleDelete = async (itemId: number) => {
     await deleteWorkspaceItem(itemId);
-    if (activeItem?.id === itemId) {
-      setActiveItem(null);
-      setUrlParams({ item: null });
-    }
+    
+    setOpenTabIds(prev => {
+      const next = prev.filter(tid => tid !== itemId);
+      if (activeTabId === itemId) {
+        const newActive = next.length > 0 ? next[next.length - 1] : null;
+        setActiveTabId(newActive);
+        setUrlParams({ item: newActive });
+      }
+      return next;
+    });
+    
+    setOpenItemsData(prev => {
+      const next = {...prev};
+      delete next[itemId];
+      return next;
+    });
+    
     await refreshList();
   };
 
@@ -335,6 +440,7 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
       case "markdown":
         return (
           <MarkdownRenderer
+            key={`md-${activeItem.id}`}
             content={getMarkdownContent(activeItem.content)}
             editMode={editMode}
             onChange={handleMarkdownChange}
@@ -346,6 +452,7 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
       case "structured_draft":
         return (
           <DraftPreview
+            key={`draft-${activeItem.id}`}
             blocks={getBlocksContent(activeItem.content)}
             editMode={editMode}
             onBlockUpdate={handleBlockUpdate}
@@ -364,17 +471,18 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
           />
         );
       case "html":
-        return <HtmlRenderer html={getHtmlContent(activeItem.content)} />;
+        return <HtmlRenderer key={`html-${activeItem.id}`} html={getHtmlContent(activeItem.content)} />;
+      case "pdf":
+        return <PdfRenderer key={`pdf-${activeItem.id}`} content={activeItem.content} />;
       case "json_view":
         return (
           <JsonViewRenderer
+            key={`json-${activeItem.id}`}
             content={activeItem.content}
             itemId={activeItem.id}
             editMode={editMode}
           />
         );
-      case "pdf":
-        return <PdfRenderer content={activeItem.content} />;
       default:
         return null;
     }
@@ -461,7 +569,13 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
                       overflow-hidden ${mobileView === "preview" ? "max-md:hidden" : "max-md:w-full max-md:border-r-0"}`}
         >
           <FileExplorer
-            items={items.filter((i) => i.workspace_id === activeWorkspaceId || i.workspace_id === null)}
+            items={Array.from(
+              new Map(
+                items
+                  .filter(i => i.workspace_id === activeWorkspaceId || i.workspace_id === null)
+                  .map(i => [i.id, i])
+              ).values()
+            )}
             activeItemId={activeItem?.id ?? null}
             caseId={caseId}
             workspaceId={activeWorkspaceId}
@@ -479,7 +593,7 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
                 await refreshList();
               } catch { /* silent */ }
             }}
-            refreshKey={0}
+            refreshKey={explorerRefreshKey}
           />
         </aside>
 
@@ -487,6 +601,35 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
         <main
           className={`flex-1 flex flex-col min-w-0 overflow-hidden ${mobileView === "list" ? "max-md:hidden" : ""}`}
         >
+          {openTabIds.length > 0 && (
+            <div className="flex flex-row overflow-x-auto bg-surface-1 border-b border-border shrink-0 hide-scrollbar">
+              {openTabIds.map(id => {
+                const summary = items.find(i => i.id === id) || openItemsData[id];
+                const isActive = activeTabId === id;
+                return (
+                  <div
+                    key={id}
+                    onClick={() => selectItem(id)}
+                    className={`flex items-center gap-2 px-3 py-2 cursor-pointer border-r border-border min-w-[120px] max-w-[200px] group transition-colors ${
+                      isActive 
+                        ? 'bg-surface-2 border-t-2 border-t-brand text-text-primary' 
+                        : 'bg-surface-1 text-text-secondary hover:bg-surface-2 border-t-2 border-t-transparent'
+                    }`}
+                  >
+                    <FileText size={12} className={isActive ? "text-brand" : "text-text-disabled"} />
+                    <span className="text-xs truncate flex-1 font-medium">{summary?.name || "Loading..."}</span>
+                    <button
+                      onClick={(e) => closeTab(id, e)}
+                      className={`p-0.5 rounded hover:bg-surface-3 transition-colors ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                    >
+                      <X size={12} className="text-text-secondary hover:text-text-primary" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {activeItem ? (
             <>
               {/* Desktop toolbar */}

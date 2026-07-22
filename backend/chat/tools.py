@@ -1194,16 +1194,16 @@ def create_vision_server(case_id: int):
     @tool(
         "list_workspace_items",
         "List workspace items for the current case. Optionally filter by "
-        "folder (freestyle, research, artifacts) or file_type. Returns id, "
-        "name, file_type, folder, document_type, status, block count, and "
+        "folder_id or file_type. Returns id, "
+        "name, file_type, folder_id, document_type, status, block count, and "
         "timestamps. Does not return full content — use get_workspace_item "
         "for that.",
         {
             "type": "object",
             "properties": {
-                "folder": {
-                    "type": "string",
-                    "description": "Filter by folder: freestyle, research, artifacts.",
+                "folder_id": {
+                    "type": "integer",
+                    "description": "Filter by folder ID.",
                 },
                 "file_type": {
                     "type": "string",
@@ -1220,8 +1220,8 @@ def create_vision_server(case_id: int):
             conn = _conn()
             try:
                 from core.db import list_drafts as _list_drafts
-                folder = args.get("folder")
-                rows = _list_drafts(conn, case_id, folder=folder)
+                folder_id = args.get("folder_id")
+                rows = _list_drafts(conn, case_id, folder_id=folder_id)
             finally:
                 conn.close()
             file_type = args.get("file_type")
@@ -1301,10 +1301,9 @@ def create_vision_server(case_id: int):
                     "enum": ["markdown", "structured_draft", "html", "json_view", "pdf"],
                     "description": "Type of content this item holds.",
                 },
-                "folder": {
-                    "type": "string",
-                    "enum": ["freestyle", "research", "artifacts"],
-                    "description": "Which folder to place the item in.",
+                "folder_id": {
+                    "type": "integer",
+                    "description": "Which folder ID to place the item in (optional).",
                 },
                 "document_type": {
                     "type": "string",
@@ -1325,7 +1324,7 @@ def create_vision_server(case_id: int):
                     "to see available workspaces.",
                 },
             },
-            "required": ["name", "file_type", "folder", "content"],
+            "required": ["name", "file_type", "content"],
         },
     )
     async def create_workspace_item(args: dict[str, Any]) -> dict[str, Any]:
@@ -1354,8 +1353,9 @@ def create_vision_server(case_id: int):
                     content=content_to_store,
                     created_by="agent",
                     file_type=args["file_type"],
-                    folder=args["folder"],
+                    folder="artifacts",
                     workspace_id=args.get("workspace_id"),
+                    folder_id=args.get("folder_id"),
                 )
             finally:
                 conn.close()
@@ -1363,7 +1363,7 @@ def create_vision_server(case_id: int):
                 "item_id": item_id,
                 "name": args["name"],
                 "file_type": args["file_type"],
-                "folder": args["folder"],
+                "folder_id": args.get("folder_id"),
                 "block_count": len(content_to_store),
             })
         except Exception as exc:
@@ -1371,7 +1371,7 @@ def create_vision_server(case_id: int):
 
     @tool(
         "update_workspace_item",
-        "Modify a workspace item — update its name, content, folder, or "
+        "Modify a workspace item — update its name, content, folder_id, or "
         "status. For targeted edits, provide only what changed. To replace "
         "the entire content, provide a full content envelope matching the "
         "item's file_type. Use get_workspace_item first to see current state.\n\n"
@@ -1393,10 +1393,9 @@ def create_vision_server(case_id: int):
                     "description": "Full replacement content envelope (optional). "
                     "For json_view: direct object. For other types: array-wrapped.",
                 },
-                "folder": {
-                    "type": "string",
-                    "enum": ["freestyle", "research", "artifacts"],
-                    "description": "Move to a different folder (optional).",
+                "folder_id": {
+                    "type": "integer",
+                    "description": "Move to a different folder ID (optional). Null means root.",
                 },
                 "status": {
                     "type": "string",
@@ -1427,8 +1426,8 @@ def create_vision_server(case_id: int):
                 kwargs["name"] = args["name"]
             if "status" in args:
                 kwargs["status"] = args["status"]
-            if "folder" in args:
-                kwargs["folder"] = args["folder"]
+            if "folder_id" in args:
+                kwargs["folder_id"] = args["folder_id"]
             if "content" in args:
                 content_raw = args["content"]
                 item_file_type = item.get("file_type", "")
@@ -1455,7 +1454,7 @@ def create_vision_server(case_id: int):
                 "item_id": item_id,
                 "name": updated["name"],
                 "file_type": updated.get("file_type", ""),
-                "folder": updated.get("folder", ""),
+                "folder_id": updated.get("folder_id"),
                 "block_count": len(updated.get("content", [])),
                 "updated_at": str(updated.get("updated_at", "")),
             })
@@ -4211,6 +4210,212 @@ def create_vision_server(case_id: int):
         except Exception as exc:
             return _error(f"convert_docx_to_pdf failed: {exc}")
 
+    # -- Layer 14: SAM.gov Databank Notices -----------------------------------
+
+    @tool(
+        "query_sam_notices",
+        "Query the SAM.gov databank of federal contract opportunities. "
+        "This contains thousands of notices imported from SAM.gov CSV "
+        "exports, searchable by full-text query, NAICS code, set-aside "
+        "type, agency, place of performance, date ranges, and more.\n\n"
+        "Use this for:\n"
+        "  - Finding opportunities matching specific NAICS codes\n"
+        "  - Searching for small business set-asides in a state\n"
+        "  - Identifying trends (e.g. 'how many IT contracts in VA?') \n"
+        "  - Researching what agencies buy in your NAICS\n"
+        "  - Finding active solicitations with approaching deadlines\n\n"
+        "FILTERS (all optional — combine freely):\n"
+        "  q: full-text search across title, description, NAICS, agency\n"
+        "  naics_code: exact NAICS code match (e.g. '541511')\n"
+        "  naics_description: partial NAICS description match\n"
+        "  psc_code: Product/Service Code\n"
+        "  contract_opportunity_type: 'Combined Synopsis/Solicitation', "
+        "'Sources Sought', 'Award Notice', 'Presolicitation', etc.\n"
+        "  current_set_aside: partial match (e.g. 'Small Business', 'SDVOSB')\n"
+        "  sub_tier_name: agency name (e.g. 'DEPT OF THE ARMY')\n"
+        "  pop_state: 2-letter state code (e.g. 'VA', 'MD')\n"
+        "  pop_city: city name\n"
+        "  status: 'active' or 'inactive'\n"
+        "  response_date_from / response_date_to: date range for due dates\n"
+        "  has_attachments: true to only show opportunities with attachments\n"
+        "  limit: max results (default 100, max 1000)\n"
+        "  offset: for pagination\n\n"
+        "EXAMPLES:\n"
+        "  - IT services in Virginia: {naics_code: '541511', pop_state: 'VA'}\n"
+        "  - Active SDVOSB set-asides: {current_set_aside: 'SDVOSB', status: 'active'}\n"
+        "  - Search for roofing: {q: 'roofing repair', pop_state: 'CA'}\n"
+        "  - Army solicitations due soon: {sub_tier_name: 'DEPT OF THE ARMY', "
+        "response_date_from: '2026-07-22', response_date_to: '2026-08-22'}",
+        {
+            "type": "object",
+            "properties": {
+                "q": {
+                    "type": "string",
+                    "description": "Full-text search query. Searches title, "
+                    "description, NAICS, agency, and POC name.",
+                },
+                "naics_code": {"type": "string"},
+                "naics_description": {"type": "string"},
+                "psc_code": {"type": "string"},
+                "contract_opportunity_type": {"type": "string"},
+                "current_set_aside": {"type": "string"},
+                "current_set_aside_code": {
+                    "type": "string",
+                    "description": "Set-aside code: SBA, SDVOSBC, WOSB, "
+                    "HZC, 8A, etc.",
+                },
+                "sub_tier_name": {"type": "string"},
+                "pop_state": {"type": "string"},
+                "pop_city": {"type": "string"},
+                "status": {"type": "string"},
+                "awardee_name": {"type": "string"},
+                "awardee_uei": {"type": "string"},
+                "notice_id": {"type": "string"},
+                "response_date_from": {"type": "string"},
+                "response_date_to": {"type": "string"},
+                "published_date_from": {"type": "string"},
+                "published_date_to": {"type": "string"},
+                "has_attachments": {"type": "boolean"},
+                "ivl_enabled": {"type": "boolean"},
+                "limit": {"type": "integer", "description": "Max results "
+                    "(default: 100, max: 1000)."},
+                "offset": {"type": "integer"},
+                "order_by": {
+                    "type": "string",
+                    "description": "Column to sort by. Default: last_published_date.",
+                },
+                "order_dir": {
+                    "type": "string",
+                    "enum": ["ASC", "DESC"],
+                },
+            },
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def query_sam_notices(args: dict[str, Any]) -> dict[str, Any]:
+        """Query the SAM.gov databank notices table."""
+        try:
+            from api.routes.sam_notices import (
+                _SORTABLE_COLUMNS as _cols,
+                _FILTERABLE_COLUMNS,
+            )
+
+            conn = _conn()
+            try:
+                where_parts = []
+                params: list[Any] = []
+
+                # Full-text search
+                q = args.get("q")
+                if q and str(q).strip():
+                    where_parts.append(
+                        "search_vector @@ plainto_tsquery('english', %s)"
+                    )
+                    params.append(str(q).strip())
+
+                # String filters
+                for col, arg_name, match_type in [
+                    ("naics_code", "naics_code", "exact"),
+                    ("naics_description", "naics_description", "like"),
+                    ("psc_code", "psc_code", "exact"),
+                    ("contract_opportunity_type", "contract_opportunity_type", "exact"),
+                    ("current_set_aside", "current_set_aside", "like"),
+                    ("current_set_aside_code", "current_set_aside_code", "exact"),
+                    ("sub_tier_name", "sub_tier_name", "like"),
+                    ("pop_state", "pop_state", "exact"),
+                    ("pop_city", "pop_city", "like"),
+                    ("status", "status", "exact"),
+                    ("awardee_name", "awardee_name", "like"),
+                    ("awardee_uei", "awardee_uei", "exact"),
+                    ("notice_id", "notice_id", "exact"),
+                    ("contracting_office", "contracting_office", "like"),
+                ]:
+                    val = args.get(arg_name)
+                    if val and str(val).strip():
+                        if match_type == "exact":
+                            where_parts.append(f"{col} = %s")
+                            params.append(str(val).strip())
+                        else:
+                            where_parts.append(f"{col} ILIKE %s")
+                            params.append(f"%{str(val).strip()}%")
+
+                # Booleans
+                if args.get("has_attachments") is True:
+                    where_parts.append("attachment_count > 0")
+                if args.get("ivl_enabled") is True:
+                    where_parts.append("ivl_enabled = true")
+
+                # Date ranges
+                for db_col, arg_name in [
+                    ("current_response_date", "response_date_from"),
+                    ("current_response_date", "response_date_to"),
+                    ("last_published_date", "published_date_from"),
+                    ("last_published_date", "published_date_to"),
+                ]:
+                    val = args.get(arg_name)
+                    if val:
+                        op = ">=" if "from" in arg_name else "<="
+                        where_parts.append(f"{db_col} {op} %s")
+                        params.append(str(val))
+
+                where_clause = ""
+                if where_parts:
+                    where_clause = "WHERE " + " AND ".join(where_parts)
+
+                order_col = args.get("order_by", "last_published_date")
+                if order_col not in _cols:
+                    order_col = "last_published_date"
+                order_dir = "DESC" if args.get("order_dir", "DESC").upper() == "DESC" else "ASC"
+
+                limit = min(args.get("limit", 100), 1000)
+                offset = max(args.get("offset", 0), 0)
+
+                with conn.cursor() as cur:
+                    cur.execute(
+                        f"SELECT COUNT(*) FROM sam_notices {where_clause}",
+                        tuple(params),
+                    )
+                    total = cur.fetchone()[0]
+
+                    cur.execute(
+                        f"""SELECT id, notice_id, opportunity_title,
+                                   contract_opportunity_type,
+                                   naics_code, psc_code,
+                                   current_set_aside, current_set_aside_code,
+                                   sub_tier_name, pop_city, pop_state,
+                                   current_response_date, last_published_date,
+                                   status, poc_name, poc_email,
+                                   awardee_name, attachment_count,
+                                   ivl_enabled, description
+                            FROM sam_notices
+                            {where_clause}
+                            ORDER BY {order_col} {order_dir}
+                            LIMIT %s OFFSET %s""",
+                        tuple(params + [limit, offset]),
+                    )
+                    rows = cur.fetchall()
+                    columns = [desc[0] for desc in cur.description]
+
+                results = [dict(zip(columns, row)) for row in rows]
+
+                # Truncate descriptions for agent context
+                for r in results:
+                    if r.get("description") and len(r["description"]) > 1000:
+                        r["description"] = r["description"][:1000] + "..."
+
+                return _result({
+                    "total": total,
+                    "limit": limit,
+                    "offset": offset,
+                    "count": len(results),
+                    "results": results,
+                })
+            finally:
+                conn.close()
+        except Exception as exc:
+            return _error(f"query_sam_notices failed: {exc}")
+
     # -- Build server --------------------------------------------------------
 
     return create_sdk_mcp_server(
@@ -4278,5 +4483,6 @@ def create_vision_server(case_id: int):
             fill_pdf_form,
             upload_filled_document,
             convert_docx_to_pdf,
+            query_sam_notices,
         ],
     )

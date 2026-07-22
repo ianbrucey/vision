@@ -35,9 +35,10 @@ class CreateWorkspaceItemRequest(BaseModel):
     name: str
     file_type: str = "markdown"
     document_type: str = "other"
-    folder: str = "freestyle"
+    folder: str = "artifacts"
     content: list | dict = []
     workspace_id: int | None = None
+    folder_id: int | None = None
 
 
 class UpdateWorkspaceItemRequest(BaseModel):
@@ -48,6 +49,7 @@ class UpdateWorkspaceItemRequest(BaseModel):
     file_type: str | None = None
     folder: str | None = None
     metadata: dict | None = None
+    folder_id: int | None = None
 
 
 class UpdateBlockRequest(BaseModel):
@@ -164,6 +166,7 @@ def create_workspace_item_endpoint(
             file_type=body.file_type,
             folder=body.folder,
             workspace_id=body.workspace_id,
+            folder_id=body.folder_id,
         )
         item = _get_draft(conn, item_id)
     return {"item": item}
@@ -248,12 +251,12 @@ def list_folders_endpoint(
     parent_id: int | None = Query(None),
     user: dict = Depends(get_current_user),
 ):
-    """List folders for a case, optionally scoped to workspace and parent."""
+    """List folders for a case, optionally scoped to workspace and parent. If parent_id is missing, fetches all folders."""
     conn = connect()
     try:
         from core.db import list_folders as _list_folders
-        # parent_id=0 is the sentinel for root folders in the DB function
-        pid = parent_id if parent_id is not None else 0
+        # parent_id=-1 is the sentinel for ALL folders in the DB function
+        pid = parent_id if parent_id is not None else -1
         folders = _list_folders(conn, case_id, workspace_id=workspace_id, parent_id=pid)
     finally:
         conn.close()
@@ -280,6 +283,24 @@ def create_folder_endpoint(
     finally:
         conn.close()
     return {"id": folder_id, "name": body.name}
+
+
+@router.delete("/folders/{folder_id}")
+def delete_folder_endpoint(
+    folder_id: int,
+    user: dict = Depends(get_current_user),
+):
+    """Delete a folder and move its children files to root."""
+    conn = connect()
+    try:
+        from core.db import delete_folder as _delete_folder
+        ok = _delete_folder(conn, folder_id)
+        if not ok:
+            raise HTTPException(status_code=404, detail="Folder not found")
+        conn.commit()
+    finally:
+        conn.close()
+    return {"deleted": True}
 
 
 @router.delete("/workspace/{item_id}")
