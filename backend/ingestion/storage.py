@@ -102,20 +102,59 @@ def delete_file(bucket: str, object_key: str) -> bool:
         return False
 
 
+def _get_public_client() -> Minio | None:
+    """Return a MinIO client scoped to the public endpoint for presigned URL signing.
+
+    When MINIO_SERVER_URL is set, creates a client whose endpoint matches the
+    public-facing URL so that presigned signatures include the correct Host
+    header.  The container must be able to reach the MinIO server at the public
+    hostname (e.g. via a Docker network alias).
+    """
+    server_url = os.environ.get("MINIO_SERVER_URL")
+    if not server_url:
+        return None
+    # Parse host[:port] from the URL (strip scheme).
+    parsed = urlsplit(server_url)
+    host = parsed.netloc  # e.g. "files-vision.justicequest.pro"
+    if ":" not in host:
+        host = f"{host}:9000"  # default MinIO API port
+    return Minio(
+        host,
+        access_key=_MINIO_ACCESS_KEY,
+        secret_key=_MINIO_SECRET_KEY,
+        secure=False,  # container-to-container traffic, not TLS-terminated
+    )
+
+
 def get_public_url(bucket: str, object_key: str, expires_seconds: int = 3600) -> str:
-    """Generate a presigned URL for viewing. Valid for expires_seconds (default 1 hour)."""
+    """Generate a presigned URL for viewing. Valid for expires_seconds (default 1 hour).
+
+    When MINIO_SERVER_URL is set, signs with the public hostname so S3 Signature
+    V4 includes the correct Host header — no host rewriting needed.  Falls back
+    to the internal client + host rewrite for local dev.
+    """
+    public_client = _get_public_client()
+    if public_client is not None:
+        url = public_client.presigned_get_object(
+            bucket, object_key,
+            expires=timedelta(seconds=expires_seconds),
+            response_headers={"response-content-disposition": "inline"},
+        )
+        # Internally it's http://; rewrite scheme to https:// for browsers.
+        if url.startswith("http://"):
+            url = "https://" + url[7:]
+        return url
+
+    # Fallback: internal client + host rewrite (local dev / no MINIO_SERVER_URL).
     client = _get_client()
     url = client.presigned_get_object(
         bucket, object_key,
         expires=timedelta(seconds=expires_seconds),
         response_headers={"response-content-disposition": "inline"},
     )
-    # Rewrite internal endpoint to public hostname for browser access.
-    # Only the scheme + host are swapped; path/query/signature are preserved.
     if _MINIO_PUBLIC_ENDPOINT:
         parts = urlsplit(url)
         public = _MINIO_PUBLIC_ENDPOINT
-        # Strip any scheme the operator may have included in the env var.
         if "://" in public:
             public = urlsplit(public).netloc
         url = urlunsplit((
