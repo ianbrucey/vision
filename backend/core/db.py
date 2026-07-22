@@ -552,20 +552,22 @@ def ensure_forecast_opportunities_schema() -> list[str]:
 
 
 def ensure_saved_reports_schema() -> list[str]:
-    """Apply the saved reports migration (v29).
+    """Apply saved reports migrations (v29–v30).
 
-    Creates saved_reports table for persisting report filter presets.
+    Creates saved_reports table, then makes case_id nullable so reports
+    can be global (not tied to a single case).
     Idempotent.
     """
-    sql_path = _SCHEMA_DIR / "020_saved_reports.sql"
-    if not sql_path.exists():
-        raise FileNotFoundError(
-            f"Saved reports schema file not found: {sql_path}"
-        )
-    with tx() as conn:
-        with conn.cursor() as cur:
-            cur.execute(sql_path.read_text())
-    return [str(sql_path)]
+    applied = []
+    for filename in ("020_saved_reports.sql", "021_saved_reports_nullable_case_id.sql"):
+        sql_path = _SCHEMA_DIR / filename
+        if not sql_path.exists():
+            raise FileNotFoundError(f"Saved reports schema file not found: {sql_path}")
+        with tx() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql_path.read_text())
+        applied.append(str(sql_path))
+    return applied
 
 
 # ---------------------------------------------------------------------------

@@ -22,7 +22,7 @@ import ReportsSidebar from "@/components/ReportsSidebar";
 /* ------------------------------------------------------------------ */
 
 interface SamNoticesTabProps {
-  caseId: number;
+  caseId: number | null;
 }
 
 /* ------------------------------------------------------------------ */

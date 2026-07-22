@@ -1,9 +1,13 @@
 """
 Vision — Saved Reports API Routes.
 
-CRUD for saved filter presets used by the Forecasts and Sam Notices tabs.
+CRUD for saved filter presets used by the Forecasts and Sam Notices views.
 A report stores query_filters as JSONB — the exact object passed to the
 existing query tools. No transformation needed.
+
+Reports are case-agnostic by default (case_id is optional). When saved from
+within a case, the case_id is stored for scoping; when saved from the global
+Reference Desk, case_id is NULL.
 """
 
 from __future__ import annotations
@@ -26,10 +30,10 @@ _DATA_SOURCES = {"forecasts", "sam_notices"}
 # ---------------------------------------------------------------------------
 
 class CreateReportRequest(BaseModel):
-    case_id: int
     name: str
     data_source: str
     query_filters: dict
+    case_id: int | None = None
     sort_by: str | None = None
     sort_dir: str | None = "ASC"
 
@@ -47,35 +51,39 @@ class UpdateReportRequest(BaseModel):
 
 @router.get("")
 def list_reports(
-    case_id: int = Query(..., description="Case ID"),
+    case_id: int | None = Query(None, description="Case ID (omit for global reports)"),
     data_source: str | None = Query(None),
     user: dict = Depends(get_current_user),
 ):
-    """List saved reports for a case, optionally filtered by data_source."""
+    """List saved reports — optionally scoped to a case or data_source."""
     if data_source and data_source not in _DATA_SOURCES:
         raise HTTPException(status_code=400, detail=f"data_source must be one of {sorted(_DATA_SOURCES)}")
 
     conn = connect()
     try:
         with conn.cursor() as cur:
-            if data_source:
-                cur.execute(
-                    """SELECT id, case_id, name, data_source, query_filters,
-                              sort_by, sort_dir, created_by, created_at, updated_at
-                       FROM saved_reports
-                       WHERE case_id = %s AND data_source = %s
-                       ORDER BY updated_at DESC""",
-                    (case_id, data_source),
-                )
+            clauses = []
+            params: list[Any] = []
+
+            if case_id is not None:
+                clauses.append("case_id = %s")
+                params.append(case_id)
             else:
-                cur.execute(
-                    """SELECT id, case_id, name, data_source, query_filters,
-                              sort_by, sort_dir, created_by, created_at, updated_at
-                       FROM saved_reports
-                       WHERE case_id = %s
-                       ORDER BY updated_at DESC""",
-                    (case_id,),
-                )
+                clauses.append("case_id IS NULL")
+
+            if data_source:
+                clauses.append("data_source = %s")
+                params.append(data_source)
+
+            where = " AND ".join(clauses) if clauses else "TRUE"
+            cur.execute(
+                f"""SELECT id, case_id, name, data_source, query_filters,
+                           sort_by, sort_dir, created_by, created_at, updated_at
+                    FROM saved_reports
+                    WHERE {where}
+                    ORDER BY updated_at DESC""",
+                tuple(params),
+            )
             rows = cur.fetchall()
             columns = [d[0] for d in cur.description]
     finally:
@@ -93,6 +101,8 @@ def create_report(
     if body.data_source not in _DATA_SOURCES:
         raise HTTPException(status_code=400, detail=f"data_source must be one of {sorted(_DATA_SOURCES)}")
 
+    import json
+
     with tx() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -101,7 +111,7 @@ def create_report(
                    RETURNING *""",
                 (
                     body.case_id, body.name.strip(), body.data_source,
-                    __import__("json").dumps(body.query_filters),
+                    json.dumps(body.query_filters),
                     body.sort_by, body.sort_dir or "ASC",
                 ),
             )

@@ -1218,7 +1218,7 @@ export const deleteForecast = (id: number): Promise<{ deleted: number }> =>
 
 export interface SavedReport {
   id: number;
-  case_id: number;
+  case_id: number | null;
   name: string;
   data_source: "forecasts" | "sam_notices";
   query_filters: Record<string, unknown>;
@@ -1230,16 +1230,17 @@ export interface SavedReport {
 }
 
 export interface CreateReportInput {
-  case_id: number;
   name: string;
   data_source: "forecasts" | "sam_notices";
   query_filters: Record<string, unknown>;
+  case_id?: number | null;
   sort_by?: string;
   sort_dir?: "ASC" | "DESC";
 }
 
-export const listReports = (caseId: number, dataSource?: string): Promise<{ reports: SavedReport[] }> => {
-  const params = new URLSearchParams({ case_id: String(caseId) });
+export const listReports = (caseId: number | null, dataSource?: string): Promise<{ reports: SavedReport[] }> => {
+  const params = new URLSearchParams();
+  if (caseId != null) params.set("case_id", String(caseId));
   if (dataSource) params.set("data_source", dataSource);
   return fetchAPI(`/api/reports?${params.toString()}`);
 };

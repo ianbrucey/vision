@@ -9,7 +9,8 @@ import { listReports, createReport, deleteReport, type SavedReport } from "@/lib
 /* ------------------------------------------------------------------ */
 
 interface ReportsSidebarProps {
-  caseId: number;
+  /** Case ID for scoped reports, or null for global (Reference Desk) reports. */
+  caseId: number | null;
   dataSource: "forecasts" | "sam_notices";
   /** Called when user clicks a report — passes the stored filters to apply */
   onSelectReport: (report: SavedReport) => void;
@@ -59,7 +60,7 @@ export default function ReportsSidebar({
     setSaving(true);
     try {
       await createReport({
-        case_id: caseId,
+        case_id: caseId ?? null,
         name,
         data_source: dataSource,
         query_filters: currentFilters,

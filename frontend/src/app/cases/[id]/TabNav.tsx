@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Eye, MessageCircle, FolderOpen, FolderTree, PenLine, Mail, CheckSquare, CalendarDays, MoreHorizontal, FileSearch, Building2, Users, Send, Database, TrendingUp } from "lucide-react";
+import { Eye, MessageCircle, FolderOpen, FolderTree, PenLine, Mail, CheckSquare, CalendarDays, MoreHorizontal, FileSearch, Users, Send, Building2, Database, TrendingUp } from "lucide-react";
 
-export type TabId = "overview" | "chat" | "documents" | "drafts" | "workspace" | "correspondence" | "tasks" | "calendar" | "triage" | "vendors" | "vendor_matches" | "outreach" | "sam_notices" | "forecasts";
+export type TabId = "overview" | "chat" | "documents" | "drafts" | "workspace" | "correspondence" | "tasks" | "calendar" | "triage" | "vendor_matches" | "outreach";
 
 interface TabNavProps {
   activeTab: TabId;
@@ -32,9 +32,6 @@ const BASE_TABS: TabDef[] = [
   { id: "correspondence", label: "Correspondence", shortLabel: "Corr.", icon: Mail },
   { id: "tasks", label: "Tasks", shortLabel: "Tasks", icon: CheckSquare },
   { id: "calendar", label: "Calendar", shortLabel: "Cal", icon: CalendarDays },
-  { id: "vendors", label: "Vendors", shortLabel: "Vendors", icon: Building2 },
-  { id: "sam_notices", label: "Sam Notices", shortLabel: "SAM", icon: Database },
-  { id: "forecasts", label: "Forecasts", shortLabel: "Forecast", icon: TrendingUp },
 ];
 
 /** First 4 tabs are always visible on mobile */
@@ -96,6 +93,37 @@ export default function TabNav({
             );
           })}
         </nav>
+
+        {/* Reference Desk — global data accessible from any case */}
+        <div className="border-t border-border p-2">
+          <p className="px-2 py-1 text-[10px] font-semibold text-text-disabled uppercase tracking-wide">
+            Reference Desk
+          </p>
+          <a
+            href="/vendors"
+            className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                       text-text-secondary hover:bg-surface-2 hover:text-text-primary transition-colors"
+          >
+            <Building2 size={14} />
+            Vendors
+          </a>
+          <a
+            href="/sam-notices"
+            className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                       text-text-secondary hover:bg-surface-2 hover:text-text-primary transition-colors"
+          >
+            <Database size={14} />
+            SAM Notices
+          </a>
+          <a
+            href="/forecasts"
+            className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                       text-text-secondary hover:bg-surface-2 hover:text-text-primary transition-colors"
+          >
+            <TrendingUp size={14} />
+            Forecasts
+          </a>
+        </div>
 
         {/* User footer */}
         <div className="p-3 border-t border-border flex items-center gap-2">

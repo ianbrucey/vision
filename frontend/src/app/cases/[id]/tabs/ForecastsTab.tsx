@@ -13,7 +13,7 @@ import {
 } from "@/lib/api";
 import ReportsSidebar from "@/components/ReportsSidebar";
 
-interface ForecastsTabProps { caseId: number; }
+interface ForecastsTabProps { caseId: number | null; }
 
 const PAGE_SIZE = 50;
 

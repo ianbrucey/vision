@@ -35,7 +35,7 @@ vision_minio_data/
 
 # Data directories (not app code)
 pdf-filler/
-vendors/
+/vendors/
 vendors_unified.csv
 Contract_Notice_Details.csv
 parse_vendors.py
