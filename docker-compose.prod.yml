@@ -23,6 +23,7 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+      MINIO_SERVER_URL: https://files-vision.justicequest.pro
     volumes:
       - vision_minio_data:/data
     healthcheck:
@@ -53,6 +54,7 @@ services:
     environment:
       VISION_DB_HOST: vision-db
       MINIO_ENDPOINT: vision-minio:9000
+      MINIO_SERVER_URL: https://files-vision.justicequest.pro
     depends_on:
       vision-db:
         condition: service_healthy
@@ -68,6 +70,7 @@ services:
     environment:
       VISION_DB_HOST: vision-db
       MINIO_ENDPOINT: vision-minio:9000
+      MINIO_SERVER_URL: https://files-vision.justicequest.pro
       VISION_ROLE: worker
     depends_on:
       vision-db:
