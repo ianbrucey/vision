@@ -6,6 +6,7 @@
 
 {
     email admin@justicequest.pro
+    auto_https disable_redirects
 }
 
 # Main app — serves the Next.js frontend and proxies /api/* to the FastAPI backend.
