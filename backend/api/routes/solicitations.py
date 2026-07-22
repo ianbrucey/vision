@@ -362,3 +362,10 @@ def send_message_endpoint(message_id: int, user: dict = Depends(get_current_user
         detail = str(e)
         status_code = 404 if "not found" in detail else 400
         raise HTTPException(status_code=status_code, detail=detail)
+
+
+@router.post("/vendor-matches/{match_id}/messages/read")
+def mark_messages_read_endpoint(match_id: int, user: dict = Depends(get_current_user)):
+    """Mark all inbound messages in a thread as read."""
+    vendor_match_mgr.mark_messages_read(match_id)
+    return {"read": True}

@@ -529,6 +529,19 @@ class VendorMatchManager:
         finally:
             conn.close()
 
+    def mark_messages_read(self, match_id: int) -> None:
+        """Mark all unread inbound messages in a thread as read."""
+        with tx() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """UPDATE vendor_outreach_messages
+                       SET read_at = now()
+                       WHERE vendor_match_id = %s
+                         AND direction = 'inbound'
+                         AND read_at IS NULL""",
+                    (match_id,),
+                )
+
     def update_draft_message(
         self, message_id: int, subject: str | None = None, body: str | None = None
     ) -> dict:

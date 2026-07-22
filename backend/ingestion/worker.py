@@ -698,6 +698,46 @@ def process_vendor_matching_job(job: dict) -> None:
         mark_failed(job_id, str(e))
 
 
+def _send_reply_notification(
+    vendor_match_id: int,
+    vendor_name: str,
+    vendor_email: str,
+    subject: str,
+    body_preview: str,
+    case_id: int,
+    message_id: int | None = None,
+) -> None:
+    """Send a notification email to the operator when a vendor replies.
+
+    Non-fatal — failures are logged but never block the inbound pipeline.
+    """
+    notify_email = os.environ.get("NOTIFICATION_EMAIL", "ian.b@justicequest.pro")
+    if not notify_email:
+        return
+
+    try:
+        from core.email_mailgun import send_email
+
+        thread_url = f"https://vision.justicequest.pro/cases/{case_id}/vendor-matches/{vendor_match_id}"
+        body = (
+            f"Vendor: {vendor_name} ({vendor_email})\n"
+            f"Subject: {subject}\n"
+            f"Message ID: {message_id}\n\n"
+            f"Preview:\n{body_preview}\n\n"
+            f"View & reply: {thread_url}"
+        )
+        send_email(
+            to_email=notify_email,
+            to_name="Ian Bruce",
+            subject=f"[Vision] Reply from {vendor_name} — {subject}",
+            text_body=body,
+        )
+        print(f"[{WORKER_ID}] Reply notification sent to {notify_email} "
+              f"for vendor_match_id={vendor_match_id}")
+    except Exception as e:
+        print(f"[{WORKER_ID}] Failed to send reply notification: {e}")
+
+
 def process_inbound_email_job(job: dict) -> None:
     """Store an inbound Mailgun reply as a document + flip outreach_status.
 
@@ -757,11 +797,25 @@ def process_inbound_email_job(job: dict) -> None:
             insert_block(conn, document_id=doc_id, section_id=section_id, text_content=content)
 
         mgr = VendorMatchManager()
+        match = mgr.get_match(vendor_match_id)
+        vendor_name = match.get("vendor_name", "Unknown") if match else "Unknown"
+
         mgr.update_outreach(
             vendor_match_id, outreach_status="received", outreach_doc_id=doc_id
         )
-        mgr.record_inbound_message(
+        msg_row = mgr.record_inbound_message(
             vendor_match_id, subject=subject, body=content, document_id=doc_id
+        )
+
+        # Send notification email to the operator.
+        _send_reply_notification(
+            vendor_match_id=vendor_match_id,
+            vendor_name=vendor_name,
+            vendor_email=sender,
+            subject=subject,
+            body_preview=text[:300],
+            case_id=case_id,
+            message_id=msg_row.get("id"),
         )
 
         mark_complete(job_id, document_id=doc_id)

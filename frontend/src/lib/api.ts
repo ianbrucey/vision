@@ -209,6 +209,11 @@ export const sendMessage = (
 ): Promise<VendorOutreachMessage> =>
   fetchAPI(`/api/vendor-match-messages/${messageId}/send`, { method: "POST" });
 
+export const markMessagesRead = (
+  matchId: number,
+): Promise<{ read: boolean }> =>
+  fetchAPI(`/api/vendor-matches/${matchId}/messages/read`, { method: "POST" });
+
 // Vendor creation (T7 — inline vendor creation)
 
 export interface VendorCreateInput {

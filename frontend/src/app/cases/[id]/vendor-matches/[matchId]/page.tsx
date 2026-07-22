@@ -8,6 +8,7 @@ import {
   createDraftMessage,
   updateDraftMessage,
   sendMessage,
+  markMessagesRead,
   type VendorMatch,
   type VendorOutreachMessage,
   type OutreachStatus,
@@ -71,7 +72,8 @@ export default function VendorMatchThreadPage() {
 
   useEffect(() => {
     refresh().finally(() => setLoading(false));
-  }, [refresh]);
+    markMessagesRead(matchId).catch(() => {}); // mark unread replies as read
+  }, [refresh]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCreateDraft = async () => {
     setError(null);

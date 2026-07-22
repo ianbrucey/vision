@@ -473,7 +473,7 @@ def ensure_vendor_outreach_messages_schema() -> list[str]:
     Idempotent.
     """
     applied = []
-    for filename in ("015_vendor_outreach_messages.sql", "022_vendor_outreach_received_status.sql"):
+    for filename in ("015_vendor_outreach_messages.sql", "022_vendor_outreach_received_status.sql", "023_inbound_read_at.sql"):
         sql_path = _SCHEMA_DIR / filename
         if not sql_path.exists():
             raise FileNotFoundError(f"Vendor outreach messages schema file not found: {sql_path}")
