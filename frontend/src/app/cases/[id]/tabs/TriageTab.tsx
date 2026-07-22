@@ -175,16 +175,17 @@ export default function TriageTab({ caseId }: TriageTabProps) {
         <div className="shrink-0 px-4 py-2 text-xs text-danger bg-danger-bg">{error}</div>
       )}
 
-      {/* Body */}
-      {sol.quick_kill ? (
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="text-center max-w-md">
-            <Ban size={32} className="mx-auto mb-3 text-danger" />
-            <p className="text-sm font-medium text-danger mb-1">Quick-Kill Triggered</p>
-            <p className="text-xs text-text-secondary">{sol.quick_kill_reason}</p>
-          </div>
+      {/* Quick-kill notice — informational only, does not block artifact view */}
+      {sol.quick_kill && (
+        <div className="shrink-0 px-4 py-2 text-xs bg-warning-bg text-warning border-b border-warning/20 flex items-center gap-2">
+          <AlertTriangle size={14} />
+          <span>Quick-Kill flagged: {sol.quick_kill_reason}</span>
+          <span className="text-text-disabled">— artifacts & vendor matching still proceed.</span>
         </div>
-      ) : sol.triage_status === "complete" && sol.artifact_scope_of_work ? (
+      )}
+
+      {/* Body */}
+      {sol.triage_status === "complete" && sol.artifact_scope_of_work ? (
         <div className="flex-1 flex flex-col min-h-0">
           <div className="shrink-0 flex overflow-x-auto border-b border-border bg-surface-1">
             {ARTIFACTS.map((a) => (
