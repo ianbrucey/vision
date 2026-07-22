@@ -2,18 +2,23 @@
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useParams, useRouter, useSearchParams, usePathname } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { getCase, updateCase } from "@/lib/api";
+import { ArrowLeft, Home } from "lucide-react";
+import { getCase, updateCase, getSolicitationByCase } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 import TabNav, { type TabId } from "./TabNav";
+import PipelineStatusBar from "./PipelineStatusBar";
 import OverviewTab from "./tabs/OverviewTab";
 import ChatTab from "./tabs/ChatTab";
 import DocumentsTab from "./tabs/DocumentsTab";
 import DraftsTab from "./tabs/DraftsTab";
+import TriageTab from "./tabs/TriageTab";
+import VendorMatchesTab from "./tabs/VendorMatchesTab";
+import OutreachTab from "./tabs/OutreachTab";
 import WorkspaceTab from "./tabs/WorkspaceTab";
 import CorrespondenceTab from "./tabs/CorrespondenceTab";
 import TasksTab from "./tabs/TasksTab";
 import CalendarTab from "./tabs/CalendarTab";
+import VendorsTab from "./tabs/VendorsTab";
 import FloatingChat, { FloatingChatButton } from "@/components/FloatingChat";
 
 /* ------------------------------------------------------------------ */
@@ -45,7 +50,7 @@ function CaseDashboardInner() {
   // Tab state lives in the URL — survives refresh
   const tabParam = searchParams.get("tab");
   const activeTab: TabId =
-    tabParam === "chat" || tabParam === "documents" || tabParam === "drafts" || tabParam === "workspace" || tabParam === "correspondence" || tabParam === "tasks" || tabParam === "calendar"
+    tabParam === "chat" || tabParam === "documents" || tabParam === "drafts" || tabParam === "triage" || tabParam === "vendor_matches" || tabParam === "outreach" || tabParam === "workspace" || tabParam === "correspondence" || tabParam === "tasks" || tabParam === "calendar" || tabParam === "vendors"
       ? tabParam
       : "overview";
 
@@ -64,6 +69,7 @@ function CaseDashboardInner() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [hasSolicitation, setHasSolicitation] = useState(false);
 
   /* ---- data ---- */
 
@@ -90,6 +96,22 @@ function CaseDashboardInner() {
       cancelled = true;
     };
   }, [loadCase]);
+
+  // Solicitation-backed cases get the Triage tab. 404 just means this case
+  // isn't a solicitation — not an error worth surfacing.
+  useEffect(() => {
+    let cancelled = false;
+    getSolicitationByCase(Number(id))
+      .then(() => {
+        if (!cancelled) setHasSolicitation(true);
+      })
+      .catch(() => {
+        if (!cancelled) setHasSolicitation(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   /* ---- actions ---- */
 
@@ -142,7 +164,7 @@ function CaseDashboardInner() {
             {error || "Case not found"}
           </p>
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/cases")}
             className="mt-4 inline-flex items-center gap-2 text-sm text-info hover:text-brand transition-colors"
           >
             <ArrowLeft size={16} />
@@ -162,11 +184,11 @@ function CaseDashboardInner() {
         <div className="flex items-center h-14 px-4 gap-3 max-w-5xl mx-auto">
           <button
             onClick={() => router.push("/")}
-            className="text-text-secondary hover:text-text-primary transition-colors shrink-0
+            className="text-text-secondary hover:text-brand transition-colors shrink-0
                        min-h-[44px] min-w-[44px] flex items-center justify-center -ml-2"
-            aria-label="Back to cases"
+            aria-label="Home"
           >
-            <ArrowLeft size={20} />
+            <Home size={20} />
           </button>
           <div className="min-w-0">
             <h1 className="text-sm md:text-base font-semibold truncate">
@@ -193,6 +215,8 @@ function CaseDashboardInner() {
         </div>
       </header>
 
+      {hasSolicitation && <PipelineStatusBar caseId={Number(id)} />}
+
       {/* Tab Content — pb-14 on mobile clears the fixed bottom nav */}
       <div className="flex-1 flex flex-col overflow-hidden pb-14 md:pb-0 md:ml-[220px]">
         {activeTab === "overview" && (
@@ -213,14 +237,23 @@ function CaseDashboardInner() {
         )}
         {activeTab === "documents" && <DocumentsTab caseId={Number(id)} />}
         {activeTab === "drafts" && <DraftsTab caseId={Number(id)} />}
+        {activeTab === "triage" && <TriageTab caseId={Number(id)} />}
+        {activeTab === "vendor_matches" && <VendorMatchesTab caseId={Number(id)} />}
+        {activeTab === "outreach" && <OutreachTab caseId={Number(id)} />}
         {activeTab === "workspace" && <WorkspaceTab caseId={Number(id)} />}
         {activeTab === "correspondence" && <CorrespondenceTab caseId={Number(id)} />}
         {activeTab === "tasks" && <TasksTab caseId={Number(id)} />}
         {activeTab === "calendar" && <CalendarTab caseId={Number(id)} />}
+        {activeTab === "vendors" && <VendorsTab caseId={Number(id)} />}
       </div>
 
       {/* Tab Navigation */}
-      <TabNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <TabNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        showTriage={hasSolicitation}
+        showVendorMatches={hasSolicitation}
+      />
 
       {/* Floating chat — accessible from any tab except Chat */}
       {activeTab !== "chat" && (

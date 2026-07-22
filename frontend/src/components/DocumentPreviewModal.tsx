@@ -5,9 +5,10 @@ import { X, Loader2, Download, AlertCircle, FileText } from "lucide-react";
 import { getDocumentPreviewUrl } from "@/lib/api";
 
 interface PreviewData {
-  url: string;
+  url: string | null;
   name: string;
   type: string;
+  content?: string;
 }
 
 interface DocumentPreviewModalProps {
@@ -46,8 +47,14 @@ export default function DocumentPreviewModal({
     getDocumentPreviewUrl(docId)
       .then((d) => {
         setData(d);
-        // For text files, fetch the content
-        if (d.type === "text" || d.type === "unknown") {
+        // Inline content (e.g. storage-less documents like inbound email
+        // replies) is returned directly — no file to fetch.
+        if (d.content !== undefined) {
+          setTextContent(d.content);
+          return;
+        }
+        // For text files backed by a file, fetch the content.
+        if (d.url && (d.type === "text" || d.type === "unknown")) {
           return fetch(d.url)
             .then((r) => r.text())
             .then((t) => setTextContent(t))
@@ -154,7 +161,7 @@ export default function DocumentPreviewModal({
               {/* PDF */}
               {data.type === "pdf" && (
                 <iframe
-                  src={data.url}
+                  src={data.url ?? undefined}
                   className="w-full h-full"
                   title={data.name}
                 />
@@ -164,7 +171,7 @@ export default function DocumentPreviewModal({
               {data.type === "image" && (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
-                  src={data.url}
+                  src={data.url ?? undefined}
                   alt={data.name}
                   className="max-w-full max-h-full object-contain"
                 />
@@ -176,7 +183,7 @@ export default function DocumentPreviewModal({
                   <FileText size={48} className="text-text-disabled" />
                   <p className="text-sm font-medium">{data.name}</p>
                   <audio controls autoPlay className="w-full max-w-md">
-                    <source src={data.url} />
+                    <source src={data.url ?? undefined} />
                     Your browser does not support audio playback.
                   </audio>
                 </div>
@@ -201,7 +208,7 @@ export default function DocumentPreviewModal({
                     </p>
                   </div>
                   <a
-                    href={data.url}
+                    href={data.url ?? undefined}
                     download={data.name}
                     className="inline-flex items-center gap-2 bg-brand hover:bg-brand-hover
                                text-white px-4 py-2 rounded-lg text-sm font-medium

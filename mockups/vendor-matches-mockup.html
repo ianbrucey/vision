@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Vision — Vendor Matches Tab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        surface: { 0:'#FAFBFC', 1:'#FFFFFF', 2:'#F5F6F8', 3:'#EBEDF0', 5:'#E1E4E8' },
+        'text-p': '#1A1D26',
+        'text-s': '#5F6675',
+        'text-d': '#9DA3AE',
+        brand:   '#B8860B',
+        'brand-h': '#9F7309',
+        'brand-bg': '#FFF7EB',
+        success: '#2D8A4E', 'success-bg': '#EDF7F0',
+        warning: '#B85C0A', 'warning-bg': '#FFF8F0',
+        danger:  '#C53030', 'danger-bg': '#FEF2F2',
+        info:    '#3B6CB5', 'info-bg': '#F0F5FC',
+        border:  '#E1E4E8',
+      }
+    }
+  }
+}
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; }
+  @media (max-width: 767px) { .desktop-only { display: none !important; } }
+  @media (min-width: 768px) { .mobile-only { display: none !important; } }
+</style>
+</head>
+<body class="bg-surface-0 text-text-p antialiased">
+
+<div class="flex flex-col h-dvh overflow-hidden">
+
+  <!-- HEADER -->
+  <header class="shrink-0 bg-surface-1 border-b border-border">
+    <div class="flex items-center h-14 px-4 gap-3 max-w-5xl mx-auto">
+      <a href="#" class="text-text-s shrink-0" aria-label="Back to cases">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <div class="min-w-0">
+        <h1 class="text-sm md:text-base font-semibold truncate">RFP-2026-0042 — IT Support Services</h1>
+        <p class="text-xs text-text-d hidden md:block">Federal Solicitation</p>
+      </div>
+      <span class="text-xs px-2 py-0.5 rounded-sm bg-info-bg text-info shrink-0 ml-auto">triaged</span>
+    </div>
+  </header>
+
+  <!-- DESKTOP SIDEBAR -->
+  <div class="desktop-only fixed left-0 top-14 bottom-0 w-[220px] bg-surface-1 border-r border-border flex flex-col z-20">
+    <nav class="flex-1 p-2 flex flex-col gap-0.5">
+      <button class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-text-s hover:bg-surface-2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        Overview
+      </button>
+      <button class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-text-s hover:bg-surface-2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Chat
+      </button>
+      <button class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-text-s hover:bg-surface-2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Documents
+      </button>
+      <button class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-text-s hover:bg-surface-2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+        Triage
+      </button>
+      <button class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-brand-bg text-brand">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Vendor Matches
+      </button>
+      <button class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-text-s hover:bg-surface-2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Workspace
+      </button>
+    </nav>
+    <div class="p-3 border-t border-border flex items-center gap-2">
+      <div class="size-7 rounded-full bg-surface-3 flex items-center justify-center text-xs font-medium text-text-s">IB</div>
+      <span class="text-xs text-text-s flex-1 truncate">ian@justicequest.ai</span>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT: VendorMatchesTab -->
+  <div class="flex-1 overflow-hidden md:ml-[220px] pb-14 md:pb-0 flex flex-col">
+
+    <!-- Tab header: status + trigger button -->
+    <div class="shrink-0 px-4 py-3 border-b border-border flex items-center gap-3 flex-wrap bg-surface-1">
+      <span class="text-[11px] px-2 py-0.5 rounded-sm font-medium bg-success-bg text-success">complete</span>
+      <button class="ml-auto inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-border
+                     bg-surface-1 hover:bg-surface-3 text-text-p transition-colors">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+        Re-run Matching
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto">
+
+      <!-- Outreach Email Template panel -->
+      <div class="p-4 border-b border-border bg-surface-1">
+        <p class="text-[10px] font-semibold text-text-d uppercase tracking-wide mb-2">Outreach Email Template</p>
+        <p class="text-sm font-medium text-text-p mb-1">Subcontracting Opportunity — IT Support Services (NAICS 541511)</p>
+        <p class="text-xs text-text-s whitespace-pre-wrap line-clamp-4">Hi {{vendor_name}},
+
+We're assembling a team to respond to a federal solicitation requiring IT support services under NAICS 541511 and believe your firm could be a strong fit as a subcontracting partner.
+
+{{match_reason}}
+
+Would you be available for a brief call this week to discuss teaming?</p>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- Desktop table (>=sm)                                          -->
+      <!-- ============================================================ -->
+      <div class="hidden sm:block overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="sticky top-0 bg-surface-1 border-b border-border">
+            <tr class="text-left text-[10px] font-semibold text-text-d uppercase tracking-wide">
+              <th class="px-3 py-2">Rank</th>
+              <th class="px-3 py-2">Vendor</th>
+              <th class="px-3 py-2 hidden md:table-cell">Score</th>
+              <th class="px-3 py-2 hidden lg:table-cell">Match Type</th>
+              <th class="px-3 py-2">Set-aside</th>
+              <th class="px-3 py-2 hidden xl:table-cell">Contact</th>
+              <th class="px-3 py-2">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+
+            <!-- Row 1: exact NAICS match, high score, multiple set-asides -->
+            <tr class="hover:bg-surface-2 transition-colors">
+              <td class="px-3 py-2 text-text-d">#1</td>
+              <td class="px-3 py-2 min-w-0">
+                <p class="text-text-p truncate">TREWON TECHNOLOGIES LLC</p>
+                <p class="text-[10px] text-text-d truncate" title="Exact NAICS 541511 match with directly relevant capabilities narrative; HUBZone/8(a)/WOSB certifications add socioeconomic value.">Exact NAICS 541511 match with directly relevant capabilities narrative; HUBZone/8(a)/WOSB certifications add socioeconomic value.</p>
+              </td>
+              <td class="px-3 py-2 hidden md:table-cell">
+                <span class="text-[11px] px-2 py-0.5 rounded-sm font-medium bg-success-bg text-success">92</span>
+              </td>
+              <td class="px-3 py-2 hidden lg:table-cell">
+                <span class="text-[11px] px-2 py-0.5 rounded-sm font-medium bg-brand-bg text-brand">exact</span>
+              </td>
+              <td class="px-3 py-2">
+                <div class="flex flex-wrap gap-1">
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-sm font-medium bg-purple-100 text-purple-700">8(a)</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-sm font-medium bg-amber-100 text-amber-700">HUBZone</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-sm font-medium bg-pink-100 text-pink-700">WOSB</span>
+                </div>
+              </td>
+              <td class="px-3 py-2 hidden xl:table-cell text-text-s truncate">businessdevelopment@trewon.com</td>
+              <td class="px-3 py-2">
+                <button class="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded border border-border bg-surface-1 hover:bg-surface-3 text-text-s transition-colors">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  Copy
+                </button>
+              </td>
+            </tr>
+
+            <!-- Row 2: NAICS-family match, mid score -->
+            <tr class="hover:bg-surface-2 transition-colors">
+              <td class="px-3 py-2 text-text-d">#2</td>
+              <td class="px-3 py-2 min-w-0">
+                <p class="text-text-p truncate">REDFORT TECHNOLOGIES LLC</p>
+                <p class="text-[10px] text-text-d truncate" title="NAICS-family match (5415xx) with cybersecurity/IT capabilities overlapping the solicitation's technical scope; same state as the requiring activity.">NAICS-family match (5415xx) with cybersecurity/IT capabilities overlapping the solicitation's technical scope; same state.</p>
+              </td>
+              <td class="px-3 py-2 hidden md:table-cell">
+                <span class="text-[11px] px-2 py-0.5 rounded-sm font-medium bg-warning-bg text-warning">78</span>
+              </td>
+              <td class="px-3 py-2 hidden lg:table-cell">
+                <span class="text-[11px] px-2 py-0.5 rounded-sm font-medium bg-info-bg text-info">family</span>
+              </td>
+              <td class="px-3 py-2">
+                <span class="text-[10px] px-1.5 py-0.5 rounded-sm font-medium bg-info-bg text-info">SB</span>
+              </td>
+              <td class="px-3 py-2 hidden xl:table-cell text-text-s truncate">admin@redforttech.com</td>
+              <td class="px-3 py-2">
+                <button class="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded border border-border bg-surface-1 hover:bg-surface-3 text-text-s transition-colors">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  Copy
+                </button>
+              </td>
+            </tr>
+
+            <!-- Row 3: capability-only match, lower score, hidden contact email -->
+            <tr class="hover:bg-surface-2 transition-colors">
+              <td class="px-3 py-2 text-text-d">#3</td>
+              <td class="px-3 py-2 min-w-0">
+                <p class="text-text-p truncate">SPATHE SYSTEMS LLC</p>
+                <p class="text-[10px] text-text-d truncate" title="Capability narrative overlaps solicitation scope; SDVOSB certification satisfies set-aside eligibility.">Capability narrative overlaps solicitation scope; SDVOSB certification satisfies set-aside eligibility.</p>
+              </td>
+              <td class="px-3 py-2 hidden md:table-cell">
+                <span class="text-[11px] px-2 py-0.5 rounded-sm font-medium bg-danger-bg text-danger">44</span>
+              </td>
+              <td class="px-3 py-2 hidden lg:table-cell">
+                <span class="text-[11px] px-2 py-0.5 rounded-sm font-medium bg-surface-2 text-text-s">capability_only</span>
+              </td>
+              <td class="px-3 py-2">
+                <span class="text-[10px] px-1.5 py-0.5 rounded-sm font-medium bg-emerald-100 text-emerald-700">SDVOSB</span>
+              </td>
+              <td class="px-3 py-2 hidden xl:table-cell">
+                <span class="text-text-d italic text-xs">hidden</span>
+              </td>
+              <td class="px-3 py-2">
+                <button class="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded border border-border bg-surface-1 hover:bg-surface-3 text-text-s transition-colors">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  Copy
+                </button>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+
+      <!-- ============================================================ -->
+      <!-- Mobile stacked cards (<sm)                                    -->
+      <!-- ============================================================ -->
+      <div class="sm:hidden divide-y divide-border">
+        <div class="p-4">
+          <div class="flex items-start justify-between gap-2 mb-1">
+            <p class="text-sm font-medium text-text-p">#1 TREWON TECHNOLOGIES LLC</p>
+            <span class="text-[11px] px-2 py-0.5 rounded-sm font-medium bg-success-bg text-success shrink-0">92</span>
+          </div>
+          <p class="text-xs text-text-s mb-2">Exact NAICS 541511 match with directly relevant capabilities; HUBZone/8(a)/WOSB certifications add value.</p>
+          <div class="flex flex-wrap gap-1 mb-3">
+            <span class="text-[10px] px-1.5 py-0.5 rounded-sm font-medium bg-brand-bg text-brand">exact</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-sm font-medium bg-purple-100 text-purple-700">8(a)</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-sm font-medium bg-amber-100 text-amber-700">HUBZone</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-sm font-medium bg-pink-100 text-pink-700">WOSB</span>
+          </div>
+          <button class="w-full inline-flex items-center justify-center gap-1.5 text-xs px-3 py-2.5 rounded border border-border bg-surface-1 text-text-s min-h-[44px]">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy Email
+          </button>
+        </div>
+        <div class="p-4">
+          <div class="flex items-start justify-between gap-2 mb-1">
+            <p class="text-sm font-medium text-text-p">#2 REDFORT TECHNOLOGIES LLC</p>
+            <span class="text-[11px] px-2 py-0.5 rounded-sm font-medium bg-warning-bg text-warning shrink-0">78</span>
+          </div>
+          <p class="text-xs text-text-s mb-2">NAICS-family match (5415xx) with overlapping cybersecurity/IT capabilities; same state.</p>
+          <div class="flex flex-wrap gap-1 mb-3">
+            <span class="text-[10px] px-1.5 py-0.5 rounded-sm font-medium bg-info-bg text-info">family</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-sm font-medium bg-info-bg text-info">SB</span>
+          </div>
+          <!-- "Copied" state example for the button's post-click swap -->
+          <button class="w-full inline-flex items-center justify-center gap-1.5 text-xs px-3 py-2.5 rounded border border-success bg-success-bg text-success min-h-[44px]">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Copied
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MOBILE BOTTOM TAB BAR                                         -->
+  <!-- ============================================================ -->
+  <nav class="mobile-only fixed bottom-0 left-0 right-0 bg-surface-1 border-t border-border
+              flex items-stretch justify-around h-14 pb-[env(safe-area-inset-bottom,0px)] z-30">
+    <button class="flex flex-col items-center justify-center gap-0.5 flex-1 text-[10px] font-medium text-text-s">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Overview
+    </button>
+    <button class="flex flex-col items-center justify-center gap-0.5 flex-1 text-[10px] font-medium text-text-s">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      Docs
+    </button>
+    <button class="flex flex-col items-center justify-center gap-0.5 flex-1 text-[10px] font-medium text-text-s">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      Triage
+    </button>
+    <button class="flex flex-col items-center justify-center gap-0.5 flex-1 text-[10px] font-medium" style="color:#B8860B">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Matches
+    </button>
+    <button class="flex flex-col items-center justify-center gap-0.5 flex-1 text-[10px] font-medium text-text-s">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      More
+    </button>
+  </nav>
+
+</body>
+</html>

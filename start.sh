@@ -42,6 +42,11 @@ MINIO_PORT="${MINIO_ENDPOINT##*:}"
 MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:-minioadmin}"
 MINIO_SECRET_KEY="${MINIO_SECRET_KEY:-minioadmin}"
 
+# Number of background worker processes to run concurrently. Each worker
+# polls the jobs table independently (SKIP LOCKED), so N workers = N
+# solicitations (or any other job type) processed in parallel.
+WORKER_COUNT="${VISION_WORKER_COUNT:-3}"
+
 # Colors
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -54,8 +59,8 @@ NC='\033[0m'
 cleanup() {
     echo ""
     echo -e "${YELLOW}Shutting down...${NC}"
-    kill $API_PID $WORKER_PID $FRONTEND_PID 2>/dev/null || true
-    wait $API_PID $WORKER_PID $FRONTEND_PID 2>/dev/null || true
+    kill $API_PID "${WORKER_PIDS[@]}" $FRONTEND_PID 2>/dev/null || true
+    wait $API_PID "${WORKER_PIDS[@]}" $FRONTEND_PID 2>/dev/null || true
     echo "All services stopped."
     exit 0
 }
@@ -171,22 +176,32 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Worker
+# Workers — launch $WORKER_COUNT concurrent processes. Each polls the jobs
+# table independently (SKIP LOCKED-based claiming), so multiple solicitations
+# (or other job types) can run at the same time instead of queuing serially.
 # ---------------------------------------------------------------------------
-echo "[2/3] Starting background worker..."
+echo "[2/3] Starting $WORKER_COUNT background worker(s)..."
 cd "$BACKEND_DIR"
-VISION_DB_HOST="$DB_HOST" \
-VISION_DB_PORT="$DB_PORT" \
-VISION_DB_DATABASE="$DB_NAME" \
-VISION_DB_USERNAME="$DB_USER" \
-VISION_DB_PASSWORD="$DB_PASSWORD" \
-"$VENV" ingestion/worker.py &
-WORKER_PID=$!
+WORKER_PIDS=()
+for i in $(seq 1 "$WORKER_COUNT"); do
+    VISION_DB_HOST="$DB_HOST" \
+    VISION_DB_PORT="$DB_PORT" \
+    VISION_DB_DATABASE="$DB_NAME" \
+    VISION_DB_USERNAME="$DB_USER" \
+    VISION_DB_PASSWORD="$DB_PASSWORD" \
+    VISION_WORKER_ID="worker-$i" \
+    "$VENV" ingestion/worker.py &
+    WORKER_PIDS+=($!)
+done
 sleep 1
-if kill -0 $WORKER_PID 2>/dev/null; then
-    echo "       Worker:   pid=$WORKER_PID (polling every 2s)"
+ALL_WORKERS_UP=true
+for pid in "${WORKER_PIDS[@]}"; do
+    kill -0 "$pid" 2>/dev/null || ALL_WORKERS_UP=false
+done
+if $ALL_WORKERS_UP; then
+    echo "       Workers:  pids=${WORKER_PIDS[*]} ($WORKER_COUNT processes, polling every 2s)"
 else
-    echo -e "${RED}       ERROR: Worker failed to start${NC}"
+    echo -e "${RED}       ERROR: One or more workers failed to start${NC}"
     cleanup
 fi
 

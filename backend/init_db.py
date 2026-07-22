@@ -26,6 +26,15 @@ from core.db import (
     ensure_correspondence_schema,
     ensure_journal_schema,
     ensure_folders_schema,
+    ensure_solicitations_schema,
+    ensure_solicitation_triage_schema,
+    ensure_vendors_schema,
+    ensure_vendor_matching_schema,
+    ensure_vendor_matches_manual_schema,
+    ensure_vendor_matches_cap_schema,
+    ensure_vendor_outreach_schema,
+    ensure_vendor_outreach_email_schema,
+    ensure_vendor_outreach_messages_schema,
 )
 
 # ---------------------------------------------------------------------------
@@ -134,6 +143,42 @@ def main() -> int:
         folders = ensure_folders_schema()
         for path in folders:
             print(f"  Folders:  {path}")
+
+        solicitations = ensure_solicitations_schema()
+        for path in solicitations:
+            print(f"  Solicit:  {path}")
+
+        triage = ensure_solicitation_triage_schema()
+        for path in triage:
+            print(f"  Triage:   {path}")
+
+        vendors = ensure_vendors_schema()
+        for path in vendors:
+            print(f"  Vendors:  {path}")
+
+        vendor_matching = ensure_vendor_matching_schema()
+        for path in vendor_matching:
+            print(f"  Matching: {path}")
+
+        vendor_matches_manual = ensure_vendor_matches_manual_schema()
+        for path in vendor_matches_manual:
+            print(f"  ManualVM: {path}")
+
+        vendor_matches_cap = ensure_vendor_matches_cap_schema()
+        for path in vendor_matches_cap:
+            print(f"  VMCap:    {path}")
+
+        vendor_outreach = ensure_vendor_outreach_schema()
+        for path in vendor_outreach:
+            print(f"  Outreach: {path}")
+
+        vendor_outreach_email = ensure_vendor_outreach_email_schema()
+        for path in vendor_outreach_email:
+            print(f"  OutreachEmail: {path}")
+
+        vendor_outreach_messages = ensure_vendor_outreach_messages_schema()
+        for path in vendor_outreach_messages:
+            print(f"  OutreachMsgs: {path}")
     except Exception as e:
         print(f"  ERROR applying schemas: {e}", file=sys.stderr)
         return 1
@@ -176,6 +221,12 @@ def main() -> int:
         "correspondence_attachments",
         # 005_journal.sql
         "journal_entries",
+        # 007_solicitations.sql
+        "solicitations",
+        # 009_vendors.sql
+        "vendors",
+        # 010_vendor_matching.sql
+        "vendor_matches",
     }
     actual = set(tables)
     missing = expected - actual

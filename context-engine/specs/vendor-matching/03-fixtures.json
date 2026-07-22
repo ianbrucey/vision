@@ -1,0 +1,137 @@
+{
+  "$description": "Real `vendors` table rows captured live 2026-07-21 from the local vision DB (5,545,335 rows) via psql. Solicitation/job/match rows are synthetic (no triaged solicitation with an IT NAICS code exists yet in this environment — the only real row, id=17, is a cancelled vehicle-purchase notice with no set-aside) but are shaped exactly per 01-schema.sql / 02-api-contract.json.",
+
+  "resolved_unknowns": {
+    "contact_email_sentinel": "CONFIRMED real value: vendors.contact_email can literally be the string 'The business owner has hidden this information from public searches' (137,698 rows). The candidate-pool query and the vendor_matches join must convert this exact string to NULL before it reaches the API response or the outreach UI.",
+    "capabilities_null_rate": "CONFIRMED: 49% of vendors.capabilities is NULL (2,713,172 of 5,545,335). The capability_only tier of the candidate pool only ever surfaces the other 51%.",
+    "naics_codes_all_shape": "CONFIRMED: comma-space-separated TEXT (not an array/JSONB), e.g. '518210, 519290, 541219, ...'. Candidate-pool SQL must use LIKE '%541511%' style matching (existing /api/vendors pattern), not array containment operators.",
+    "existing_solicitation_row": "The only live solicitations row (id=17) has naics_code='3361' (partial/truncated — vehicle purchase, not IT) and set_aside_type=NULL. It is NOT usable as a positive vendor-matching example; used only for the 'no eligible candidate pool' edge case below."
+  },
+
+  "vendor_rows_real": {
+    "$note": "Verbatim `SELECT ... FROM vision.vendors` results, columns matching the VendorMatch join fields in 02-api-contract.json.",
+    "naics_541511_va_with_capabilities": {
+      "id": 9208084,
+      "vendor_name": "TREWON TECHNOLOGIES LLC",
+      "uei": "EPE8N2747L14",
+      "naics_code_primary": "541511",
+      "naics_codes_all": "518210, 519290, 541219, 541330, 541370, 541511, 541512, 541513, 541519, 541611, 541618, 541690, 541715, 541720, 541910, 541990, 561599, 561990, 611420, 611430, 611710, 60107",
+      "state": "VA",
+      "city": "LEESBURG",
+      "contact_email": "businessdevelopment@trewon.com",
+      "contact_name": "SAUMIL SHAH",
+      "is_small_business": true,
+      "is_sdvosb": false,
+      "is_hubzone": true,
+      "is_8a": true,
+      "is_woman_owned": true,
+      "is_veteran_owned": false,
+      "capabilities": "Trewon Technologies specializes in information technology, research, evaluation, and technical assistance (TA) services to government clients. Founded in 2010, we are uniquely positioned to address complex societal problems through innovative approaches that integrate research and evaluation expertise with sophisticated IT solutions."
+    },
+    "naics_541519_va_cybersecurity": {
+      "id": 5141760,
+      "vendor_name": "REDFORT TECHNOLOGIES LLC",
+      "uei": "DW74EEJACY17",
+      "naics_code_primary": "541519",
+      "naics_codes_all": "541511, 541512, 541513, 541519, 517121, 517810, 518210, ... (166 codes total)",
+      "state": "VA",
+      "city": "FALLS CHURCH",
+      "contact_email": "admin@redforttech.com",
+      "contact_name": "SAQIB ALI",
+      "contact_phone": "7188446091",
+      "is_small_business": true,
+      "is_sdvosb": false,
+      "is_hubzone": false,
+      "is_8a": false,
+      "is_woman_owned": false,
+      "is_veteran_owned": false,
+      "capabilities": "Redfort Technologies delivers cybersecurity and IT solutions to commercial and government clients. We specialize in real-time threat response, secure infrastructure, endpoint protection, and IT logistics."
+    },
+    "naics_541990_va_no_capabilities": {
+      "id": 9208030,
+      "vendor_name": "SOS INTERNATIONAL LLC",
+      "uei": "L3VCKMD7J585",
+      "naics_code_primary": "541990",
+      "state": "VA",
+      "city": "RESTON",
+      "contact_email": "brett.surbey@sosi.com",
+      "contact_name": "BRETT SURBEY",
+      "is_small_business": false,
+      "capabilities": null,
+      "$note": "large business, capabilities NULL — would be excluded from capability_only tier but can still surface via naics family match if is_small_business isn't required by the solicitation."
+    },
+    "naics_541513_fl_sdvosb": {
+      "id": 9208032,
+      "vendor_name": "SPATHE SYSTEMS LLC",
+      "naics_code_primary": "541513",
+      "state": "FL",
+      "is_sdvosb": true,
+      "$note": "example eligible candidate for a set-aside_type='SDVOSB' solicitation (CLAIM-04 hard gate)."
+    },
+    "contact_email_sentinel_example": {
+      "id": 9208078,
+      "vendor_name": "THE TOLLIVER GROUP, INC",
+      "naics_code_primary": "541330",
+      "state": "AL",
+      "contact_email": "The business owner has hidden this information from public searches",
+      "$note": "must be surfaced as contact_email: null in the VendorMatch API response, never verbatim."
+    }
+  },
+
+  "solicitation_for_matching_example": {
+    "$note": "Synthetic — represents a post-triage, non-quick-killed solicitation with an IT NAICS code, the shape run_solicitation_triage() leaves behind before vendor_matching auto-enqueues (CLAIM-05).",
+    "id": 501,
+    "case_id": 601,
+    "naics_code": "541511",
+    "set_aside_type": null,
+    "triage_status": "complete",
+    "quick_kill": false,
+    "matching_status": "pending"
+  },
+
+  "vendor_matches_after_pipeline_example": {
+    "$note": "Expected vendor_matches rows after run_vendor_matching_pipeline() completes for solicitation_id=501 (CLAIM-03, CLAIM-07 join shape).",
+    "matching_status": "complete",
+    "outreach_email_subject": "Subcontracting Opportunity — Software Development Services (NAICS 541511)",
+    "outreach_email_body": "Hi {{vendor_name}},\n\nWe're assembling a team to respond to a federal solicitation requiring software development services under NAICS 541511 and believe your firm could be a strong fit as a subcontracting partner.\n\n{{match_reason}}\n\nWould you be available for a brief call this week to discuss teaming?\n\nBest regards",
+    "matches": [
+      {
+        "id": 1,
+        "solicitation_id": 501,
+        "vendor_id": 9208084,
+        "rank": 1,
+        "match_score": 92,
+        "match_rationale": "Exact NAICS 541511 match with directly relevant capabilities narrative (IT + research/evaluation for federal clients); HUBZone/8(a)/WOSB certifications add socioeconomic value to a joint proposal.",
+        "naics_match_type": "exact",
+        "vendor_name": "TREWON TECHNOLOGIES LLC",
+        "contact_email": "businessdevelopment@trewon.com",
+        "state": "VA"
+      },
+      {
+        "id": 2,
+        "solicitation_id": 501,
+        "vendor_id": 5141760,
+        "rank": 2,
+        "match_score": 78,
+        "match_rationale": "NAICS-family match (5415xx) with cybersecurity/IT capabilities overlapping the solicitation's technical scope; same state as the requiring activity.",
+        "naics_match_type": "family",
+        "vendor_name": "REDFORT TECHNOLOGIES LLC",
+        "contact_email": "admin@redforttech.com",
+        "state": "VA"
+      }
+    ]
+  },
+
+  "no_naics_code_failure_example": {
+    "$note": "CLAIM-06/§6 pre-mortem — state/local solicitations never get a naics_code (per solicitation-ingestion Brief \u00a75). Manual trigger must reject with a clear reason rather than silently returning zero matches.",
+    "trigger_response_status": 400,
+    "trigger_response_body": { "detail": "Cannot run vendor matching — solicitation has no NAICS code" }
+  },
+
+  "sdvosb_hard_gate_example": {
+    "$note": "CLAIM-04 — set_aside_type='SDVOSB' excludes SPATHE SYSTEMS's non-SDVOSB competitors from the candidate pool entirely, regardless of NAICS/capability match quality.",
+    "solicitation_set_aside_type": "SDVOSB",
+    "eligible_vendor_ids": [9208032],
+    "ineligible_example_excluded": { "vendor_id": 9208084, "reason": "is_sdvosb=false — never enters the candidate pool for an SDVOSB set-aside." }
+  }
+}

@@ -32,3 +32,11 @@ vision_pgdata/
 vision_minio_data/
 .env.docker
 .env.prod
+
+# Data directories (not app code)
+pdf-filler/
+vendors/
+vendors_unified.csv
+Contract_Notice_Details.csv
+parse_vendors.py
+scratch.md

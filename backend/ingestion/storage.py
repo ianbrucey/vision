@@ -12,6 +12,7 @@ import os
 import uuid
 from datetime import timedelta
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 from minio import Minio
 from minio.error import S3Error
@@ -25,6 +26,12 @@ _MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY", "minioadmin")
 _MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY", "minioadmin")
 _MINIO_BUCKET = os.environ.get("MINIO_BUCKET", "vision-uploads")
 _MINIO_SECURE = os.environ.get("MINIO_SECURE", "false").lower() == "true"
+# When set, presigned URLs returned to browsers are rewritten to this public
+# host with HTTPS scheme. The internal client still signs against
+# _MINIO_ENDPOINT; MinIO validates signatures independent of the Host header,
+# so the path/query/signature survive the swap intact. If unset, behavior is
+# unchanged (local dev: presigned URL uses _MINIO_ENDPOINT as-is).
+_MINIO_PUBLIC_ENDPOINT = os.environ.get("MINIO_PUBLIC_ENDPOINT")
 
 
 def _get_client() -> Minio:
@@ -98,8 +105,24 @@ def delete_file(bucket: str, object_key: str) -> bool:
 def get_public_url(bucket: str, object_key: str, expires_seconds: int = 3600) -> str:
     """Generate a presigned URL for viewing. Valid for expires_seconds (default 1 hour)."""
     client = _get_client()
-    return client.presigned_get_object(
+    url = client.presigned_get_object(
         bucket, object_key,
         expires=timedelta(seconds=expires_seconds),
         response_headers={"response-content-disposition": "inline"},
     )
+    # Rewrite internal endpoint to public hostname for browser access.
+    # Only the scheme + host are swapped; path/query/signature are preserved.
+    if _MINIO_PUBLIC_ENDPOINT:
+        parts = urlsplit(url)
+        public = _MINIO_PUBLIC_ENDPOINT
+        # Strip any scheme the operator may have included in the env var.
+        if "://" in public:
+            public = urlsplit(public).netloc
+        url = urlunsplit((
+            "https",
+            public,
+            parts.path,
+            parts.query,
+            parts.fragment,
+        ))
+    return url

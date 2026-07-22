@@ -1,0 +1,112 @@
+services:
+  vision-db:
+    image: pgvector/pgvector:pg15
+    restart: unless-stopped
+    env_file: .env.prod
+    environment:
+      POSTGRES_DB: ${VISION_DB_DATABASE}
+      POSTGRES_USER: ${VISION_DB_USERNAME}
+      POSTGRES_PASSWORD: ${VISION_DB_PASSWORD}
+    volumes:
+      - vision_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${VISION_DB_USERNAME}']
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  vision-minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9003"
+    env_file: .env.prod
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    volumes:
+      - vision_minio_data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'mc ready local']
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  vision-minio-init:
+    image: minio/mc:latest
+    depends_on:
+      vision-minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://vision-minio:9000 ${MINIO_ACCESS_KEY} ${MINIO_SECRET_KEY};
+      mc mb --ignore-existing local/${MINIO_BUCKET};
+      echo 'MinIO bucket ready: ${MINIO_BUCKET}';
+      exit 0;
+      "
+    env_file: .env.prod
+
+  vision-api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: .env.prod
+    environment:
+      VISION_DB_HOST: vision-db
+      MINIO_ENDPOINT: vision-minio:9000
+    depends_on:
+      vision-db:
+        condition: service_healthy
+      vision-minio:
+        condition: service_healthy
+    restart: unless-stopped
+
+  vision-worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: .env.prod
+    environment:
+      VISION_DB_HOST: vision-db
+      MINIO_ENDPOINT: vision-minio:9000
+      VISION_ROLE: worker
+    depends_on:
+      vision-db:
+        condition: service_healthy
+      vision-minio:
+        condition: service_healthy
+      vision-api:
+        condition: service_started
+    restart: unless-stopped
+    deploy:
+      replicas: 1
+
+  vision-frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://vision.justicequest.pro
+    depends_on:
+      - vision-api
+    restart: unless-stopped
+
+  vision-caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - vision_caddy_data:/data
+      - vision_caddy_config:/config
+    depends_on:
+      - vision-frontend
+      - vision-api
+      - vision-minio
+
+volumes:
+  vision_pgdata:
+  vision_minio_data:
+  vision_caddy_data:
+  vision_caddy_config:

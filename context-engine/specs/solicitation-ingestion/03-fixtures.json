@@ -1,0 +1,142 @@
+{
+  "$description": "Real SAM.gov v2 API responses captured live on 2026-07-21 against https://api.sam.gov/opportunities/v2/search using the project's SAM_GOV_API_KEY. Public federal notice data — no PII beyond a government contracting officer's public business contact info. Resolves two open pre-mortem questions from 00-Brief.md.",
+
+  "resolved_unknowns": {
+    "resourceLinks_filename": "CONFIRMED: resourceLinks array entries are bare download URLs with no filename or label. The real filename is only available via the 'Content-Disposition' response header on the authenticated GET request (e.g. 'attachment; filename=Sol_140G0326Q0165.pdf'). sam_client.py must parse this header; fall back to a generated name (e.g. `attachment_{n}.bin`) if the header is absent.",
+    "resourceLink_auth": "CONFIRMED: api_key must be passed as a query param on the download GET itself (same as the search call) — HEAD requests return 403 (S3 presigned quirk), but GET with api_key returns 200 + the real file bytes. Worker must use GET, not HEAD, to validate/download.",
+    "pointOfContact_shape": "CONFIRMED: JSON array (not object) of {fax, type, email, phone, title, fullName}. Can be null (see Example 2 fixture below).",
+    "placeOfPerformance_shape": "CONFIRMED: JSON object {streetAddress, city: {code,name}, state: {code,name}, zip, country: {code,name}}. Can be present but with empty sub-objects ({} for city/state/country) when SAM.gov has no POP data yet — see real fixture below."
+  },
+
+  "sam_v2_single_notice_response": {
+    "$note": "Real response for GET /opportunities/v2/search?noticeid=fcdeac21a751483d9546f97d28fa27c5&postedFrom=07/01/2026&postedTo=07/21/2026&limit=1 (api_key omitted). This is the shape solicitations columns are populated from.",
+    "totalRecords": 1,
+    "limit": 1,
+    "offset": 0,
+    "opportunitiesData": [
+      {
+        "noticeId": "fcdeac21a751483d9546f97d28fa27c5",
+        "title": "D--Software Development Services for Coastal Remote S",
+        "solicitationNumber": "140G0326Q0165",
+        "fullParentPathName": "INTERIOR, DEPARTMENT OF THE.US GEOLOGICAL SURVEY.OFFICE OF ACQUISITON  GRANTS",
+        "fullParentPathCode": "014.1434.140G03",
+        "postedDate": "2026-07-17",
+        "type": "Solicitation",
+        "baseType": "Solicitation",
+        "archiveType": "auto15",
+        "archiveDate": "2026-08-08",
+        "typeOfSetAsideDescription": null,
+        "typeOfSetAside": null,
+        "responseDeadLine": "2026-07-24T09:00:00-04:00",
+        "naicsCode": "541511",
+        "naicsCodes": ["541511"],
+        "classificationCode": "DA01",
+        "active": "Yes",
+        "award": null,
+        "pointOfContact": [
+          {
+            "fax": null,
+            "type": "primary",
+            "email": "Joahnne_Ongjoco@ios.doi.gov",
+            "phone": "9162789328",
+            "title": null,
+            "fullName": "Ongjoco, Joahnne"
+          }
+        ],
+        "description": "https://api.sam.gov/prod/opportunities/v1/noticedesc?noticeid=fcdeac21a751483d9546f97d28fa27c5",
+        "organizationType": "OFFICE",
+        "officeAddress": { "zipcode": "95819", "city": "SACRAMENTO", "countryCode": "USA", "state": "CA" },
+        "placeOfPerformance": { "city": {}, "state": {}, "country": {} },
+        "additionalInfoLink": null,
+        "uiLink": "https://sam.gov/workspace/contract/opp/fcdeac21a751483d9546f97d28fa27c5/view",
+        "links": [{ "rel": "self", "href": "https://api.sam.gov/prod/opportunities/v2/search?noticeid=fcdeac21a751483d9546f97d28fa27c5&limit=1" }],
+        "resourceLinks": [
+          "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/24e3e2522cbb43599557a5d66ceb1f20/download",
+          "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/cdb0fccedfcd4a03862074affc25d1eb/download",
+          "https://sam.gov/api/prod/opps/v3/opportunities/resources/files/f9f76c274db04172925db2655ab985f1/download"
+        ]
+      }
+    ]
+  },
+
+  "resourceLink_download_response_headers": {
+    "$note": "Real response headers from GET https://sam.gov/api/prod/opps/v3/opportunities/resources/files/24e3e2522cbb43599557a5d66ceb1f20/download?api_key=... — confirms filename source.",
+    "content-disposition": "attachment; filename=Sol_140G0326Q0165.pdf",
+    "content-type": "application/octet-stream",
+    "content-length": "1580989"
+  },
+
+  "sam_v2_null_metadata_example": {
+    "$note": "From SAM.gov's own API docs (Example 2) — illustrates the null/empty-field case sam_client.py must handle defensively: pointOfContact null, naicsCode null, resourceLinks null (not empty array).",
+    "noticeId": "ff826a59eac743c4a1a07ff5e0cf3e3a",
+    "title": "Test-Award notice-V2 27",
+    "fullParentPathName": "GENERAL SERVICES ADMINISTRATION.FEDERAL ACQUISITION SERVICE.GSA/FAS CENTER FOR IT SCHEDULE PROG",
+    "typeOfSetAsideDescription": null,
+    "typeOfSetAside": null,
+    "responseDeadLine": null,
+    "naicsCode": null,
+    "classificationCode": null,
+    "pointOfContact": null,
+    "placeOfPerformance": null,
+    "resourceLinks": null
+  },
+
+  "solicitation_row_after_sam_fetch": {
+    "$note": "Expected solicitations row shape after process_sam_fetch_job() completes CLAIM-04 using the fixture above.",
+    "id": 1,
+    "case_id": 501,
+    "source_type": "federal",
+    "title": "D--Software Development Services for Coastal Remote S",
+    "url": "https://sam.gov/workspace/contract/opp/fcdeac21a751483d9546f97d28fa27c5/view",
+    "notice_id": "fcdeac21a751483d9546f97d28fa27c5",
+    "ingestion_status": "complete",
+    "has_missing_docs": false,
+    "error_message": null,
+    "agency": "INTERIOR, DEPARTMENT OF THE.US GEOLOGICAL SURVEY.OFFICE OF ACQUISITON  GRANTS",
+    "naics_code": "541511",
+    "psc_code": "DA01",
+    "set_aside_type": null,
+    "set_aside_description": null,
+    "point_of_contact": [{ "fax": null, "type": "primary", "email": "Joahnne_Ongjoco@ios.doi.gov", "phone": "9162789328", "title": null, "fullName": "Ongjoco, Joahnne" }],
+    "place_of_performance": { "city": {}, "state": {}, "country": {} },
+    "response_deadline": "2026-07-24T09:00:00-04:00",
+    "posted_date": "2026-07-17"
+  },
+
+  "solicitation_row_state_local_example": {
+    "$note": "Synthetic — no programmatic metadata API exists for state/local sources (CLAIM-03). Row created synchronously with only user-supplied title/url; all SAM-only columns NULL.",
+    "id": 2,
+    "case_id": 502,
+    "source_type": "state",
+    "title": "IT Modernization Services — City of Springfield RFP #2026-014",
+    "url": "https://springfield.example.gov/procurement/rfp-2026-014",
+    "notice_id": null,
+    "ingestion_status": "complete",
+    "has_missing_docs": false,
+    "error_message": null,
+    "agency": null,
+    "naics_code": null,
+    "psc_code": null,
+    "set_aside_type": null,
+    "set_aside_description": null,
+    "point_of_contact": null,
+    "place_of_performance": null,
+    "response_deadline": null,
+    "posted_date": null
+  },
+
+  "sam_fetch_failure_example": {
+    "$note": "CLAIM-06 — SAM.gov API call itself fails (e.g. bad/expired notice_id, 404 from search). Job marked failed, not 'partial'.",
+    "job_status": "failed",
+    "job_error_message": "SAM.gov API returned 0 results for noticeId=deadbeefdeadbeefdeadbeefdeadbeef",
+    "solicitation_ingestion_status": "failed",
+    "solicitation_error_message": "SAM.gov API returned 0 results for noticeId=deadbeefdeadbeefdeadbeefdeadbeef"
+  },
+
+  "sam_fetch_missing_docs_example": {
+    "$note": "CLAIM-05 — metadata fetch succeeds but resourceLinks is null/empty, or one download fails. Job still completes.",
+    "job_status": "complete",
+    "solicitation_ingestion_status": "complete",
+    "solicitation_has_missing_docs": true
+  }
+}

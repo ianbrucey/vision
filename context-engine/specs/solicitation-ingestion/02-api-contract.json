@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vision Solicitation Ingestion API Contract v1",
+  "description": "REST API for creating and listing solicitations. Federal (SAM.gov) intake is async via the existing jobs queue; state/local intake is synchronous. Document attachment reuses the existing /api/cases/{case_id}/ingest endpoint.",
+  "basePath": "/api",
+  "date": "2026-07-21",
+
+  "schemas": {
+    "Solicitation": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "external_id": { "type": "string", "format": "uuid" },
+        "case_id": { "type": "integer", "description": "FK to cases.id (backing container)" },
+        "source_type": { "type": "string", "enum": ["federal", "state", "local"] },
+        "title": { "type": "string" },
+        "url": { "type": "string" },
+        "notice_id": { "type": ["string", "null"], "description": "Federal only; NULL for state/local." },
+        "ingestion_status": { "type": "string", "enum": ["pending", "fetching", "complete", "failed"] },
+        "has_missing_docs": { "type": "boolean" },
+        "error_message": { "type": ["string", "null"] },
+        "agency": { "type": ["string", "null"] },
+        "naics_code": { "type": ["string", "null"] },
+        "psc_code": { "type": ["string", "null"] },
+        "set_aside_type": { "type": ["string", "null"] },
+        "set_aside_description": { "type": ["string", "null"] },
+        "point_of_contact": { "type": ["object", "array", "null"], "description": "Raw SAM.gov pointOfContact payload." },
+        "place_of_performance": { "type": ["object", "null"], "description": "Raw SAM.gov placeOfPerformance payload." },
+        "response_deadline": { "type": ["string", "null"], "format": "date-time" },
+        "posted_date": { "type": ["string", "null"], "format": "date" },
+        "metadata": { "type": "object" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "external_id", "case_id", "source_type", "title", "url", "ingestion_status", "has_missing_docs"]
+    },
+
+    "SolicitationWithDocuments": {
+      "allOf": [{ "$ref": "#/schemas/Solicitation" }],
+      "properties": {
+        "documents": {
+          "type": "array",
+          "description": "Documents attached to the backing case (reuses CaseManager._list_documents).",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "integer" },
+              "name": { "type": "string" },
+              "page_count": { "type": ["integer", "null"] },
+              "document_type": { "type": ["string", "null"] },
+              "ocr_status": { "type": "string", "enum": ["pending", "processing", "complete", "failed"] },
+              "source": { "type": "string", "enum": ["user_upload", "discovery", "data_lab", "email", "portal", "api", "sam_gov", "other"] },
+              "storage_path": { "type": ["string", "null"] },
+              "created_at": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "requestBodies": {
+    "CreateSolicitation": {
+      "type": "object",
+      "properties": {
+        "source_type": { "type": "string", "enum": ["federal", "state", "local"], "description": "Required. 'federal' triggers async SAM.gov fetch." },
+        "url": { "type": "string", "description": "Required. SAM.gov opportunity URL (federal) or agency portal URL (state/local)." },
+        "title": {
+          "type": "string",
+          "description": "Required for state/local (no programmatic metadata source). Optional for federal — a placeholder is used until sam_fetch populates the real title; if provided it is used as the initial case/solicitation name regardless."
+        }
+      },
+      "required": ["source_type", "url"],
+      "notes": "For source_type='federal', title falls back to 'Untitled SAM.gov Opportunity (fetching...)' if omitted. For source_type='state'|'local', title is required — 400 if missing."
+    }
+  },
+
+  "endpoints": {
+    "solicitations_create": {
+      "method": "POST",
+      "path": "/solicitations",
+      "summary": "Create a solicitation. Federal: creates case+solicitation synchronously, enqueues a sam_fetch job. State/local: fully synchronous, no job.",
+      "requestBody": { "$ref": "#/requestBodies/CreateSolicitation" },
+      "authentication": "Bearer token required",
+      "responses": {
+        "201": {
+          "description": "Created solicitation (federal includes job_id; state/local does not)",
+          "body": {
+            "type": "object",
+            "properties": {
+              "solicitation": { "$ref": "#/schemas/Solicitation" },
+              "job_id": { "type": ["integer", "null"], "description": "sam_fetch job id for federal; null for state/local." }
+            }
+          }
+        },
+        "400": { "description": "Validation error — missing url, or missing title for state/local" },
+        "409": {
+          "description": "Duplicate SAM.gov notice_id (CLAIM-09)",
+          "body": {
+            "type": "object",
+            "properties": {
+              "detail": { "type": "string" },
+              "existing_external_id": { "type": "string", "format": "uuid" }
+            }
+          }
+        }
+      },
+      "notes": "For federal, notice_id is extracted server-side from the URL before insert. If a solicitations row with that notice_id already exists, return 409 with its external_id instead of creating a duplicate case."
+    },
+
+    "solicitations_list": {
+      "method": "GET",
+      "path": "/solicitations",
+      "summary": "List solicitations, filterable by source_type and ingestion_status",
+      "parameters": {
+        "query": {
+          "source_type": { "type": "string", "enum": ["federal", "state", "local"] },
+          "ingestion_status": { "type": "string", "enum": ["pending", "fetching", "complete", "failed"] },
+          "limit": { "type": "integer", "description": "Default 50." },
+          "offset": { "type": "integer", "description": "Default 0." }
+        }
+      },
+      "authentication": "Bearer token required",
+      "responses": {
+        "200": {
+          "description": "Paginated solicitation list",
+          "body": {
+            "type": "object",
+            "properties": {
+              "count": { "type": "integer" },
+              "solicitations": { "type": "array", "items": { "$ref": "#/schemas/Solicitation" } }
+            }
+          }
+        }
+      }
+    },
+
+    "solicitations_get": {
+      "method": "GET",
+      "path": "/solicitations/{solicitation_id}",
+      "summary": "Get a solicitation with its backing case's documents",
+      "parameters": {
+        "path": { "solicitation_id": { "type": "integer" } }
+      },
+      "authentication": "Bearer token required",
+      "responses": {
+        "200": {
+          "description": "Solicitation detail with documents",
+          "body": { "$ref": "#/schemas/SolicitationWithDocuments" }
+        },
+        "404": { "description": "Solicitation not found" }
+      }
+    }
+  },
+
+  "errorResponses": {
+    "401": { "description": "Unauthorized — missing or invalid Bearer token", "body": { "detail": "Not authenticated" } },
+    "404": { "description": "Resource not found", "body": { "detail": "Solicitation not found" } },
+    "409": { "description": "Duplicate notice_id", "body": { "detail": "Solicitation already exists for this notice_id", "existing_external_id": "..." } },
+    "422": { "description": "Validation error — request body failed Pydantic validation" }
+  },
+
+  "designNotes": {
+    "reuseOfExistingEndpoints": "Document attachment for state/local (and manual remediation for federal) reuses POST /api/cases/{case_id}/ingest unchanged. Job polling for federal fetch reuses GET /api/jobs/{job_id} and GET /api/jobs unchanged. No new document or job endpoints are introduced by this contract.",
+    "federalFlow": "1) POST /api/solicitations {source_type:'federal', url} -> extract noticeId server-side -> check notice_id uniqueness -> INSERT cases + solicitations (ingestion_status='pending') -> enqueue sam_fetch job -> 201 {solicitation, job_id}. 2) Client polls GET /api/jobs/{job_id}. 3) Worker's sam_fetch handler sets ingestion_status='fetching' then 'complete'/'failed', populates metadata columns, calls ingest_file per resourceLink (documents.source='sam_gov').",
+    "stateLocalFlow": "POST /api/solicitations {source_type:'state'|'local', url, title} -> INSERT cases + solicitations (ingestion_status='complete', no job) -> 201 {solicitation, job_id: null}. Client then calls POST /api/cases/{case_id}/ingest per document as usual.",
+    "notFederalScope": "AI triage/extraction of state/local solicitation content (title/agency/deadline auto-fill) is out of scope — see Brief §7 Out of Scope."
+  }
+}

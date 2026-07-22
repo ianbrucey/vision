@@ -1,12 +1,31 @@
 "use client";
 
 import {
-  useState, useEffect, useRef, useCallback,
+  useState, useEffect, useLayoutEffect, useRef, useCallback,
 } from "react";
+import { createPortal } from "react-dom";
 import {
   Paperclip, Search, X, Loader2, AlertCircle, Upload, Check,
 } from "lucide-react";
 import { listDocuments, uploadFile, getJob } from "@/lib/api";
+
+/* Dropdown is portaled to document.body (fixed position) so it always
+ * escapes ancestor stacking contexts (e.g. overflow-auto table wrappers)
+ * instead of rendering behind sticky/z-indexed siblings like the app header. */
+const MENU_WIDTH = 288; // w-72
+const MENU_MAX_HEIGHT = 256; // max-h-64
+const MENU_GAP = 4;
+
+function computeMenuPosition(rect: DOMRect): { top: number; left: number } {
+  const spaceAbove = rect.top;
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const openAbove = spaceAbove >= MENU_MAX_HEIGHT + MENU_GAP || spaceAbove > spaceBelow;
+  const top = openAbove
+    ? Math.max(8, rect.top - MENU_MAX_HEIGHT - MENU_GAP)
+    : rect.bottom + MENU_GAP;
+  const left = Math.min(Math.max(rect.left, 8), window.innerWidth - MENU_WIDTH - 8);
+  return { top, left };
+}
 
 /* ------------------------------------------------------------------ */
 /* Types                                                              */
@@ -50,14 +69,38 @@ export default function DocumentAttachButton({
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [uploads, setUploads] = useState<UploadState[]>([]);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  /* Close on outside click */
+  /* Position the portaled menu against the trigger container, and keep it
+   * in sync on scroll/resize while open. */
+  useLayoutEffect(() => {
+    if (!open) return;
+    const update = () => {
+      if (containerRef.current) {
+        setMenuPos(computeMenuPosition(containerRef.current.getBoundingClientRect()));
+      }
+    };
+    update();
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
+  }, [open]);
+
+  /* Close on outside click (checks both the trigger and the portaled menu) */
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        containerRef.current && !containerRef.current.contains(target)
+        && menuRef.current && !menuRef.current.contains(target)
+      ) {
         setOpen(false);
       }
     };
@@ -230,7 +273,7 @@ export default function DocumentAttachButton({
     : availableDocs;
 
   return (
-    <div className="relative inline-flex items-center gap-1.5" ref={dropdownRef}>
+    <div className="relative inline-flex items-center gap-1.5" ref={containerRef}>
       {/* Attach button — opens dropdown */}
       <button
         type="button"
@@ -312,11 +355,15 @@ export default function DocumentAttachButton({
         </span>
       ))}
 
-      {/* Dropdown — existing docs */}
-      {open && (
+      {/* Dropdown — existing docs. Portaled to document.body with fixed
+          positioning so it always escapes ancestor stacking contexts
+          (e.g. overflow-auto tables) instead of rendering behind sticky
+          siblings like the app header. */}
+      {open && menuPos && createPortal(
         <div
-          className="absolute bottom-full mb-1 left-0 w-72 max-h-64
-                     bg-surface-1 border border-border rounded-lg shadow-lg
+          ref={menuRef}
+          style={{ top: menuPos.top, left: menuPos.left, width: MENU_WIDTH, maxHeight: MENU_MAX_HEIGHT }}
+          className="fixed bg-surface-1 border border-border rounded-lg shadow-lg
                      flex flex-col z-50"
         >
           {/* Search */}
@@ -393,7 +440,8 @@ export default function DocumentAttachButton({
               Upload new...
             </button>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

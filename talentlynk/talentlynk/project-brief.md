@@ -1,3 +1,5 @@
+    dfe
+
 # Project Brief: TalentNyk — GovCon Aggregator Platform
 
 ## What It Is
@@ -13,9 +15,7 @@ TalentNyk operates as a **Prime Contractor** to the government, winning contract
 ## The Three Network Buckets
 
 1. **Individual Specialists (Contingent W-2 Workforce):** Skilled professionals (project managers, IT leads, compliance experts) onboarded via Contingent Offer Letters and Letters of Commitment. They appear as proposed Key Personnel in bids at $0 upfront cost. If the contract is won, they activate as W-2 employees on Day 1 of performance.
-
 2. **Small Business Service Partners (The Execution Network):** Local trades — landscapers, roofers, janitorial, logistics — onboarded via Master Teaming Agreements. Under "Similarly Situated Entity" rules, subbing to other certified small businesses counts as prime performance, avoiding pass-through violations.
-
 3. **Small Domestic Manufacturers (The "American Alibaba" Layer):** U.S.-based factories producing physical goods. This is the product-acquisition side — subject to the Non-Manufacturer Rule (NMR), meaning products sold under small business set-asides must be made by small business manufacturers, not large corporate factories.
 
 ## The Core Pipeline (What the Software Does)

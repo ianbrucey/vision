@@ -42,6 +42,241 @@ export const updateCase = (id: number, data: { name?: string; case_type?: string
 export const deleteCase = (id: number) =>
   fetchAPI(`/api/cases/${id}`, { method: "DELETE" });
 
+// ---------------------------------------------------------------------------
+// Solicitations
+// ---------------------------------------------------------------------------
+
+export interface SolicitationDocument {
+  id: number;
+  name: string;
+  page_count: number | null;
+  document_type: string | null;
+  ocr_status: "pending" | "processing" | "complete" | "failed";
+  source: "user_upload" | "discovery" | "data_lab" | "email" | "portal" | "api" | "sam_gov" | "other";
+  storage_path: string | null;
+  created_at: string;
+}
+
+export interface Solicitation {
+  id: number;
+  external_id: string;
+  case_id: number;
+  source_type: "federal" | "state" | "local";
+  title: string;
+  url: string;
+  notice_id: string | null;
+  ingestion_status: "pending" | "fetching" | "complete" | "failed";
+  has_missing_docs: boolean;
+  error_message: string | null;
+  agency: string | null;
+  naics_code: string | null;
+  psc_code: string | null;
+  set_aside_type: string | null;
+  set_aside_description: string | null;
+  point_of_contact: Record<string, unknown> | unknown[] | null;
+  place_of_performance: Record<string, unknown> | null;
+  response_deadline: string | null;
+  posted_date: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+  triage_status: "pending" | "running" | "complete" | "failed";
+  triage_error: string | null;
+  has_partial_artifacts: boolean;
+  notice_type: "rfi" | "sources_sought" | "rfp" | "rfq" | "other" | null;
+  quick_kill: boolean | null;
+  quick_kill_reason: string | null;
+  artifact_scope_of_work: string | null;
+  artifact_technical_requirements: string | null;
+  artifact_deliverables_timeline: string | null;
+  artifact_evaluation_criteria: string | null;
+  artifact_submission_checklist: string | null;
+  matching_status: "pending" | "running" | "complete" | "failed";
+  matching_error: string | null;
+  outreach_email_subject: string | null;
+  outreach_email_body: string | null;
+}
+
+export interface SolicitationWithDocuments extends Solicitation {
+  documents: SolicitationDocument[];
+}
+
+// Vendor Matching
+
+export type OutreachStatus = "not_contacted" | "requested" | "received" | "declined";
+
+export interface VendorMatch {
+  id: number;
+  external_id: string;
+  solicitation_id: number;
+  vendor_id: number;
+  rank: number;
+  match_score: number;
+  match_rationale: string;
+  naics_match_type: "exact" | "family" | "capability_only" | "manual";
+  vendor_name: string;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  website: string | null;
+  state: string | null;
+  city: string | null;
+  naics_code_primary: string | null;
+  is_small_business: boolean;
+  is_sdvosb: boolean;
+  is_hubzone: boolean;
+  is_8a: boolean;
+  is_woman_owned: boolean;
+  is_veteran_owned: boolean;
+  outreach_status: OutreachStatus;
+  outreach_requested_at: string | null;
+  outreach_received_at: string | null;
+  outreach_doc_id: number | null;
+  outreach_doc_name: string | null;
+  created_at: string;
+}
+
+export interface VendorMatchesResponse {
+  matching_status: "pending" | "running" | "complete" | "failed";
+  matching_error: string | null;
+  outreach_email_subject: string | null;
+  outreach_email_body: string | null;
+  matches: VendorMatch[];
+}
+
+export const getVendorMatches = (
+  solicitationId: number,
+): Promise<VendorMatchesResponse> =>
+  fetchAPI(`/api/solicitations/${solicitationId}/vendor-matches`);
+
+export const triggerVendorMatching = (
+  solicitationId: number,
+): Promise<{ job_id: number; matching_status: string }> =>
+  fetchAPI(`/api/solicitations/${solicitationId}/vendor-matching`, { method: "POST" });
+
+export const updateVendorMatchOutreach = (
+  matchId: number,
+  updates: {
+    outreach_status?: OutreachStatus;
+    outreach_doc_id?: number;
+    clear_outreach_doc?: boolean;
+  },
+): Promise<VendorMatch> =>
+  fetchAPI(`/api/vendor-matches/${matchId}/outreach`, {
+    method: "PATCH",
+    body: JSON.stringify(updates),
+  });
+
+// T10c — Per-vendor message thread
+
+export interface VendorOutreachMessage {
+  id: number;
+  vendor_match_id: number;
+  direction: "outbound" | "inbound";
+  status: "draft" | "sent" | "failed";
+  subject: string;
+  body: string;
+  mailgun_message_id: string | null;
+  document_id: number | null;
+  sent_at: string | null;
+  received_at: string | null;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export const getVendorMatchMessages = (
+  matchId: number,
+): Promise<{ match: VendorMatch; messages: VendorOutreachMessage[] }> =>
+  fetchAPI(`/api/vendor-matches/${matchId}/messages`);
+
+export const createDraftMessage = (
+  matchId: number,
+): Promise<VendorOutreachMessage> =>
+  fetchAPI(`/api/vendor-matches/${matchId}/messages/draft`, { method: "POST" });
+
+export const updateDraftMessage = (
+  messageId: number,
+  updates: { subject?: string; body?: string },
+): Promise<VendorOutreachMessage> =>
+  fetchAPI(`/api/vendor-match-messages/${messageId}`, {
+    method: "PATCH",
+    body: JSON.stringify(updates),
+  });
+
+export const sendMessage = (
+  messageId: number,
+): Promise<VendorOutreachMessage> =>
+  fetchAPI(`/api/vendor-match-messages/${messageId}/send`, { method: "POST" });
+
+// Vendor creation (T7 — inline vendor creation)
+
+export interface VendorCreateInput {
+  vendor_name: string;
+  contact_name?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  website?: string;
+  city?: string;
+  state?: string;
+  naics_code_primary?: string;
+  capabilities?: string;
+  is_small_business?: boolean;
+  is_woman_owned?: boolean;
+  is_veteran_owned?: boolean;
+  is_sdvosb?: boolean;
+  is_hubzone?: boolean;
+  is_8a?: boolean;
+}
+
+export interface CreatedVendor extends VendorCreateInput {
+  id: number;
+  source: string;
+  created_at: string;
+}
+
+export const createVendor = (
+  data: VendorCreateInput,
+): Promise<CreatedVendor> =>
+  fetchAPI("/api/vendors", { method: "POST", body: JSON.stringify(data) });
+
+export const attachVendorMatch = (
+  solicitationId: number,
+  vendorId: number,
+): Promise<VendorMatch> =>
+  fetchAPI(`/api/solicitations/${solicitationId}/vendor-matches`, {
+    method: "POST",
+    body: JSON.stringify({ vendor_id: vendorId }),
+  });
+
+export const listSolicitations = (
+  params?: { source_type?: string; ingestion_status?: string },
+): Promise<{ count: number; solicitations: Solicitation[] }> => {
+  const qs = new URLSearchParams(params as Record<string, string>).toString();
+  return fetchAPI(`/api/solicitations${qs ? `?${qs}` : ""}`);
+};
+
+export const createSolicitation = (
+  data: { source_type: string; url: string; title?: string; description?: string },
+): Promise<{ solicitation: Solicitation; job_id: number | null }> =>
+  fetchAPI("/api/solicitations", { method: "POST", body: JSON.stringify(data) });
+
+export const getSolicitation = (id: number): Promise<SolicitationWithDocuments> =>
+  fetchAPI(`/api/solicitations/${id}`);
+
+export const deleteSolicitation = (id: number): Promise<{ deleted: boolean }> =>
+  fetchAPI(`/api/solicitations/${id}`, { method: "DELETE" });
+
+export const triggerTriage = (
+  id: number,
+): Promise<{ job_id: number; triage_status: string }> =>
+  fetchAPI(`/api/solicitations/${id}/triage`, { method: "POST" });
+
+export const getSolicitationByCase = (
+  caseId: number,
+): Promise<SolicitationWithDocuments> =>
+  fetchAPI(`/api/cases/${caseId}/solicitation`);
+
 // Parties
 export const addParty = (caseId: number, data: { name: string; party_kind: string; roles: string[] }) =>
   fetchAPI(`/api/cases/${caseId}/parties`, { method: "POST", body: JSON.stringify(data) });
@@ -68,7 +303,7 @@ export const uploadFile = async (caseId: number, file: File) => {
 export const listDocuments = (caseId: number) =>
   fetchAPI(`/api/cases/${caseId}/documents`);
 
-export const getDocumentPreviewUrl = (docId: number): Promise<{ url: string; name: string; type: string }> =>
+export const getDocumentPreviewUrl = (docId: number): Promise<{ url: string | null; name: string; type: string; content?: string }> =>
   fetchAPI(`/api/documents/${docId}/preview`);
 
 export const deleteDocument = (docId: number): Promise<{ deleted: boolean }> =>

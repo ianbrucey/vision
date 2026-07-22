@@ -1,0 +1,29 @@
+# Vision — Production Caddyfile
+# Caddy obtains and renews Let's Encrypt certificates automatically for both
+# hostnames. Requires ports 80 + 443 on the Linode host, and that both
+# vision.justicequest.pro and files.vision.justicequest.pro have A records
+# pointing at 50.116.38.57.
+
+{
+    email admin@justicequest.pro
+}
+
+# Main app — serves the Next.js frontend and proxies /api/* to the FastAPI backend.
+vision.justicequest.pro {
+    # API routes
+    handle /api/* {
+        reverse_proxy vision-api:8400
+    }
+
+    # Everything else — Next.js standalone server
+    handle {
+        reverse_proxy vision-frontend:3000
+    }
+}
+
+# Public MinIO — for browser-accessible presigned URLs (document previews).
+# Only the object storage port is exposed publicly; the MinIO console (:9003)
+# is NOT routed here.
+files.vision.justicequest.pro {
+    reverse_proxy vision-minio:9000
+}

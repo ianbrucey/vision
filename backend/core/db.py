@@ -305,6 +305,166 @@ def ensure_journal_schema() -> list[str]:
     return [str(sql_path)]
 
 
+def ensure_solicitations_schema() -> list[str]:
+    """Apply the solicitation ingestion schema.
+
+    Creates the solicitations table (Option A: domain table backed by a
+    `cases` row via case_id) and extends jobs.job_type/documents.source
+    with 'sam_fetch'/'sam_gov'. Idempotent — uses IF NOT EXISTS.
+    """
+    sql_path = _SCHEMA_DIR / "007_solicitations.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Solicitations schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_solicitation_triage_schema() -> list[str]:
+    """Apply the solicitation triage pipeline schema.
+
+    Adds triage classification, quick-kill, and the 5 partner-facing HTML
+    artifact columns to `solicitations`, plus the 'solicitation_triage'
+    job_type. Idempotent — uses IF NOT EXISTS / ADD COLUMN IF NOT EXISTS.
+    """
+    sql_path = _SCHEMA_DIR / "008_solicitation_triage.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Solicitation triage schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_vendors_schema() -> list[str]:
+    """Apply the unified vendor registry schema.
+
+    Creates the vendors table with full-text search, trigram indexes,
+    and socioeconomic flag indexes. Idempotent — uses IF NOT EXISTS.
+    """
+    sql_path = _SCHEMA_DIR / "009_vendors.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Vendors schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_vendor_matching_schema() -> list[str]:
+    """Apply the vendor matching schema.
+
+    Creates the vendor_matches table (ranked candidate vendors per
+    solicitation) plus matching/outreach-template columns on
+    `solicitations`, and extends `jobs.job_type` with 'vendor_matching'.
+    Idempotent — uses IF NOT EXISTS / ADD COLUMN IF NOT EXISTS.
+    """
+    sql_path = _SCHEMA_DIR / "010_vendor_matching.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Vendor matching schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_vendor_matches_manual_schema() -> list[str]:
+    """Apply the manual vendor match migration.
+
+    Extends `vendor_matches.naics_match_type` to allow 'manual', for
+    vendors attached directly by a user (T7 — inline vendor creation).
+    Idempotent — drops/re-adds the CHECK constraint each run.
+    """
+    sql_path = _SCHEMA_DIR / "011_vendor_matches_manual.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Manual vendor matches schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_vendor_matches_cap_schema() -> list[str]:
+    """Apply the vendor matches cap increase migration.
+
+    Raises `vendor_matches.rank`'s hard cap from 25 to 30, giving manual
+    adds (T7) headroom on top of a full 25-match automated result set.
+    Idempotent — drops/re-adds the CHECK constraint each run.
+    """
+    sql_path = _SCHEMA_DIR / "012_vendor_matches_cap.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Vendor matches cap schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_vendor_outreach_schema() -> list[str]:
+    """Apply the vendor outreach tracking migration.
+
+    Adds `outreach_status`, `outreach_requested_at`, `outreach_received_at`,
+    and `outreach_doc_id` to `vendor_matches` (T8). Idempotent — uses
+    ADD COLUMN IF NOT EXISTS / drop-then-add for the CHECK constraint.
+    """
+    sql_path = _SCHEMA_DIR / "013_vendor_outreach.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Vendor outreach schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_vendor_outreach_email_schema() -> list[str]:
+    """Apply the vendor outreach email migration (T10).
+
+    Adds outreach_message_id/outreach_reply_token to vendor_matches and
+    extends jobs.job_type with 'inbound_email'. Idempotent.
+    """
+    sql_path = _SCHEMA_DIR / "014_vendor_outreach_email.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Vendor outreach email schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_vendor_outreach_messages_schema() -> list[str]:
+    """Apply the vendor outreach messages migration (T10c).
+
+    Creates vendor_outreach_messages table — one row per outbound/inbound
+    message per vendor match. Idempotent.
+    """
+    sql_path = _SCHEMA_DIR / "015_vendor_outreach_messages.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Vendor outreach messages schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
 # ---------------------------------------------------------------------------
 # Journal CRUD
 # ---------------------------------------------------------------------------
@@ -1413,4 +1573,10 @@ __all__ = [
     "insert_reminder", "update_reminder", "get_reminder",
     "list_reminders", "delete_reminder",
     "ensure_folders_schema", "insert_folder", "list_folders",
+    "ensure_solicitations_schema", "ensure_solicitation_triage_schema",
+    "ensure_vendors_schema", "ensure_vendor_matching_schema",
+    "ensure_vendor_matches_manual_schema", "ensure_vendor_matches_cap_schema",
+    "ensure_vendor_outreach_schema",
+    "ensure_vendor_outreach_email_schema",
+    "ensure_vendor_outreach_messages_schema",
 ]

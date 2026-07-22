@@ -16,12 +16,13 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, Depends, File, HTTPException, UploadFile
+from fastapi import FastAPI, Depends, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from core.case import CaseManager
-from core.db import ensure_schema, ensure_strategy_schema, ensure_chat_schema, ensure_correspondence_schema
+from core.db import ensure_schema, ensure_strategy_schema, ensure_chat_schema, ensure_correspondence_schema, ensure_solicitations_schema, ensure_solicitation_triage_schema, ensure_vendors_schema, ensure_vendor_matching_schema, ensure_vendor_matches_manual_schema, ensure_vendor_matches_cap_schema, ensure_vendor_outreach_schema, ensure_vendor_outreach_email_schema, ensure_vendor_outreach_messages_schema
+from core.vendor import VendorManager
 from ingestion.storage import upload_file as _upload_to_minio
 from ingestion.jobs import enqueue as _enqueue_job, get_job, list_jobs
 from auth import create_user, authenticate_user, create_token, get_current_user
@@ -36,9 +37,18 @@ app = FastAPI(
     version="0.1.0",
 )
 
+# CORS — env-driven. Unset (local dev) keeps the historical wildcard behavior.
+# In prod, set CORS_ALLOWED_ORIGINS=https://vision.justicequest.pro.
+_cors_origins_env = os.environ.get("CORS_ALLOWED_ORIGINS")
+_cors_origins = (
+    [o.strip() for o in _cors_origins_env.split(",") if o.strip()]
+    if _cors_origins_env
+    else ["*"]
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tightened in production
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -56,9 +66,19 @@ def _apply_schemas():
     ensure_strategy_schema()        # 002 — strategies, propositions, gauntlet
     ensure_chat_schema()            # 003 — chat sessions, messages, session store
     ensure_correspondence_schema()  # 004 — correspondence threads, items, attachments
+    ensure_solicitations_schema()   # 007 — solicitations table (Option A)
+    ensure_solicitation_triage_schema()  # 008 — triage classification + HTML artifacts
+    ensure_vendors_schema()           # 009 — unified vendor registry (GSA + SBA)
+    ensure_vendor_matching_schema()   # 010 — vendor_matches table + outreach columns
+    ensure_vendor_matches_manual_schema()  # 011 — allow naics_match_type='manual'
+    ensure_vendor_matches_cap_schema()     # 012 — raise rank cap 25 -> 30
+    ensure_vendor_outreach_schema()        # 013 — outreach status tracking (T8)
+    ensure_vendor_outreach_email_schema() # 014 — outreach email send/reply tracking (T10)
+    ensure_vendor_outreach_messages_schema() # 015 — per-vendor message thread (T10c)
 
 
 mgr = CaseManager()
+vendor_mgr = VendorManager()
 
 
 # ---------------------------------------------------------------------------
@@ -333,7 +353,15 @@ async def ingest_document(case_id: int, file: UploadFile = File(...), user: dict
 
 @app.get("/api/documents/{doc_id}/preview")
 def preview_document(doc_id: int, user: dict = Depends(get_current_user)):
-    """Generate a presigned URL for viewing/downloading an ingested document."""
+    """Generate a presigned URL for viewing/downloading an ingested document.
+
+    Documents with no `storage_path` (no underlying file — e.g. inbound
+    Mailgun email replies stored as sections/blocks only, see
+    ingestion/worker.py::process_inbound_email_job) fall back to returning
+    their block text concatenated inline as `content`, with `type: "text"`
+    and `url: null`. A document with neither a storage_path nor any blocks
+    is a genuine error (undefined preview target).
+    """
     from core.db import connect
     from ingestion.storage import get_public_url
 
@@ -352,8 +380,26 @@ def preview_document(doc_id: int, user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Document not found")
 
     _db_id, doc_name, storage_path = row
+
     if not storage_path:
-        raise HTTPException(status_code=404, detail="Document has no storage path — was it ingested before the worker fix?")
+        conn = connect()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """SELECT text_content FROM blocks
+                       WHERE document_id = %s
+                       ORDER BY page, id""",
+                    (doc_id,),
+                )
+                block_rows = cur.fetchall()
+        finally:
+            conn.close()
+
+        if not block_rows:
+            raise HTTPException(status_code=404, detail="Document has no storage path — was it ingested before the worker fix?")
+
+        content = "\n\n".join(r[0] for r in block_rows if r[0])
+        return {"url": None, "name": doc_name, "type": "text", "content": content}
 
     parts = storage_path.split("/", 1)
     if len(parts) != 2:
@@ -481,6 +527,8 @@ from api.routes.tasks import router as tasks_router
 from api.routes.profiles import router as profiles_router
 from api.routes.vault import router as vault_router
 from api.routes.calendar import router as calendar_router
+from api.routes.solicitations import router as solicitations_router
+from api.routes.webhooks_mailgun import router as webhooks_mailgun_router
 app.include_router(chat_router)
 app.include_router(drafts_router)
 app.include_router(workspace_router)
@@ -489,10 +537,199 @@ app.include_router(tasks_router)
 app.include_router(profiles_router)
 app.include_router(vault_router)
 app.include_router(calendar_router)
+app.include_router(solicitations_router)
+app.include_router(webhooks_mailgun_router)
 
 # ---------------------------------------------------------------------------
 # Health check
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Vendor Search / Creation
+# ---------------------------------------------------------------------------
+
+class VendorCreate(BaseModel):
+    vendor_name: str
+    trade_name: str | None = None
+    uei: str | None = None
+    cage_code: str | None = None
+    contact_name: str | None = None
+    contact_email: str | None = None
+    contact_phone: str | None = None
+    website: str | None = None
+    address_line1: str | None = None
+    address_line2: str | None = None
+    city: str | None = None
+    state: str | None = None
+    zipcode: str | None = None
+    county: str | None = None
+    naics_code_primary: str | None = None
+    naics_codes_all: str | None = None
+    capabilities: str | None = None
+    is_small_business: bool = False
+    is_woman_owned: bool = False
+    is_veteran_owned: bool = False
+    is_sdvosb: bool = False
+    is_hubzone: bool = False
+    is_8a: bool = False
+
+
+@app.post("/api/vendors", status_code=201)
+def create_vendor(body: VendorCreate, user: dict = Depends(get_current_user)):
+    """Manually create a vendor (source='manual').
+
+    Distinct from the bulk GSA/SBA import that populates most of the
+    `vendors` table. Used by VendorsTab/VendorMatchesTab's "Add Vendor"
+    flow (T7).
+    """
+    return vendor_mgr.create(**body.model_dump(exclude_none=True))
+
+
+@app.get("/api/vendors")
+def search_vendors(
+    q: str | None = Query(None, description="Full-text search on name and capabilities"),
+    naics: str | None = Query(None, description="NAICS code filter (partial match, e.g. '541511')"),
+    state: str | None = Query(None, description="State filter (2-letter abbreviation)"),
+    set_aside: str | None = Query(
+        None,
+        description="Socioeconomic filter: small_business, woman_owned, veteran_owned, sdvosb, hubzone, 8a",
+    ),
+    source: str | None = Query(None, description="Data source: sba, gsa, both"),
+    limit: int = Query(20, ge=1, le=200, description="Max results"),
+    offset: int = Query(0, ge=0, description="Pagination offset"),
+    user: dict = Depends(get_current_user),
+):
+    """Search the unified vendor registry.
+
+    Combines GSA Schedule holders and SBA-certified small businesses
+    into a single searchable table. Use for manual vendor discovery
+    and opportunity-vendor matching.
+    """
+    from core.db import connect
+
+    conn = connect()
+    try:
+        with conn.cursor() as cur:
+            filters = []
+            filter_params: list = []
+
+            # NAICS filter
+            if naics:
+                filters.append("naics_codes_all LIKE %s")
+                filter_params.append(f"%{naics}%")
+
+            # State filter
+            if state:
+                filters.append("state = UPPER(%s)")
+                filter_params.append(state)
+
+            # Set-aside filter
+            set_aside_map = {
+                "small_business": "is_small_business",
+                "woman_owned": "is_woman_owned",
+                "veteran_owned": "is_veteran_owned",
+                "sdvosb": "is_sdvosb",
+                "hubzone": "is_hubzone",
+                "8a": "is_8a",
+            }
+            if set_aside and set_aside in set_aside_map:
+                filters.append(f"{set_aside_map[set_aside]} = TRUE")
+
+            # Source filter
+            if source and source in ("sba", "gsa", "both"):
+                filters.append("source = %s")
+                filter_params.append(source)
+
+            filter_clause = (" AND " + " AND ".join(filters)) if filters else ""
+
+            # Keyword search strategy: if filters are present, apply them
+            # first (they're fast: 0.16ms for NAICS+State) to get a small
+            # candidate set, then keyword-search within that set. If no
+            # filters, keyword-search directly with UNION ALL indexes.
+            if q:
+                like_q = f"%{q}%"
+                kw_params = [q, like_q, like_q]
+
+                if filters:
+                    # Filters first → small candidate set → keyword within it
+                    filter_where = " AND ".join(filters)
+                    inner = (
+                        f"SELECT id FROM vendors "
+                        f"WHERE {filter_where} AND ("
+                        f"to_tsvector('english', coalesce(vendor_name, '') || ' ' || coalesce(capabilities, '')) "
+                        f"@@ plainto_tsquery('english', %s) "
+                        f"OR vendor_name ILIKE %s "
+                        f"OR capabilities ILIKE %s)"
+                    )
+                    cur.execute(
+                        f"SELECT COUNT(*) FROM vendors v "
+                        f"WHERE {filter_where} AND ("
+                        f"to_tsvector('english', coalesce(vendor_name, '') || ' ' || coalesce(capabilities, '')) "
+                        f"@@ plainto_tsquery('english', %s) "
+                        f"OR vendor_name ILIKE %s "
+                        f"OR capabilities ILIKE %s)",
+                        filter_params + kw_params,
+                    )
+                    total = cur.fetchone()[0]
+
+                    cur.execute(
+                        f"SELECT * FROM vendors "
+                        f"WHERE {filter_where} AND ("
+                        f"to_tsvector('english', coalesce(vendor_name, '') || ' ' || coalesce(capabilities, '')) "
+                        f"@@ plainto_tsquery('english', %s) "
+                        f"OR vendor_name ILIKE %s "
+                        f"OR capabilities ILIKE %s) "
+                        f"ORDER BY vendor_name LIMIT %s OFFSET %s",
+                        filter_params + kw_params + [limit, offset],
+                    )
+                else:
+                    # No filters: keyword-search directly via UNION ALL indexes
+                    inner = (
+                        f"SELECT id FROM vendors "
+                        f"WHERE to_tsvector('english', coalesce(vendor_name, '') || ' ' || coalesce(capabilities, '')) "
+                        f"@@ plainto_tsquery('english', %s) "
+                        f"UNION ALL "
+                        f"SELECT id FROM vendors "
+                        f"WHERE vendor_name ILIKE %s "
+                        f"UNION ALL "
+                        f"SELECT id FROM vendors "
+                        f"WHERE capabilities ILIKE %s"
+                    )
+                    cur.execute(
+                        f"SELECT COUNT(*) FROM ({inner}) AS m",
+                        kw_params,
+                    )
+                    total = cur.fetchone()[0]
+
+                    cur.execute(
+                        f"SELECT v.* FROM vendors v "
+                        f"INNER JOIN ({inner}) AS m ON v.id = m.id "
+                        f"ORDER BY v.vendor_name LIMIT %s OFFSET %s",
+                        kw_params + [limit, offset],
+                    )
+            else:
+                where_clause = f" WHERE {filters[0]}" if filters else ""
+                cur.execute(f"SELECT COUNT(*) FROM vendors{where_clause}", filter_params)
+                total = cur.fetchone()[0]
+
+                cur.execute(
+                    f"SELECT * FROM vendors{where_clause} ORDER BY vendor_name LIMIT %s OFFSET %s",
+                    filter_params + [limit, offset],
+                )
+
+            rows = cur.fetchall()
+            cols = [desc[0] for desc in cur.description]
+
+    finally:
+        conn.close()
+
+    return {
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "vendors": [dict(zip(cols, row)) for row in rows],
+    }
+
 
 @app.get("/api/health")
 def health():

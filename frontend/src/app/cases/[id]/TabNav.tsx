@@ -1,13 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Eye, MessageCircle, FolderOpen, FolderTree, PenLine, Mail, CheckSquare, CalendarDays, MoreHorizontal } from "lucide-react";
+import { Eye, MessageCircle, FolderOpen, FolderTree, PenLine, Mail, CheckSquare, CalendarDays, MoreHorizontal, FileSearch, Building2, Users, Send } from "lucide-react";
 
-export type TabId = "overview" | "chat" | "documents" | "drafts" | "workspace" | "correspondence" | "tasks" | "calendar";
+export type TabId = "overview" | "chat" | "documents" | "drafts" | "workspace" | "correspondence" | "tasks" | "calendar" | "triage" | "vendors" | "vendor_matches" | "outreach";
 
 interface TabNavProps {
   activeTab: TabId;
   onTabChange: (tab: TabId) => void;
+  /** Only shown for solicitation-backed cases. */
+  showTriage?: boolean;
+  /** Only shown for solicitation-backed cases. */
+  showVendorMatches?: boolean;
 }
 
 interface TabDef {
@@ -17,22 +21,36 @@ interface TabDef {
   icon: typeof Eye;
 }
 
-const TABS: TabDef[] = [
+const BASE_TABS: TabDef[] = [
   { id: "overview", label: "Overview", shortLabel: "Overview", icon: Eye },
   { id: "chat", label: "Chat", shortLabel: "Chat", icon: MessageCircle },
   { id: "documents", label: "Documents", shortLabel: "Docs", icon: FolderOpen },
+  { id: "triage", label: "Triage", shortLabel: "Triage", icon: FileSearch },
+  { id: "vendor_matches", label: "Vendor Matches", shortLabel: "Matches", icon: Users },
+  { id: "outreach", label: "Outreach", shortLabel: "Outreach", icon: Send },
   { id: "workspace", label: "Workspace", shortLabel: "Work", icon: FolderTree },
   { id: "correspondence", label: "Correspondence", shortLabel: "Corr.", icon: Mail },
   { id: "tasks", label: "Tasks", shortLabel: "Tasks", icon: CheckSquare },
   { id: "calendar", label: "Calendar", shortLabel: "Cal", icon: CalendarDays },
+  { id: "vendors", label: "Vendors", shortLabel: "Vendors", icon: Building2 },
 ];
 
 /** First 4 tabs are always visible on mobile */
 const PRIMARY_COUNT = 4;
-const primaryTabs = TABS.slice(0, PRIMARY_COUNT);
-const secondaryTabs = TABS.slice(PRIMARY_COUNT);
 
-export default function TabNav({ activeTab, onTabChange }: TabNavProps) {
+export default function TabNav({
+  activeTab,
+  onTabChange,
+  showTriage = false,
+  showVendorMatches = false,
+}: TabNavProps) {
+  const TABS = BASE_TABS.filter((t) => {
+    if (t.id === "triage" && !showTriage) return false;
+    if ((t.id === "vendor_matches" || t.id === "outreach") && !showVendorMatches) return false;
+    return true;
+  });
+  const primaryTabs = TABS.slice(0, PRIMARY_COUNT);
+  const secondaryTabs = TABS.slice(PRIMARY_COUNT);
   /* ---- mobile "More" menu ---- */
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);

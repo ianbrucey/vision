@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 import { register } from "@/lib/auth";
 
 export default function RegisterPage() {
@@ -32,29 +33,33 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+    <div className="min-h-dvh bg-surface-0 text-text-primary flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">Vision</h1>
-          <p className="text-gray-400 mt-2">War Room Agent</p>
+          <h1 className="text-3xl font-bold tracking-tight text-brand">Vision</h1>
+          <p className="text-text-secondary mt-2 text-sm">War Room Agent</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-gray-900 rounded-lg border border-gray-800 p-6 space-y-4">
-          <h2 className="text-lg font-semibold">Create Account</h2>
+        <form onSubmit={handleSubmit} className="bg-surface-1 rounded-xl border border-border shadow-sm p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-text-primary">Create Account</h2>
 
           {error && (
-            <div className="bg-red-950 border border-red-900 text-red-400 text-sm rounded px-3 py-2">
+            <div className="bg-danger-bg border border-danger/20 text-danger text-sm rounded-lg px-3 py-2">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Username</label>
+            <label className="block mb-1.5 text-sm font-medium text-text-secondary">Username</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 text-sm text-text-primary
+                         bg-surface-2 border border-border rounded-sm
+                         placeholder:text-text-disabled
+                         focus:border-brand focus:ring-2 focus:ring-brand-ring focus:outline-hidden
+                         transition-colors duration-150"
               placeholder="Choose a username"
               required
               autoFocus
@@ -62,23 +67,33 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Email <span className="text-gray-600">(optional)</span></label>
+            <label className="block mb-1.5 text-sm font-medium text-text-secondary">
+              Email <span className="text-text-disabled">(optional)</span>
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 text-sm text-text-primary
+                         bg-surface-2 border border-border rounded-sm
+                         placeholder:text-text-disabled
+                         focus:border-brand focus:ring-2 focus:ring-brand-ring focus:outline-hidden
+                         transition-colors duration-150"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Password</label>
+            <label className="block mb-1.5 text-sm font-medium text-text-secondary">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 text-sm text-text-primary
+                         bg-surface-2 border border-border rounded-sm
+                         placeholder:text-text-disabled
+                         focus:border-brand focus:ring-2 focus:ring-brand-ring focus:outline-hidden
+                         transition-colors duration-150"
               placeholder="At least 6 characters"
               required
             />
@@ -87,15 +102,19 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
+            className="w-full inline-flex items-center justify-center gap-2
+                       bg-brand text-white border border-brand
+                       hover:bg-brand-hover active:bg-brand-active
+                       disabled:opacity-50 disabled:cursor-not-allowed
+                       px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150"
           >
-            {loading && <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />}
+            {loading && <Loader2 size={16} className="animate-spin" />}
             {loading ? "Creating..." : "Create Account"}
           </button>
 
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-text-secondary">
             Already have an account?{" "}
-            <Link href="/login" className="text-blue-400 hover:text-blue-300">
+            <Link href="/login" className="text-info hover:text-brand underline-offset-2 hover:underline transition-colors duration-150">
               Sign in
             </Link>
           </p>

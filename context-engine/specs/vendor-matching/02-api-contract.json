@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vision Vendor Matching API Contract v1",
+  "description": "REST API for triggering/reading solicitation-scoped vendor matching. Extends backend/api/routes/solicitations.py — same router, same auth, same manager (SolicitationManager.update for status columns) plus a new VendorMatchManager for vendor_matches rows.",
+  "basePath": "/api",
+  "date": "2026-07-21",
+
+  "schemas": {
+    "VendorMatch": {
+      "type": "object",
+      "description": "A single ranked vendor_matches row joined with read-only vendor contact/capability fields for display. contact_email is null if it equals the vendors table's known sentinel string ('The business owner has hidden this information from public searches') — never surfaced as a real address.",
+      "properties": {
+        "id": { "type": "integer" },
+        "external_id": { "type": "string", "format": "uuid" },
+        "solicitation_id": { "type": "integer" },
+        "vendor_id": { "type": "integer", "description": "FK to vendors.id (BIGSERIAL)." },
+        "rank": { "type": "integer", "minimum": 1, "maximum": 25 },
+        "match_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "match_rationale": { "type": "string" },
+        "naics_match_type": { "type": "string", "enum": ["exact", "family", "capability_only"] },
+        "vendor_name": { "type": "string" },
+        "contact_name": { "type": ["string", "null"] },
+        "contact_email": { "type": ["string", "null"], "description": "Null if sentinel-masked in the source vendors row." },
+        "contact_phone": { "type": ["string", "null"] },
+        "state": { "type": ["string", "null"] },
+        "city": { "type": ["string", "null"] },
+        "naics_code_primary": { "type": ["string", "null"] },
+        "is_small_business": { "type": "boolean" },
+        "is_sdvosb": { "type": "boolean" },
+        "is_hubzone": { "type": "boolean" },
+        "is_8a": { "type": "boolean" },
+        "is_woman_owned": { "type": "boolean" },
+        "is_veteran_owned": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "external_id", "solicitation_id", "vendor_id", "rank", "match_score", "match_rationale", "naics_match_type", "vendor_name", "contact_email"]
+    }
+  },
+
+  "endpoints": {
+    "vendor_matching_trigger": {
+      "method": "POST",
+      "path": "/solicitations/{solicitation_id}/vendor-matching",
+      "summary": "Manually (re)trigger vendor matching for a solicitation. Requires triage_status='complete' and quick_kill=false. Deletes prior vendor_matches rows for this solicitation before the job runs (CLAIM-08 — enforced by the job handler at save-time, not by this endpoint).",
+      "parameters": {
+        "path": { "solicitation_id": { "type": "integer" } }
+      },
+      "authentication": "Bearer token required",
+      "responses": {
+        "202": {
+          "description": "Job enqueued",
+          "body": {
+            "type": "object",
+            "properties": {
+              "job_id": { "type": "integer" },
+              "matching_status": { "type": "string", "enum": ["pending"] }
+            }
+          }
+        },
+        "400": {
+          "description": "Triage not complete, quick-killed, no NAICS code, or matching already running",
+          "body": {
+            "type": "object",
+            "properties": { "detail": { "type": "string" } }
+          },
+          "notes": "detail is one of: 'Cannot run vendor matching — triage has not completed', 'Cannot run vendor matching — solicitation was quick-killed during triage', 'Cannot run vendor matching — solicitation has no NAICS code', 'Vendor matching is already running'."
+        },
+        "404": { "description": "Solicitation not found" }
+      }
+    },
+
+    "vendor_matches_list": {
+      "method": "GET",
+      "path": "/solicitations/{solicitation_id}/vendor-matches",
+      "summary": "Get ranked vendor matches for a solicitation, joined with vendor contact/capability fields, ordered by rank ascending. Also returns the solicitation's matching status and outreach email template so the tab can render in one call.",
+      "parameters": {
+        "path": { "solicitation_id": { "type": "integer" } }
+      },
+      "authentication": "Bearer token required",
+      "responses": {
+        "200": {
+          "description": "Matching status + ranked matches + outreach template",
+          "body": {
+            "type": "object",
+            "properties": {
+              "matching_status": { "type": "string", "enum": ["pending", "running", "complete", "failed"] },
+              "matching_error": { "type": ["string", "null"] },
+              "outreach_email_subject": { "type": ["string", "null"] },
+              "outreach_email_body": { "type": ["string", "null"], "description": "Contains {{vendor_name}} and {{match_reason}} placeholders for client-side substitution." },
+              "matches": { "type": "array", "items": { "$ref": "#/schemas/VendorMatch" } }
+            },
+            "required": ["matching_status", "matches"]
+          }
+        },
+        "404": { "description": "Solicitation not found" }
+      },
+      "notes": "Returns 200 with matching_status='pending' and matches=[] before the first run — not a 404. The frontend distinguishes 'not started' from 'no results found' via matching_status, not via an empty array alone (matches=[] with matching_status='complete' is a legitimate zero-candidate outcome)."
+    }
+  },
+
+  "errorResponses": {
+    "401": { "description": "Unauthorized — missing or invalid Bearer token", "body": { "detail": "Not authenticated" } },
+    "404": { "description": "Resource not found", "body": { "detail": "Solicitation not found" } },
+    "409": { "description": "Not used by this contract — 400 is used instead for state-conflict cases (matching already running), matching the existing 409 reserved for triage's own 'already running' response in solicitations.py's docstring convention being 409 there; vendor-matching uses 400 per CLAIM-06's verdict wording.", "body": { "detail": "..." } },
+    "422": { "description": "Validation error — request body/path failed Pydantic/FastAPI validation" }
+  },
+
+  "designNotes": {
+    "flow": "1) run_solicitation_triage() (solicitation_triage.py) completes with quick_kill=false -> auto-enqueues job_type='vendor_matching' (CLAIM-05, mirrors sam_fetch->solicitation_triage chain in worker.py) with metadata={'solicitation_id': id}. 2) Worker's process_vendor_matching_job() calls run_vendor_matching_pipeline(case_id, solicitation_id) in vendor_matching.py. 3) Pipeline builds a deterministic SQL candidate pool (NAICS exact -> NAICS family -> capabilities FTS union, set-aside hard-gated, capped ~300 rows per Brief \u00a76), then a single LLM agent ranks/selects top 25 + drafts one outreach template. 4) Pipeline deletes existing vendor_matches for solicitation_id, inserts up to 25 new rows, writes outreach_email_subject/body and matching_status='complete' onto solicitations. 5) Client calls GET .../vendor-matches (polling while matching_status='running', same pattern as TriageTab.tsx).",
+    "manualTriggerGating": "Mirrors POST /api/solicitations/{id}/triage's structure exactly (mgr.get -> validate -> mgr.update(matching_status='pending') -> enqueue job) but adds triage_status/quick_kill/naics_code preconditions absent from the triage trigger, since vendor matching is a downstream stage.",
+    "noNewVendorEndpoint": "GET /api/vendors (global directory search, VendorsTab.tsx) is untouched. This contract only adds solicitation-scoped endpoints under /api/solicitations/{id}/...; vendor_matches rows are read via VendorMatchManager, a new class alongside SolicitationManager in core/solicitation.py or a new core/vendor_match.py module (implementation's choice in State 4, per Brief \u00a75 Element list).",
+    "outreachTemplateOwnership": "outreach_email_subject/body live on solicitations (one shared template per solicitation, not per vendor_matches row) per Brief \u00a77 explicit scope decision — no per-vendor email columns exist anywhere in this contract."
+  }
+}

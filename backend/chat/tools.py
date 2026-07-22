@@ -3541,6 +3541,656 @@ def create_vision_server(case_id: int):
         except Exception as exc:
             return _error(f"create_journal_entry failed: {exc}")
 
+    @tool(
+        "search_vendors",
+        "Search the unified vendor registry for small businesses matching "
+        "specific criteria. Use this to find vendors for an opportunity, "
+        "identify potential teaming partners, or verify a vendor's "
+        "certifications and capabilities.\n\n"
+        "The registry combines GSA Schedule holders and SBA-certified "
+        "businesses. Each vendor has NAICS codes, socioeconomic flags "
+        "(small business, woman-owned, SDVOSB, HUBZone, 8a), contact "
+        "info, capabilities narratives, and GSA contract vehicle data "
+        "when available.\n\n"
+        "Common patterns:\n"
+        "  - Match vendors to an opportunity: search by the opportunity's "
+        "NAICS code + the required set-aside type\n"
+        "  - Find SDVOSB IT vendors in Virginia: "
+        "naics='541511', state='VA', set_aside='sdvosb'\n"
+        "  - Keyword search for capability: q='cybersecurity' + "
+        "set_aside='small_business'",
+        {
+            "type": "object",
+            "properties": {
+                "q": {
+                    "type": "string",
+                    "description": "Free-text search across business name "
+                    "and capabilities narrative. Use keywords describing "
+                    "the product, service, or expertise needed.",
+                },
+                "naics": {
+                    "type": "string",
+                    "description": "Filter by NAICS code. Partial match — "
+                    "'5415' matches 541511, 541512, 541513, etc. "
+                    "Use the opportunity's NAICS code here.",
+                },
+                "state": {
+                    "type": "string",
+                    "description": "Two-letter state abbreviation (e.g. 'VA', "
+                    "'MD', 'CA') to find vendors in a specific location.",
+                },
+                "set_aside": {
+                    "type": "string",
+                    "enum": [
+                        "small_business", "woman_owned", "veteran_owned",
+                        "sdvosb", "hubzone", "8a",
+                    ],
+                    "description": "Filter by socioeconomic designation. "
+                    "Match this to the opportunity's set-aside requirement.",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max results (default: 10, max: 50).",
+                },
+            },
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def search_vendors(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                limit = min(args.get("limit", 10), 50)
+                filters = []
+                filter_params: list = []
+
+                if args.get("naics"):
+                    filters.append("naics_codes_all LIKE %s")
+                    filter_params.append(f"%{args['naics']}%")
+
+                if args.get("state"):
+                    filters.append("state = UPPER(%s)")
+                    filter_params.append(args["state"])
+
+                set_aside_map = {
+                    "small_business": "is_small_business",
+                    "woman_owned": "is_woman_owned",
+                    "veteran_owned": "is_veteran_owned",
+                    "sdvosb": "is_sdvosb",
+                    "hubzone": "is_hubzone",
+                    "8a": "is_8a",
+                }
+                sa = args.get("set_aside")
+                if sa and sa in set_aside_map:
+                    filters.append(f"{set_aside_map[sa]} = TRUE")
+
+                filter_clause = (" AND " + " AND ".join(filters)) if filters else ""
+
+                cols = (
+                    "vendor_name, trade_name, source, uei, cage_code, "
+                    "contact_name, contact_email, contact_phone, website, "
+                    "city, state, county, "
+                    "sba_certifications, business_types, "
+                    "naics_codes_all, naics_code_primary, capabilities, "
+                    "gsa_contract_number, gsa_large_category, gsa_sub_category, "
+                    "gsa_option_end_date, gsa_ultimate_end_date, "
+                    "is_small_business, is_woman_owned, is_veteran_owned, "
+                    "is_sdvosb, is_hubzone, is_8a"
+                )
+
+                with conn.cursor() as cur:
+                    if args.get("q"):
+                        q = args["q"]
+                        like_q = f"%{q}%"
+                        kw_params = [q, like_q, like_q]
+
+                        if filters:
+                            filter_where = " AND ".join(filters)
+                            cur.execute(
+                                f"SELECT {cols} FROM vendors "
+                                f"WHERE {filter_where} AND ("
+                                f"to_tsvector('english', coalesce(vendor_name, '') || ' ' || coalesce(capabilities, '')) "
+                                f"@@ plainto_tsquery('english', %s) "
+                                f"OR vendor_name ILIKE %s "
+                                f"OR capabilities ILIKE %s) "
+                                f"ORDER BY vendor_name LIMIT %s",
+                                filter_params + kw_params + [limit],
+                            )
+                        else:
+                            inner = (
+                                f"SELECT id FROM vendors "
+                                f"WHERE to_tsvector('english', coalesce(vendor_name, '') || ' ' || coalesce(capabilities, '')) "
+                                f"@@ plainto_tsquery('english', %s) "
+                                f"UNION ALL "
+                                f"SELECT id FROM vendors "
+                                f"WHERE vendor_name ILIKE %s "
+                                f"UNION ALL "
+                                f"SELECT id FROM vendors "
+                                f"WHERE capabilities ILIKE %s"
+                            )
+                            cur.execute(
+                                f"SELECT {cols} FROM vendors v "
+                                f"INNER JOIN ({inner}) AS m ON v.id = m.id "
+                                f"ORDER BY v.vendor_name LIMIT %s",
+                                kw_params + [limit],
+                            )
+                    else:
+                        where_clause = f" WHERE {filters[0]}" if filters else ""
+                        cur.execute(
+                            f"SELECT {cols} FROM vendors{where_clause} "
+                            f"ORDER BY vendor_name LIMIT %s",
+                            filter_params + [limit],
+                        )
+                    rows = cur.fetchall()
+                    cols = [desc[0] for desc in cur.description]
+            finally:
+                conn.close()
+
+            vendors = [dict(zip(cols, row)) for row in rows]
+            # Convert boolean flags for cleaner output
+            for v in vendors:
+                for flag in ("is_small_business", "is_woman_owned",
+                             "is_veteran_owned", "is_sdvosb",
+                             "is_hubzone", "is_8a"):
+                    v[flag] = bool(v[flag])
+
+            return _result({"count": len(vendors), "vendors": vendors})
+        except Exception as exc:
+            return _error(f"search_vendors failed: {exc}")
+
+    # -- Layer 13: PDF Form Filling (T11) ------------------------------------
+
+    @tool(
+        "download_document",
+        "Download the original binary file for a document from MinIO storage "
+        "to a local temp path. Use this when you need to work with the "
+        "original PDF, DOCX, or other file — for example, before filling a "
+        "PDF form or converting a document. Returns the local file path.\n\n"
+        "The file is downloaded to /tmp/vision-downloads/ with the original "
+        "filename. Caller is responsible for cleanup after processing.\n\n"
+        "Only works for documents that have a storage_path (original files "
+        "uploaded through the API or fetched from SAM.gov). Documents "
+        "created from inbound email replies do not have storage_paths.",
+        {
+            "type": "object",
+            "properties": {
+                "document_id": {
+                    "type": "integer",
+                    "description": "The document ID to download. Use "
+                    "list_documents to find the document_id.",
+                },
+            },
+            "required": ["document_id"],
+        },
+    )
+    async def download_document(args: dict[str, Any]) -> dict[str, Any]:
+        """Download a document's original binary from MinIO to a local path."""
+        try:
+            doc_id = args["document_id"]
+            conn = _conn()
+            try:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "SELECT id, name, storage_path FROM documents WHERE id = %s",
+                        (doc_id,),
+                    )
+                    row = cur.fetchone()
+            finally:
+                conn.close()
+
+            if not row:
+                return _error(f"Document {doc_id} not found.")
+
+            _db_id, name, storage_path = row
+            if not storage_path:
+                return _error(
+                    f"Document '{name}' has no storage_path — it was created "
+                    f"inline (e.g. email reply) and has no binary file to download."
+                )
+
+            from pathlib import Path as _Path
+            from ingestion.storage import download_file as _download_file
+
+            dest_dir = _Path("/tmp/vision-downloads")
+            dest_dir.mkdir(parents=True, exist_ok=True)
+
+            parts = storage_path.split("/", 1)
+            if len(parts) != 2:
+                return _error(f"Invalid storage_path: {storage_path}")
+
+            bucket, object_key = parts
+            dest_path = dest_dir / name
+
+            _download_file(bucket, object_key, dest_path)
+
+            return _result({
+                "document_id": doc_id,
+                "name": name,
+                "local_path": str(dest_path),
+                "size_bytes": dest_path.stat().st_size,
+            })
+        except Exception as exc:
+            return _error(f"download_document failed: {exc}")
+
+    @tool(
+        "fill_pdf_form",
+        "Fill form fields in a PDF document. Use pymupdf to place text at "
+        "specified positions on the page — overwriting blanks, underscores, "
+        "or empty cells with the provided values.\n\n"
+        "PREREQUISITE: Call download_document first to get the PDF locally, "
+        "then pass the local_path to this tool.\n\n"
+        "HOW IT WORKS:\n"
+        "  1. Opens the PDF at local_path\n"
+        "  2. For each field in field_data, searches the document text for "
+        "     the field label (e.g. 'UNIT PRICE', '30a. SIGNATURE')\n"
+        "  3. Finds the blank/empty area adjacent to the label\n"
+        "  4. Draws a white rectangle over the blank and places the value "
+        "     text right-aligned in the cell\n"
+        "  5. Saves to output_path (defaults to same dir, suffixed with "
+        "     '_filled')\n\n"
+        "FIELD DATA FORMAT:\n"
+        "  {\n"
+        "    \"field_label\": \"value\",\n"
+        "    \"UNIT PRICE\": \"$48,500.00\",\n"
+        "    \"30a. SIGNATURE OF OFFEROR\": \"Jane Doe, CEO\"\n"
+        "  }\n\n"
+        "TIPS:\n"
+        "  - Use EXACT label text from the PDF (copy from get_document_structure "
+        "    or search_blocks output)\n"
+        "  - For tables: use column header text that appears in the table "
+        "    (e.g. 'UNIT PRICE', 'AMOUNT')\n"
+        "  - For signature blocks: use the full block label (e.g. "
+        "    '30a. SIGNATURE OF OFFEROR/CONTRACTOR')\n"
+        "  - For 'if equal, name here' blanks: use the surrounding context "
+        "    as the label\n"
+        "  - Dollar amounts should be formatted with $ and commas\n"
+        "  - Dates should be MM/DD/YYYY format\n\n"
+        "LIMITATIONS:\n"
+        "  - Works on text-based PDFs (not scanned images) — the PDF must "
+        "    have searchable text for label matching\n"
+        "  - Text placement is approximate — verify the output visually\n"
+        "  - Complex multi-line forms may need manual adjustment",
+        {
+            "type": "object",
+            "properties": {
+                "local_path": {
+                    "type": "string",
+                    "description": "Absolute path to the PDF file. Get this "
+                    "from download_document first.",
+                },
+                "field_data": {
+                    "type": "object",
+                    "description": "Dict mapping field labels to values. "
+                    "Keys are the EXACT text labels as they appear in the "
+                    "PDF. Values are the text to place in each field.",
+                },
+                "output_path": {
+                    "type": "string",
+                    "description": "Where to save the filled PDF. Defaults "
+                    "to the same directory with '_filled' suffix.",
+                },
+                "page": {
+                    "type": "integer",
+                    "description": "Specific page to fill (0-indexed). If "
+                    "omitted, searches all pages for each label.",
+                },
+            },
+            "required": ["local_path", "field_data"],
+        },
+    )
+    async def fill_pdf_form(args: dict[str, Any]) -> dict[str, Any]:
+        """Fill a PDF form using pymupdf."""
+        try:
+            import fitz  # pymupdf
+            from pathlib import Path as _Path
+
+            local_path = _Path(args["local_path"])
+            if not local_path.exists():
+                return _error(f"File not found: {local_path}")
+
+            field_data = args["field_data"]
+            output_path = args.get("output_path")
+            target_page = args.get("page")  # None = search all pages
+
+            if not output_path:
+                stem = local_path.stem
+                output_path = str(local_path.parent / f"{stem}_filled.pdf")
+
+            doc = fitz.open(str(local_path))
+            filled = []
+            not_found = []
+
+            for label, value in field_data.items():
+                found = False
+                pages_to_search = (
+                    [doc[target_page]] if target_page is not None
+                    else [doc[i] for i in range(doc.page_count)]
+                )
+
+                for page in pages_to_search:
+                    instances = page.search_for(label)
+                    if not instances:
+                        continue
+
+                    # Use the first match as the anchor
+                    label_rect = instances[0]
+
+                    # Search for blank/underscore areas to the right of
+                    # the label on the same line
+                    blanks = page.search_for("__")
+                    if not blanks:
+                        blanks = page.search_for("_")
+
+                    # Find the closest blank to the right of the label
+                    best_blank = None
+                    best_dist = float("inf")
+                    for blank_rect in blanks:
+                        # Must be on roughly the same line
+                        if abs(blank_rect.y0 - label_rect.y0) > 15:
+                            continue
+                        # Must be to the right (or at) the label
+                        if blank_rect.x0 < label_rect.x0 - 5:
+                            continue
+                        dist = blank_rect.x0 - label_rect.x1
+                        if 0 <= dist < best_dist:
+                            best_dist = dist
+                            best_blank = blank_rect
+
+                    if best_blank:
+                        # Expand the blank rect slightly for clean coverage
+                        expanded = fitz.Rect(
+                            best_blank.x0 - 2, best_blank.y0 - 1,
+                            best_blank.x1 + 2, best_blank.y1 + 1,
+                        )
+                        page.draw_rect(expanded, color=None, fill=(1, 1, 1), width=0)
+
+                        # Right-align the value within the blank area
+                        fontsize = 10
+                        tw = fitz.get_text_length(str(value), fontname="hebo", fontsize=fontsize)
+                        text_x = expanded.x1 - tw - 3
+                        text_y = expanded.y1 - 2
+
+                        page.insert_text(
+                            fitz.Point(text_x, text_y),
+                            str(value),
+                            fontname="hebo",
+                            fontsize=fontsize,
+                            color=(0, 0, 0),
+                        )
+                        found = True
+                        break
+
+                if found:
+                    filled.append(label)
+                else:
+                    not_found.append(label)
+
+            doc.save(output_path, deflate=True)
+            doc.close()
+
+            return _result({
+                "output_path": output_path,
+                "fields_filled": filled,
+                "fields_not_found": not_found,
+                "total_fields": len(field_data),
+            })
+        except Exception as exc:
+            return _error(f"fill_pdf_form failed: {exc}")
+
+    @tool(
+        "upload_filled_document",
+        "Upload a filled or modified document to MinIO storage and register "
+        "it as a new document in the case. Use this after fill_pdf_form or "
+        "convert_docx_to_pdf to persist the result.\n\n"
+        "The uploaded file becomes a permanent document in the case, "
+        "viewable in the Documents tab. It is tagged with source='filled_form' "
+        "to distinguish it from original solicitation documents.\n\n"
+        "After upload, the document goes through the standard ingestion "
+        "pipeline (OCR, embedding) so its content is searchable.",
+        {
+            "type": "object",
+            "properties": {
+                "file_path": {
+                    "type": "string",
+                    "description": "Absolute path to the filled/modified "
+                    "file to upload.",
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Display name for the document in the "
+                    "case. Use a descriptive name like 'SF 1449 — Filled' "
+                    "or 'Proposal Package — Signed'.",
+                },
+                "document_type": {
+                    "type": "string",
+                    "enum": ["filled_form", "proposal", "supporting", "other"],
+                    "description": "Document type classification. Use "
+                    "'filled_form' for filled government forms (SF 1449, "
+                    "SF 30, etc.), 'proposal' for proposal documents, "
+                    "'supporting' for past performance or certifications, "
+                    "'other' for anything else. Default: filled_form.",
+                },
+            },
+            "required": ["file_path", "name"],
+        },
+    )
+    async def upload_filled_document(args: dict[str, Any]) -> dict[str, Any]:
+        """Upload a filled/modified file to MinIO and register as a document."""
+        try:
+            from pathlib import Path as _Path
+            from core.db import tx, insert_document
+            from ingestion.storage import upload_file as _upload_file
+            from ingestion.jobs import enqueue as _enqueue_job
+
+            file_path = _Path(args["file_path"])
+            if not file_path.exists():
+                return _error(f"File not found: {file_path}")
+
+            name = args["name"]
+            doc_type = args.get("document_type", "filled_form")
+
+            # Upload to MinIO
+            storage_ref = _upload_file(str(file_path), original_name=name)
+            bucket = storage_ref["bucket"]
+            object_key = storage_ref["object_key"]
+            storage_path = f"{bucket}/{object_key}"
+            size_bytes = storage_ref["size_bytes"]
+
+            # Create documents row
+            with tx() as conn:
+                doc_id = insert_document(
+                    conn,
+                    case_id=case_id,
+                    name=name,
+                    page_count=None,
+                    source="filled_form" if doc_type == "filled_form" else "user_upload",
+                )
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """UPDATE documents
+                           SET storage_path = %s,
+                               ocr_status = 'pending'
+                           WHERE id = %s""",
+                        (storage_path, doc_id),
+                    )
+
+            # Enqueue ingestion
+            job = _enqueue_job(
+                case_id=case_id,
+                job_type="ingest",
+                storage_ref={"bucket": bucket, "object_key": object_key,
+                             "original_name": name},
+            )
+
+            return _result({
+                "document_id": doc_id,
+                "name": name,
+                "storage_path": storage_path,
+                "size_bytes": size_bytes,
+                "job_id": job["id"],
+                "job_status": job["status"],
+            })
+        except Exception as exc:
+            return _error(f"upload_filled_document failed: {exc}")
+
+    @tool(
+        "convert_docx_to_pdf",
+        "Convert a DOCX file to PDF format. Uses python-docx to read the "
+        "DOCX and pymupdf (fitz) to create a new PDF with the same content.\n\n"
+        "PREREQUISITE: Call download_document first to get the DOCX locally, "
+        "then pass the local_path to this tool.\n\n"
+        "The conversion preserves:\n"
+        "  - Paragraphs and headings (h1-h6)\n"
+        "  - Tables with cell content\n"
+        "  - Bold formatting on paragraphs\n"
+        "  - Font sizes from style hierarchy\n\n"
+        "Limitations:\n"
+        "  - Complex formatting (nested tables, images, headers/footers) "
+        "    may not convert perfectly\n"
+        "  - For forms with precise layout requirements, prefer filling "
+        "    the original PDF directly with fill_pdf_form\n"
+        "  - Text-only conversion — images and embedded objects are skipped",
+        {
+            "type": "object",
+            "properties": {
+                "local_path": {
+                    "type": "string",
+                    "description": "Absolute path to the DOCX file. Get "
+                    "this from download_document first.",
+                },
+                "output_path": {
+                    "type": "string",
+                    "description": "Where to save the PDF. Defaults to the "
+                    "same directory with .pdf extension.",
+                },
+            },
+            "required": ["local_path"],
+        },
+    )
+    async def convert_docx_to_pdf(args: dict[str, Any]) -> dict[str, Any]:
+        """Convert a DOCX file to PDF."""
+        try:
+            from pathlib import Path as _Path
+            import fitz  # pymupdf
+
+            local_path = _Path(args["local_path"])
+            if not local_path.exists():
+                return _error(f"File not found: {local_path}")
+
+            output_path = args.get("output_path")
+            if not output_path:
+                output_path = str(local_path.with_suffix(".pdf"))
+
+            try:
+                from docx import Document
+            except ImportError:
+                return _error("python-docx not installed.")
+
+            docx = Document(str(local_path))
+
+            # Create a new PDF
+            pdf_doc = fitz.open()
+            page = pdf_doc.new_page(width=612, height=792)  # letter size
+            y = 72  # start 1 inch from top
+            margin_left = 72
+            margin_right = 540  # 612 - 72
+            line_height = 14
+
+            for para in docx.paragraphs:
+                text = para.text.strip()
+                if not text:
+                    y += line_height
+                    continue
+
+                # Determine font size from style
+                fontsize = 11
+                style_name = (para.style.name if para.style else "").lower()
+                if "heading 1" in style_name:
+                    fontsize = 18
+                elif "heading 2" in style_name:
+                    fontsize = 15
+                elif "heading 3" in style_name:
+                    fontsize = 13
+
+                # Check bold
+                is_bold = any(r.bold for r in para.runs if r.bold)
+
+                # Word-wrap text
+                words = text.split()
+                lines = []
+                current_line = ""
+                for word in words:
+                    test_line = f"{current_line} {word}".strip()
+                    tw = fitz.get_text_length(test_line, fontname="hebo" if is_bold else "helv", fontsize=fontsize)
+                    if tw < (margin_right - margin_left):
+                        current_line = test_line
+                    else:
+                        if current_line:
+                            lines.append(current_line)
+                        current_line = word
+                if current_line:
+                    lines.append(current_line)
+
+                for line in lines:
+                    if y > 720:  # new page
+                        page = pdf_doc.new_page(width=612, height=792)
+                        y = 72
+
+                    page.insert_text(
+                        fitz.Point(margin_left, y + fontsize),
+                        line,
+                        fontname="hebo" if is_bold else "helv",
+                        fontsize=fontsize,
+                        color=(0, 0, 0),
+                    )
+                    y += fontsize + 4
+
+                y += 4  # paragraph spacing
+
+            # Handle tables
+            for table in docx.tables:
+                y += 12
+                if y > 700:
+                    page = pdf_doc.new_page(width=612, height=792)
+                    y = 72
+
+                for row in table.rows:
+                    cells = [cell.text.strip() for cell in row.cells]
+                    row_text = " | ".join(cells)
+                    tw = fitz.get_text_length(row_text, fontname="helv", fontsize=9)
+                    if tw < (margin_right - margin_left):
+                        page.insert_text(
+                            fitz.Point(margin_left, y + 9),
+                            row_text,
+                            fontname="helv",
+                            fontsize=9,
+                            color=(0, 0, 0),
+                        )
+                    else:
+                        # Truncate or wrap
+                        page.insert_text(
+                            fitz.Point(margin_left, y + 9),
+                            row_text[:100],
+                            fontname="helv",
+                            fontsize=9,
+                            color=(0, 0, 0),
+                        )
+                    y += 16
+                y += 8
+
+            pdf_doc.save(output_path, deflate=True)
+            pdf_doc.close()
+
+            output_size = _Path(output_path).stat().st_size
+            return _result({
+                "output_path": output_path,
+                "input": str(local_path),
+                "size_bytes": output_size,
+            })
+        except Exception as exc:
+            return _error(f"convert_docx_to_pdf failed: {exc}")
+
     # -- Build server --------------------------------------------------------
 
     return create_sdk_mcp_server(
@@ -3603,5 +4253,10 @@ def create_vision_server(case_id: int):
             attach_vault_documents,
             list_journal_entries,
             create_journal_entry,
+            search_vendors,
+            download_document,
+            fill_pdf_form,
+            upload_filled_document,
+            convert_docx_to_pdf,
         ],
     )

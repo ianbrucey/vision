@@ -129,10 +129,16 @@ python scripts/executor.py --status      # Check job status
 1. **Always begin** with `context-engine/global-context.md` to understand architecture, constraints, and direction.
 2. **Load relevant** `context-engine/domain-contexts/*.md` based on the topic.
 3. **Check for active task** at `context-engine/active-task.json`. If present, load that task's folder.
-4. **Consult standards** in `context-engine/standards/` before writing any code.
-   - `ui-components.md` - Reusable UI components (props, slots, usage)
-   - `coding-patterns.md` - Backend patterns (error handling, typing, architecture)
-   - `reference-implementations.md` - Approved "Golden Samples"
+4. **Consult standards** in `context-engine/standards/` before writing any code — see `context-engine/standards/README.md` for the full index. At minimum:
+   - `01-FRONTEND-STANDARDS/design-system.md` - Colors, typography, spacing, component visual specs (Next.js/React/Tailwind 4)
+   - `01-FRONTEND-STANDARDS/component-patterns.md` - Modal/form/toast/nav behavior, loading states
+   - `01-FRONTEND-STANDARDS/react-hooks-patterns.md` - Custom hook structure, state ownership, polling
+   - `02-BACKEND-STANDARDS/python-fastapi-structure.md` - Directory layout, layering, route file skeleton (FastAPI)
+   - `02-BACKEND-STANDARDS/database-design.md` - Naming, migrations, indexing, `core/db.py` CRUD conventions
+   - `03-CODE-QUALITY/python-standards.md` - Style, error handling, security, performance
+   - `03-CODE-QUALITY/git-workflow.md` - Branching, commits, PRs
+
+**These standards are binding on both the Council (State 2) and the Builder (State 4).** Specs generated in State 2 (`02-api-contract.json`, `04-ui-specs.md`) must conform to the conventions in these files rather than inventing new ones — e.g. a new API route follows the route skeleton in `python-fastapi-structure.md`, a new table follows the migration rules in `database-design.md`, a new modal follows `component-patterns.md`. If a standard is silent on something a spec needs, that's a gap to flag to the user, not a license to improvise a one-off pattern.
 
 ### Domain Contexts: The Developer Onboarding Guides
 

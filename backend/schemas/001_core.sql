@@ -166,7 +166,7 @@ CREATE TABLE IF NOT EXISTS documents (
     document_type   TEXT,                                             -- inferred: medical_record, complaint, contract, email, etc.
     source          TEXT DEFAULT 'user_upload' CHECK (source IN (
                         'user_upload', 'discovery', 'data_lab', 'email',
-                        'portal', 'api', 'other'
+                        'portal', 'api', 'sam_gov', 'other'
                     )),
     ocr_status      TEXT DEFAULT 'pending' CHECK (ocr_status IN (
                         'pending', 'processing', 'complete', 'failed'
@@ -440,7 +440,8 @@ CREATE TABLE IF NOT EXISTS jobs (
     job_type        TEXT NOT NULL CHECK (job_type IN (
                         'ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
                         'analyze', 'export', 'ocr', 'embed', 'enrich',
-                        'synthesize', 'other'
+                        'synthesize', 'profile_synthesis', 'capability_statement',
+                        'sam_fetch', 'solicitation_triage', 'vendor_matching', 'other'
                     )),
     status          TEXT NOT NULL DEFAULT 'queued' CHECK (
                         status IN ('queued', 'processing', 'complete', 'failed')
@@ -497,7 +498,8 @@ BEGIN
     ALTER TABLE jobs ADD CONSTRAINT jobs_job_type_check
         CHECK (job_type IN ('ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
                              'analyze', 'export', 'ocr', 'embed', 'enrich',
-                             'synthesize', 'profile_synthesis', 'capability_statement', 'other'));
+                             'synthesize', 'profile_synthesis', 'capability_statement',
+                             'sam_fetch', 'solicitation_triage', 'vendor_matching', 'other'));
 END $$;
 
 INSERT INTO schema_migrations (version, name) VALUES (2, 'add_enrich_job_type')
@@ -510,7 +512,8 @@ BEGIN
     ALTER TABLE jobs ADD CONSTRAINT jobs_job_type_check
         CHECK (job_type IN ('ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
                              'analyze', 'export', 'ocr', 'embed', 'enrich',
-                             'synthesize', 'profile_synthesis', 'capability_statement', 'other'));
+                             'synthesize', 'profile_synthesis', 'capability_statement',
+                             'sam_fetch', 'solicitation_triage', 'vendor_matching', 'other'));
 END $$;
 
 INSERT INTO schema_migrations (version, name) VALUES (3, 'add_synthesize_job_type')
