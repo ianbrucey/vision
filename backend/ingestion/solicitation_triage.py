@@ -155,7 +155,6 @@ RUN the quick-kill checklist. Answer true only if you find clear evidence:
   - Facility clearance required that a typical small subcontractor won't hold
   - TS/SCI personnel clearance required for all key personnel
   - On-site military base with no remote option
-  - Non-IT NAICS unrelated to professional/technical services
   - Brand Name Only with no "or Equal" clause
   - Restricted contract vehicle (e.g. "must be JWCC awardee")
   - Due in under 5 days with no prior relationship

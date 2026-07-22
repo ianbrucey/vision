@@ -75,28 +75,25 @@ function deriveSteps(sol: SolicitationWithDocuments): Step[] {
   };
 
   const triageDone = sol.triage_status === "complete";
-  const quickKilled = sol.quick_kill === true;
   const matching: Step = {
     key: "matching",
-    label: quickKilled && triageDone ? "Matching (skipped)" : "Matching",
+    label: "Matching",
     state: !triageDone
       ? "pending"
-      : quickKilled
-        ? "skipped"
-        : sol.matching_status === "complete"
-          ? "complete"
-          : sol.matching_status === "failed"
-            ? "failed"
-            : sol.matching_status === "running"
-              ? "active"
-              : "pending",
-    detail: sol.matching_status === "failed" ? sol.matching_error : quickKilled ? sol.quick_kill_reason : null,
+      : sol.matching_status === "complete"
+        ? "complete"
+        : sol.matching_status === "failed"
+          ? "failed"
+          : sol.matching_status === "running"
+            ? "active"
+            : "pending",
+    detail: sol.matching_status === "failed" ? sol.matching_error : null,
   };
 
   const done: Step = {
     key: "done",
     label: "Done",
-    state: matching.state === "complete" || matching.state === "skipped" ? "complete" : "pending",
+    state: matching.state === "complete" ? "complete" : "pending",
   };
 
   return [fetching, triaging, matching, done];
