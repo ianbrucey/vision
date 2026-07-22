@@ -4306,13 +4306,17 @@ def create_vision_server(case_id: int):
                 where_parts = []
                 params: list[Any] = []
 
-                # Full-text search
+                # Full-text search (OR logic for multi-word queries)
                 q = args.get("q")
                 if q and str(q).strip():
-                    where_parts.append(
-                        "search_vector @@ plainto_tsquery('english', %s)"
-                    )
-                    params.append(str(q).strip())
+                    words = str(q).strip().split()
+                    if len(words) == 1:
+                        where_parts.append("search_vector @@ plainto_tsquery('english', %s)")
+                        params.append(words[0])
+                    else:
+                        or_expr = " || ".join(["plainto_tsquery('english', %s)"] * len(words))
+                        where_parts.append(f"search_vector @@ ({or_expr})")
+                        params.extend(words)
 
                 # String filters
                 for col, arg_name, match_type in [
@@ -4470,8 +4474,14 @@ def create_vision_server(case_id: int):
 
                 q = args.get("q")
                 if q and str(q).strip():
-                    where_parts.append("search_vector @@ plainto_tsquery('english', %s)")
-                    params.append(str(q).strip())
+                    words = str(q).strip().split()
+                    if len(words) == 1:
+                        where_parts.append("search_vector @@ plainto_tsquery('english', %s)")
+                        params.append(words[0])
+                    else:
+                        or_expr = " || ".join(["plainto_tsquery('english', %s)"] * len(words))
+                        where_parts.append(f"search_vector @@ ({or_expr})")
+                        params.extend(words)
 
                 # Numeric value filters
                 val_under = args.get("value_under")
@@ -4530,6 +4540,168 @@ def create_vision_server(case_id: int):
                 conn.close()
         except Exception as exc:
             return _error(f"query_forecast_opportunities failed: {exc}")
+
+    # -- Layer 0: Job Queue Inspection & Repair ------------------------------
+
+    @tool(
+        "list_jobs",
+        "List background jobs for the current case. Use this to check the "
+        "status of ingestion, solicitation triage, vendor matching, and "
+        "other async operations. Returns job id, type, status, progress, "
+        "error messages, and timestamps.\n\n"
+        "The worker processes jobs in order. Failed jobs have error_message "
+        "set. Stuck jobs (status='processing' for >10 min) may need a retry.\n\n"
+        "Filter by status to find problems: 'failed' shows what broke, "
+        "'processing' shows what's running, 'queued' shows what's waiting.",
+        {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": ["queued", "processing", "complete", "failed"],
+                    "description": "Filter by status.",
+                },
+                "job_type": {
+                    "type": "string",
+                    "description": "Filter by job type: ingest, enrich, "
+                    "synthesize, sam_fetch, solicitation_triage, "
+                    "vendor_matching, inbound_email, etc.",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max jobs to return (default: 20, max: 100).",
+                },
+            },
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def list_jobs(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            from ingestion.jobs import list_jobs as _list_jobs
+            status = args.get("status")
+            job_type = args.get("job_type")
+            limit = min(args.get("limit", 20), 100)
+
+            jobs = _list_jobs(case_id=case_id, status=status, limit=limit)
+            if job_type:
+                jobs = [j for j in jobs if j.get("job_type") == job_type]
+
+            # Strip large fields for readability
+            for j in jobs:
+                j.pop("storage_ref", None)
+                if j.get("metadata") and isinstance(j["metadata"], dict):
+                    # Keep only key metadata fields
+                    j["metadata"] = {
+                        k: v for k, v in j["metadata"].items()
+                        if k in ("vendor_match_id", "sender", "subject",
+                                 "original_name", "batch_id")
+                    } or None
+
+            return _result({
+                "case_id": case_id,
+                "count": len(jobs),
+                "jobs": jobs,
+            })
+        except Exception as exc:
+            return _error(f"list_jobs failed: {exc}")
+
+    @tool(
+        "get_job",
+        "Get full details for a specific job, including its error message "
+        "and metadata. Use this after list_jobs to inspect a failed or "
+        "stuck job before deciding whether to retry it.",
+        {
+            "type": "object",
+            "properties": {
+                "job_id": {
+                    "type": "integer",
+                    "description": "Job ID from list_jobs.",
+                },
+            },
+            "required": ["job_id"],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def get_job(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            from ingestion.jobs import get_job as _get_job
+            job_id = args["job_id"]
+            job = _get_job(job_id)
+            if not job:
+                return _error(f"Job {job_id} not found.")
+            if job.get("case_id") != case_id:
+                return _error(f"Job {job_id} does not belong to this case.")
+            return _result({"job": job})
+        except Exception as exc:
+            return _error(f"get_job failed: {exc}")
+
+    @tool(
+        "retry_job",
+        "Reset a failed or stuck job back to 'queued' so the worker picks "
+        "it up again. Use this when:\n"
+        "  - A job failed with a transient error (network timeout, API rate limit)\n"
+        "  - A job is stuck in 'processing' state for >10 min (worker crashed)\n"
+        "  - Vendor matching or solicitation triage didn't complete\n\n"
+        "The job's error_message is cleared, attempts counter is preserved, "
+        "and status is reset to 'queued'. The worker will claim it on the "
+        "next poll cycle.\n\n"
+        "Only works on jobs in 'failed' or 'processing' status. Completed "
+        "jobs cannot be retried (they succeeded). Queued jobs don't need "
+        "retry (they're already waiting).",
+        {
+            "type": "object",
+            "properties": {
+                "job_id": {
+                    "type": "integer",
+                    "description": "Job ID from list_jobs.",
+                },
+            },
+            "required": ["job_id"],
+        },
+    )
+    async def retry_job(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            from core.db import tx
+            job_id = args["job_id"]
+
+            with tx() as conn:
+                with conn.cursor() as cur:
+                    # Verify job exists and belongs to this case
+                    cur.execute(
+                        "SELECT id, status, case_id FROM jobs WHERE id = %s",
+                        (job_id,),
+                    )
+                    row = cur.fetchone()
+                    if not row:
+                        return _error(f"Job {job_id} not found.")
+                    _id, status, job_case_id = row
+                    if job_case_id != case_id:
+                        return _error(f"Job {job_id} does not belong to this case.")
+                    if status not in ("failed", "processing"):
+                        return _error(
+                            f"Job {job_id} is '{status}' — only 'failed' or "
+                            f"'processing' jobs can be retried."
+                        )
+
+                    cur.execute(
+                        """UPDATE jobs
+                           SET status = 'queued',
+                               error_message = NULL,
+                               updated_at = now()
+                           WHERE id = %s
+                           RETURNING id, status, job_type, attempts, error_message""",
+                        (job_id,),
+                    )
+                    updated = cur.fetchone()
+                    columns = [d[0] for d in cur.description]
+
+            return _result({
+                "retried": True,
+                "job": dict(zip(columns, updated)),
+            })
+        except Exception as exc:
+            return _error(f"retry_job failed: {exc}")
 
     # -- Layer 15b: Summarization --------------------------------------------
 
@@ -4709,12 +4881,198 @@ def create_vision_server(case_id: int):
         except Exception as exc:
             return _error(f"summarize_forecasts failed: {exc}")
 
+    # -- Layer 16: Saved Reports ----------------------------------------------
+
+    @tool(
+        "list_reports",
+        "List saved filter-preset reports for the current case. Reports are "
+        "named, reusable queries that persist filter criteria for the "
+        "Forecasts and Sam Notices tabs. Use this to see what reports "
+        "already exist before creating or executing one.\n\n"
+        "Optionally filter by data_source ('forecasts' or 'sam_notices').",
+        {
+            "type": "object",
+            "properties": {
+                "data_source": {
+                    "type": "string",
+                    "enum": ["forecasts", "sam_notices"],
+                    "description": "Optional: filter by data source.",
+                },
+            },
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def list_reports(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                ds = args.get("data_source")
+                with conn.cursor() as cur:
+                    if ds:
+                        cur.execute(
+                            """SELECT id, name, data_source, query_filters,
+                                      sort_by, sort_dir, created_by, created_at
+                               FROM saved_reports
+                               WHERE case_id = %s AND data_source = %s
+                               ORDER BY updated_at DESC""",
+                            (case_id, ds),
+                        )
+                    else:
+                        cur.execute(
+                            """SELECT id, name, data_source, query_filters,
+                                      sort_by, sort_dir, created_by, created_at
+                               FROM saved_reports
+                               WHERE case_id = %s
+                               ORDER BY updated_at DESC""",
+                            (case_id,),
+                        )
+                    rows = cur.fetchall()
+                    columns = [d[0] for d in cur.description]
+                return _result({"count": len(rows), "reports": [dict(zip(columns, r)) for r in rows]})
+            finally:
+                conn.close()
+        except Exception as exc:
+            return _error(f"list_reports failed: {exc}")
+
+    @tool(
+        "create_report",
+        "Save a new filter-preset report for later use. The query_filters "
+        "object should be the exact filter object you would pass to "
+        "query_forecast_opportunities or query_sam_notices.\n\n"
+        "data_source must be 'forecasts' or 'sam_notices'.\n\n"
+        "EXAMPLES:\n"
+        "  {name: 'IT Under 150K', data_source: 'forecasts', "
+        "   query_filters: {q: 'IT software', value_under: 150000}, "
+        "   sort_by: 'estimated_value_low'}\n"
+        "  {name: 'Active SB Solicitations', data_source: 'sam_notices', "
+        "   query_filters: {current_set_aside_code: 'SBA', status: 'active'}}",
+        {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string", "description": "Report display name."},
+                "data_source": {
+                    "type": "string",
+                    "enum": ["forecasts", "sam_notices"],
+                    "description": "Which data table this report queries.",
+                },
+                "query_filters": {
+                    "type": "object",
+                    "description": "Filter object matching the query tool's parameters.",
+                },
+                "sort_by": {"type": "string", "description": "Optional: column to sort by."},
+                "sort_dir": {"type": "string", "enum": ["ASC", "DESC"]},
+            },
+            "required": ["name", "data_source", "query_filters"],
+        },
+    )
+    async def create_report(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            import json as _json
+            with tx() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """INSERT INTO saved_reports (case_id, name, data_source, query_filters, sort_by, sort_dir)
+                           VALUES (%s, %s, %s, %s::jsonb, %s, %s)
+                           RETURNING id, name, data_source, sort_by, sort_dir, created_at""",
+                        (
+                            case_id, args["name"].strip(), args["data_source"],
+                            _json.dumps(args["query_filters"]),
+                            args.get("sort_by"), args.get("sort_dir", "ASC"),
+                        ),
+                    )
+                    row = cur.fetchone()
+                    columns = [d[0] for d in cur.description]
+            return _result({"created": True, "report": dict(zip(columns, row))})
+        except Exception as exc:
+            return _error(f"create_report failed: {exc}")
+
+    @tool(
+        "execute_report",
+        "Run a saved report by ID. Loads the stored query_filters and "
+        "executes them against the appropriate data source. Returns "
+        "paginated results.\n\n"
+        "Use list_reports first to find the report ID, then call this "
+        "to get the actual data.",
+        {
+            "type": "object",
+            "properties": {
+                "report_id": {"type": "integer", "description": "Report ID from list_reports."},
+                "limit": {"type": "integer", "description": "Override page size."},
+                "offset": {"type": "integer", "description": "Override page offset."},
+            },
+            "required": ["report_id"],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def execute_report(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "SELECT * FROM saved_reports WHERE id = %s AND case_id = %s",
+                        (args["report_id"], case_id),
+                    )
+                    row = cur.fetchone()
+                    if not row:
+                        return _error(f"Report {args['report_id']} not found in this case.")
+                    columns = [d[0] for d in cur.description]
+                    report = dict(zip(columns, row))
+            finally:
+                conn.close()
+
+            filters = report.get("query_filters") or {}
+            if args.get("limit"):
+                filters["limit"] = args["limit"]
+            if args.get("offset"):
+                filters["offset"] = args["offset"]
+            if report.get("sort_by"):
+                filters["order_by"] = report["sort_by"]
+            if report.get("sort_dir"):
+                filters["order_dir"] = report["sort_dir"]
+
+            if report["data_source"] == "forecasts":
+                return await query_forecast_opportunities(filters)
+            else:
+                return await query_sam_notices(filters)
+        except Exception as exc:
+            return _error(f"execute_report failed: {exc}")
+
+    @tool(
+        "delete_report",
+        "Delete a saved report by ID. Irreversible.",
+        {
+            "type": "object",
+            "properties": {
+                "report_id": {"type": "integer", "description": "Report ID from list_reports."},
+            },
+            "required": ["report_id"],
+        },
+    )
+    async def delete_report(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            with tx() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "DELETE FROM saved_reports WHERE id = %s AND case_id = %s",
+                        (args["report_id"], case_id),
+                    )
+                    if cur.rowcount == 0:
+                        return _error(f"Report {args['report_id']} not found in this case.")
+            return _result({"deleted": args["report_id"]})
+        except Exception as exc:
+            return _error(f"delete_report failed: {exc}")
+
     # -- Build server --------------------------------------------------------
 
     return create_sdk_mcp_server(
         name="vision",
         version="1.0.0",
         tools=[
+            list_jobs,
+            get_job,
+            retry_job,
             get_case,
             list_workspaces,
             create_workspace,
@@ -4780,5 +5138,9 @@ def create_vision_server(case_id: int):
             query_forecast_opportunities,
             summarize_sam_notices,
             summarize_forecasts,
+            list_reports,
+            create_report,
+            execute_report,
+            delete_report,
         ],
     )

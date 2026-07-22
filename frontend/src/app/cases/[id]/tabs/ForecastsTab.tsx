@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Upload, Search, Loader2, X, ChevronDown, ChevronUp, Trash2, ExternalLink } from "lucide-react";
+import { Upload, Search, Loader2, X, ChevronDown, ChevronUp, Trash2, ExternalLink, PanelLeft } from "lucide-react";
 import {
   queryForecasts,
   uploadForecastHtml,
@@ -9,7 +9,9 @@ import {
   deleteForecast,
   type ForecastOpportunity,
   type ForecastQuery,
+  type SavedReport,
 } from "@/lib/api";
+import ReportsSidebar from "@/components/ReportsSidebar";
 
 interface ForecastsTabProps { caseId: number; }
 
@@ -29,6 +31,8 @@ export default function ForecastsTab({ caseId }: ForecastsTabProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [showReports, setShowReports] = useState(false);
+  const [activeReport, setActiveReport] = useState<SavedReport | null>(null);
 
   const search = useCallback(async (newOffset = 0) => {
     setLoading(true); setError(null);
@@ -66,13 +70,53 @@ export default function ForecastsTab({ caseId }: ForecastsTabProps) {
   };
   const clearFilters = () => { setQ(""); setFilters({ limit: PAGE_SIZE }); };
 
+  const handleSelectReport = (report: SavedReport) => {
+    setActiveReport(report);
+    const f = report.query_filters as ForecastQuery;
+    setQ((f.q as string) || "");
+    setFilters({
+      agency: f.agency as string | undefined,
+      naics_code: f.naics_code as string | undefined,
+      set_aside: f.set_aside as string | undefined,
+      fiscal_year: f.fiscal_year as string | undefined,
+      estimated_value_text: f.estimated_value_text as string | undefined,
+      value_under: f.value_under as number | undefined,
+      value_over: f.value_over as number | undefined,
+      office: f.office as string | undefined,
+      place_of_performance: f.place_of_performance as string | undefined,
+      limit: PAGE_SIZE,
+      order_by: (report.sort_by as string) || undefined,
+      order_dir: (report.sort_dir as "ASC" | "DESC") || undefined,
+    });
+    search(0);
+  };
+
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex-1 flex min-h-0">
+      {showReports && (
+        <ReportsSidebar
+          caseId={caseId}
+          dataSource="forecasts"
+          onSelectReport={handleSelectReport}
+          activeReportId={activeReport?.id || null}
+          currentFilters={{ ...filters, q: q.trim() || undefined }}
+        />
+      )}
+      <div className="flex-1 flex flex-col min-h-0">
       {/* Header */}
       <div className="shrink-0 px-4 py-3 border-b border-border flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-text-primary">Acquisition Forecasts</p>
-          <p className="text-xs text-text-disabled">Future procurement projections from the Acquisition Gateway forecast tool.</p>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowReports(prev => !prev)}
+            className={`p-1.5 rounded transition-colors ${showReports ? "text-brand bg-brand-bg" : "text-text-disabled hover:text-text-primary"}`}
+            title="Toggle reports sidebar"
+          >
+            <PanelLeft size={16} />
+          </button>
+          <div>
+            <p className="text-sm font-medium text-text-primary">Acquisition Forecasts</p>
+            <p className="text-xs text-text-disabled">Future procurement projections from the Acquisition Gateway forecast tool.</p>
+          </div>
         </div>
         {total > 0 && (
           <button onClick={async () => {
@@ -217,6 +261,7 @@ export default function ForecastsTab({ caseId }: ForecastsTabProps) {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }

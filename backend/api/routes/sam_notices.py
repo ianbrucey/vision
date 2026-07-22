@@ -232,12 +232,16 @@ def query_sam_notices(
             where_parts = []
             params: list[Any] = []
 
-            # Full-text search
+            # Full-text search (OR logic for multi-word queries)
             if body.q and body.q.strip():
-                where_parts.append(
-                    "search_vector @@ plainto_tsquery('english', %s)"
-                )
-                params.append(body.q.strip())
+                words = body.q.strip().split()
+                if len(words) == 1:
+                    where_parts.append("search_vector @@ plainto_tsquery('english', %s)")
+                    params.append(words[0])
+                else:
+                    or_expr = " || ".join(["plainto_tsquery('english', %s)"] * len(words))
+                    where_parts.append(f"search_vector @@ ({or_expr})")
+                    params.extend(words)
 
             # Exact / LIKE filters
             _str_filters = [

@@ -1211,3 +1211,44 @@ export const deleteAllForecasts = (): Promise<{ deleted: number }> =>
 
 export const deleteForecast = (id: number): Promise<{ deleted: number }> =>
   fetchAPI(`/api/forecasts/${id}`, { method: "DELETE" });
+
+// ---------------------------------------------------------------------------
+// Saved Reports
+// ---------------------------------------------------------------------------
+
+export interface SavedReport {
+  id: number;
+  case_id: number;
+  name: string;
+  data_source: "forecasts" | "sam_notices";
+  query_filters: Record<string, unknown>;
+  sort_by: string | null;
+  sort_dir: "ASC" | "DESC";
+  created_by: "agent" | "user";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateReportInput {
+  case_id: number;
+  name: string;
+  data_source: "forecasts" | "sam_notices";
+  query_filters: Record<string, unknown>;
+  sort_by?: string;
+  sort_dir?: "ASC" | "DESC";
+}
+
+export const listReports = (caseId: number, dataSource?: string): Promise<{ reports: SavedReport[] }> => {
+  const params = new URLSearchParams({ case_id: String(caseId) });
+  if (dataSource) params.set("data_source", dataSource);
+  return fetchAPI(`/api/reports?${params.toString()}`);
+};
+
+export const createReport = (data: CreateReportInput): Promise<{ report: SavedReport }> =>
+  fetchAPI("/api/reports", { method: "POST", body: JSON.stringify(data) });
+
+export const getReport = (id: number): Promise<{ report: SavedReport }> =>
+  fetchAPI(`/api/reports/${id}`);
+
+export const deleteReport = (id: number): Promise<{ deleted: number }> =>
+  fetchAPI(`/api/reports/${id}`, { method: "DELETE" });

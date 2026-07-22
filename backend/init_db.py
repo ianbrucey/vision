@@ -39,6 +39,7 @@ from core.db import (
     ensure_sam_notices_schema,
     ensure_sam_notice_import_job_schema,
     ensure_forecast_opportunities_schema,
+    ensure_saved_reports_schema,
 )
 
 # ---------------------------------------------------------------------------
@@ -206,6 +207,10 @@ def main() -> int:
         forecasts = ensure_forecast_opportunities_schema()
         for path in forecasts:
             print(f"  Forecasts:{path}")
+
+        reports = ensure_saved_reports_schema()
+        for path in reports:
+            print(f"  Reports:  {path}")
     except Exception as e:
         print(f"  ERROR applying schemas: {e}", file=sys.stderr)
         return 1

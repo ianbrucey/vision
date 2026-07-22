@@ -551,6 +551,23 @@ def ensure_forecast_opportunities_schema() -> list[str]:
     return [str(sql_path)]
 
 
+def ensure_saved_reports_schema() -> list[str]:
+    """Apply the saved reports migration (v29).
+
+    Creates saved_reports table for persisting report filter presets.
+    Idempotent.
+    """
+    sql_path = _SCHEMA_DIR / "020_saved_reports.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Saved reports schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
 # ---------------------------------------------------------------------------
 # Journal CRUD
 # ---------------------------------------------------------------------------
@@ -1725,4 +1742,5 @@ __all__ = [
     "ensure_sam_notices_schema",
     "ensure_sam_notice_import_job_schema",
     "ensure_forecast_opportunities_schema",
+    "ensure_saved_reports_schema",
 ]
