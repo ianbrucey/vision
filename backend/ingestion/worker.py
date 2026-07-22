@@ -275,20 +275,18 @@ def process_sam_fetch_job(job: dict) -> None:
 
         update_progress(job_id, 60)
 
-        # ── Phase 2: ingest each download sequentially ─────────────
-        # OCR is CPU-bound and ingest_file writes to the DB — keep
-        # sequential to avoid contention.
-        for i, result in enumerate(downloads):
-            pct = 60 + int((i / total) * 35)
-            update_progress(job_id, pct)
-
+        # ── Phase 2: ingest all downloads in parallel ─────────────
+        # Each document is independent — download, OCR, MinIO upload,
+        # and DB writes don't contend on shared rows. ThreadPoolExecutor
+        # overlaps I/O (MinIO uploads) with CPU (OCR).
+        def _process_one(idx: int, result: dict | Exception) -> bool:
+            """Process a single downloaded file. Returns True on success."""
             if isinstance(result, Exception):
                 print(
-                    f"[{WORKER_ID}] Job {job_id}: resource {i+1}/{total} "
+                    f"[{WORKER_ID}] Job {job_id}: resource {idx+1}/{total} "
                     f"download FAILED — {result}"
                 )
-                has_missing_docs = True
-                continue
+                return False
 
             filename = result["filename"]
             fpath = result["path"]
@@ -303,7 +301,7 @@ def process_sam_fetch_job(job: dict) -> None:
             try:
                 print(
                     f"[{WORKER_ID}] Job {job_id}: ingesting resource "
-                    f"{i+1}/{total} — {filename}"
+                    f"{idx+1}/{total} — {filename}"
                 )
                 ingest_result = ingest_file(
                     case_id=case_id,
@@ -341,19 +339,31 @@ def process_sam_fetch_job(job: dict) -> None:
                     f"[{WORKER_ID}] Job {job_id}: ingested {filename} "
                     f"(doc_id={doc_id})"
                 )
+                return True
             except Exception as e:
                 print(
-                    f"[{WORKER_ID}] Job {job_id}: resource {i+1}/{total} "
+                    f"[{WORKER_ID}] Job {job_id}: resource {idx+1}/{total} "
                     f"ingest FAILED — {e}"
                 )
                 traceback.print_exc()
-                has_missing_docs = True
+                return False
             finally:
                 try:
                     if fpath.exists():
                         fpath.unlink()
                 except OSError:
                     pass
+
+        with ThreadPoolExecutor(max_workers=min(total, 6)) as pool:
+            results = list(pool.map(
+                _process_one,
+                range(total),
+                downloads,
+            ))
+
+        update_progress(job_id, 95)
+        if any(not ok for ok in results):
+            has_missing_docs = True
 
     update_progress(job_id, 100)
     mgr.update(solicitation_id, ingestion_status="complete", has_missing_docs=has_missing_docs)
