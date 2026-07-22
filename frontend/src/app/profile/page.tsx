@@ -170,7 +170,7 @@ export default function CompanyProfilePage() {
   // Fetch statement draft when profile changes
   useEffect(() => {
     if (!active) return;
-    const draftId = (active as any)?.statement_draft_id;
+    const draftId = active?.statement_draft_id;
     if (!draftId) { setStmtDraft(null); return; }
     getDraft(draftId).then((res) => setStmtDraft(res.draft)).catch(() => setStmtDraft(null));
   }, [active?.id, active?.statement_draft_id]);

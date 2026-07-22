@@ -751,6 +751,7 @@ export interface CompanyProfile {
   content: Record<string, unknown>;
   source_docs: Array<{ document_id: number; document_name: string }>;
   status: "draft" | "complete";
+  statement_draft_id?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -1124,3 +1125,89 @@ export interface SolicitationLookup {
 
 export const lookupSolicitationUrl = (sol: string): Promise<SolicitationLookup> =>
   fetchAPI(`/api/sam-notices/lookup?sol=${encodeURIComponent(sol)}`);
+
+export const deleteSamNotice = (id: number): Promise<{ deleted: number }> =>
+  fetchAPI(`/api/sam-notices/${id}`, { method: "DELETE" });
+
+export const deleteAllSamNotices = (): Promise<{ deleted: number }> =>
+  fetchAPI("/api/sam-notices/all", { method: "DELETE" });
+
+// ---------------------------------------------------------------------------
+// Acquisition Gateway Forecasts
+// ---------------------------------------------------------------------------
+
+export interface ForecastOpportunity {
+  id: number;
+  title: string;
+  description: string | null;
+  source_url: string | null;
+  agency: string | null;
+  office: string | null;
+  naics_code: string | null;
+  naics_description: string | null;
+  set_aside: string | null;
+  place_of_performance: string | null;
+  period_of_performance: string | null;
+  fiscal_year: string | null;
+  estimated_value_text: string | null;
+  estimated_value_low: number | null;
+  estimated_value_high: number | null;
+  created_date: string | null;
+  last_updated_date: string | null;
+  upload_batch_id: string | null;
+  created_at: string;
+}
+
+export interface ForecastQuery {
+  q?: string;
+  agency?: string;
+  naics_code?: string;
+  set_aside?: string;
+  fiscal_year?: string;
+  estimated_value_text?: string;
+  value_under?: number;
+  value_over?: number;
+  office?: string;
+  place_of_performance?: string;
+  limit?: number;
+  offset?: number;
+  order_by?: string;
+  order_dir?: string;
+}
+
+export interface ForecastResponse {
+  total: number;
+  limit: number;
+  offset: number;
+  count: number;
+  results: ForecastOpportunity[];
+}
+
+export const queryForecasts = (body: ForecastQuery): Promise<ForecastResponse> =>
+  fetchAPI("/api/forecasts/query", { method: "POST", body: JSON.stringify(body) });
+
+export const uploadForecastHtml = (file: File): Promise<{ batch_id: string; rows_inserted: number; source: string }> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const token = localStorage.getItem("vision_token");
+  return fetch(`${API_BASE}/api/forecasts/upload`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  }).then((res) => {
+    if (res.status === 401) {
+      localStorage.removeItem("vision_token");
+      localStorage.removeItem("vision_user");
+      if (typeof window !== "undefined") window.location.href = "/login";
+      throw new Error("Session expired");
+    }
+    if (!res.ok) return res.json().then((err) => { throw new Error(err.detail || `HTTP ${res.status}`); });
+    return res.json();
+  });
+};
+
+export const deleteAllForecasts = (): Promise<{ deleted: number }> =>
+  fetchAPI("/api/forecasts/all", { method: "DELETE" });
+
+export const deleteForecast = (id: number): Promise<{ deleted: number }> =>
+  fetchAPI(`/api/forecasts/${id}`, { method: "DELETE" });
