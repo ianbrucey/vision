@@ -68,8 +68,8 @@ def list_reports(
             if case_id is not None:
                 clauses.append("case_id = %s")
                 params.append(case_id)
-            else:
-                clauses.append("case_id IS NULL")
+            # When case_id is omitted (Reference Desk), return ALL reports
+            # for the data source — both global and case-scoped.
 
             if data_source:
                 clauses.append("data_source = %s")
