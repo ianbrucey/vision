@@ -598,6 +598,8 @@ async def system_agent(
                     break
                 yield e
         except Exception as exc:
+            import traceback as _tb
+            _tb.print_exc()
             yield f"data: {_json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
 
     return _StreamingResponse(
