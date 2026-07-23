@@ -485,21 +485,40 @@ class VendorMatchManager:
                 if existing:
                     return dict(existing)
 
-        # Fetch solicitation template
+        # Fetch solicitation template for subject line
         from core.solicitation import SolicitationManager
         sol = SolicitationManager().get(match["solicitation_id"])
-        subject = sol.get("outreach_email_subject") if sol else None
-        body = sol.get("outreach_email_body") if sol else None
-        if not subject or not body:
-            raise ValueError(
-                "Solicitation has no outreach email template — run vendor matching first"
-            )
+        tmpl_subject = sol.get("outreach_email_subject") if sol else ""
+        tmpl_body = sol.get("outreach_email_body") if sol else ""
 
-        subject = subject.replace("{{vendor_name}}", match["vendor_name"])
-        body = (
-            body.replace("{{vendor_name}}", match["vendor_name"])
-                .replace("{{match_reason}}", match["match_rationale"])
-        )
+        # Check if we've already sent at least one message
+        with tx() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """SELECT COUNT(*) FROM vendor_outreach_messages
+                       WHERE vendor_match_id = %s
+                         AND direction = 'outbound'
+                         AND status = 'sent'""",
+                    (match_id,),
+                )
+                sent_count = cur.fetchone()[0]
+
+        if sent_count > 0:
+            # Subsequent reply — only pre-fill subject, leave body empty
+            original_subj = tmpl_subject.replace("{{vendor_name}}", match["vendor_name"])
+            subject = f"Re: {original_subj}" if tmpl_subject else "(no subject)"
+            body = ""
+        else:
+            # First draft — full template
+            if not tmpl_subject or not tmpl_body:
+                raise ValueError(
+                    "Solicitation has no outreach email template — run vendor matching first"
+                )
+            subject = tmpl_subject.replace("{{vendor_name}}", match["vendor_name"])
+            body = (
+                tmpl_body.replace("{{vendor_name}}", match["vendor_name"])
+                         .replace("{{match_reason}}", match["match_rationale"])
+            )
 
         with tx() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:

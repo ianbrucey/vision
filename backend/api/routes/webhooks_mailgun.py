@@ -18,8 +18,10 @@ import hashlib
 import hmac
 import os
 import re
+import uuid
+from pathlib import Path
 
-from fastapi import APIRouter, Form, HTTPException
+from fastapi import APIRouter, Form, File, UploadFile, HTTPException
 
 from core.vendor_match import VendorMatchManager
 from ingestion.jobs import enqueue as _enqueue_job
@@ -30,6 +32,9 @@ vendor_match_mgr = VendorMatchManager()
 
 _SIGNING_KEY = os.environ.get("MAILGUN_WEBHOOK_SIGNING_KEY", "")
 _RECIPIENT_RE = re.compile(r"^vmatch-([0-9a-f]{16})@", re.IGNORECASE)
+
+# Temp dir for saving inbound attachments before enqueuing
+_ATTACH_TMP = Path(__file__).resolve().parent.parent.parent / "tmp" / "mailgun_attachments"
 
 
 def _verify_signature(timestamp: str, token: str, signature: str) -> bool:
@@ -56,6 +61,12 @@ async def mailgun_inbound_webhook(
     timestamp: str = Form(...),
     token: str = Form(...),
     signature: str = Form(...),
+    attachment_count: str = Form("0", alias="attachment-count"),
+    attachment_1: UploadFile | None = File(None, alias="attachment-1"),
+    attachment_2: UploadFile | None = File(None, alias="attachment-2"),
+    attachment_3: UploadFile | None = File(None, alias="attachment-3"),
+    attachment_4: UploadFile | None = File(None, alias="attachment-4"),
+    attachment_5: UploadFile | None = File(None, alias="attachment-5"),
 ):
     """Mailgun inbound route target. Field names/casing per Mailgun's
     documented inbound multipart payload (see PLAN.md §0 research —
@@ -82,6 +93,19 @@ async def mailgun_inbound_webhook(
 
     text = stripped_text or body_plain or ""
 
+    # Save any attachments to temp files for the worker to pick up.
+    attachment_paths: list[str] = []
+    attach_count = int(attachment_count) if attachment_count else 0
+    for file_obj in [attachment_1, attachment_2, attachment_3, attachment_4, attachment_5]:
+        if file_obj is None or not file_obj.filename:
+            continue
+        _ATTACH_TMP.mkdir(parents=True, exist_ok=True)
+        safe_name = re.sub(r"[^a-zA-Z0-9._-]", "_", file_obj.filename or "attachment")
+        dest = _ATTACH_TMP / f"{uuid.uuid4().hex}_{safe_name}"
+        content = await file_obj.read()
+        dest.write_bytes(content)
+        attachment_paths.append(str(dest))
+
     job = _enqueue_job(
         case_id=message["case_id"],
         job_type="inbound_email",
@@ -90,6 +114,7 @@ async def mailgun_inbound_webhook(
             "sender": sender,
             "subject": subject,
             "text": text,
+            "attachment_paths": attachment_paths,
         },
     )
     return {"status": "queued", "job_id": job["id"]}

@@ -53,8 +53,8 @@ export default function VendorMatchThreadPage() {
 
   const [match, setMatch] = useState<VendorMatch | null>(null);
   const [messages, setMessages] = useState<VendorOutreachMessage[]>([]);
+  const [draft, setDraft] = useState<VendorOutreachMessage | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState<number | null>(null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewDocId, setPreviewDocId] = useState<number | null>(null);
@@ -63,7 +63,11 @@ export default function VendorMatchThreadPage() {
     try {
       const data = await getVendorMatchMessages(matchId);
       setMatch(data.match);
-      setMessages(data.messages);
+      // Split draft from the rest — draft always renders at the bottom
+      const all = data.messages;
+      const d = all.find((m) => m.status === "draft") || null;
+      setDraft(d);
+      setMessages(all.filter((m) => m.status !== "draft"));
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load messages");
@@ -72,10 +76,11 @@ export default function VendorMatchThreadPage() {
 
   useEffect(() => {
     refresh().finally(() => setLoading(false));
-    markMessagesRead(matchId).catch(() => {}); // mark unread replies as read
+    markMessagesRead(matchId).catch(() => {});
   }, [refresh]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleCreateDraft = async () => {
+  const ensureDraft = async () => {
+    if (draft) return; // already have one
     setError(null);
     try {
       await createDraftMessage(matchId);
@@ -85,22 +90,26 @@ export default function VendorMatchThreadPage() {
     }
   };
 
-  const handleBlur = async (messageId: number, field: "subject" | "body", value: string) => {
-    setSaving(messageId);
+  const handleBlur = async (field: "subject" | "body", value: string) => {
+    if (!draft) return;
+    if (value === (field === "subject" ? draft.subject : draft.body)) return;
+    setError(null);
     try {
-      await updateDraftMessage(messageId, { [field]: value });
-      await refresh();
+      await updateDraftMessage(draft.id, { [field]: value });
+      // Optimistically update local state to avoid cursor jump
+      setDraft((prev) => prev ? { ...prev, [field]: value } : null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save");
     }
-    setSaving(null);
   };
 
-  const handleSend = async (messageId: number) => {
+  const handleSend = async () => {
+    if (!draft) return;
     setSending(true);
     setError(null);
     try {
-      await sendMessage(messageId);
+      await sendMessage(draft.id);
+      setDraft(null); // draft is now sent — will reappear as a message on refresh
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send");
@@ -128,8 +137,7 @@ export default function VendorMatchThreadPage() {
     );
   }
 
-  const hasDraft = messages.some((m) => m.status === "draft");
-  const hasSent = messages.some((m) => m.status === "sent");
+  const hasAnyMessage = messages.length > 0;
 
   /* ---------------------------------------------------------------- */
   /* Render                                                           */
@@ -177,7 +185,9 @@ export default function VendorMatchThreadPage() {
       {/* Thread */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
         <div className="max-w-3xl mx-auto space-y-3">
-          {messages.length === 0 && !hasDraft && (
+
+          {/* Empty state */}
+          {!hasAnyMessage && !draft && (
             <div className="flex flex-col items-center justify-center gap-4 py-16 px-6 text-center">
               <div className="size-12 rounded-full bg-surface-2 flex items-center justify-center text-text-disabled">
                 <Mail size={22} />
@@ -188,24 +198,21 @@ export default function VendorMatchThreadPage() {
                   Draft an outreach email to {match.vendor_name} to get started.
                 </p>
               </div>
-              {!hasSent && (
-                <button
-                  onClick={handleCreateDraft}
-                  className="bg-brand text-white border-brand hover:bg-brand-hover active:bg-brand-active
-                             px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150"
-                >
-                  Create Draft
-                </button>
-              )}
+              <button
+                onClick={ensureDraft}
+                className="bg-brand text-white border-brand hover:bg-brand-hover active:bg-brand-active
+                           px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150"
+              >
+                Create Draft
+              </button>
             </div>
           )}
 
+          {/* Read-only messages (sent + received), chronological */}
           {messages.map((msg) => {
             const isOutbound = msg.direction === "outbound";
-            const isDraft = msg.status === "draft";
             const isFailed = msg.status === "failed";
             const isReceived = msg.status === "received";
-            const editable = isDraft; // only outbound drafts are editable
 
             return (
               <div
@@ -216,18 +223,12 @@ export default function VendorMatchThreadPage() {
                 : "border-border"
                 }`}
               >
-                {/* Message header bar */}
                 <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border-light bg-surface-2">
                   <span className={`text-[11px] font-semibold uppercase tracking-wide ${
                     isOutbound ? "text-brand" : "text-success"
                   }`}>
                     {isOutbound ? "To Vendor" : "From Vendor"}
                   </span>
-                  {isDraft && (
-                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-sm bg-warning-bg text-warning">
-                      Draft
-                    </span>
-                  )}
                   {msg.status === "sent" && (
                     <span className="text-[11px] font-medium px-2 py-0.5 rounded-sm bg-info-bg text-info">
                       Sent
@@ -249,125 +250,96 @@ export default function VendorMatchThreadPage() {
                 </div>
 
                 <div className="p-4">
-                  {/* Subject */}
-                  {editable ? (
-                    <div className="mb-3">
-                      <label className="block mb-1.5 text-xs font-medium text-text-secondary">
-                        Subject
-                      </label>
-                      <input
-                        type="text"
-                        defaultValue={msg.subject}
-                        onBlur={(e) => {
-                          if (e.target.value !== msg.subject) {
-                            handleBlur(msg.id, "subject", e.target.value);
-                          }
-                        }}
-                        className="w-full px-3 py-2 text-sm text-text-primary
-                                   bg-surface-2 border border-border rounded-sm
-                                   focus:border-brand focus:ring-2 focus:ring-brand-ring focus:outline-hidden
-                                   transition-colors duration-150"
-                      />
-                    </div>
-                  ) : (
-                    <p className="text-sm font-semibold text-text-primary mb-2">{msg.subject}</p>
-                  )}
+                  <p className="text-sm font-semibold text-text-primary mb-2">{msg.subject}</p>
+                  <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">
+                    {msg.body}
+                  </p>
 
-                  {/* Body */}
-                  {editable ? (
-                    <div>
-                      <label className="block mb-1.5 text-xs font-medium text-text-secondary">
-                        Message
-                      </label>
-                      <textarea
-                        defaultValue={msg.body}
-                        onBlur={(e) => {
-                          if (e.target.value !== msg.body) {
-                            handleBlur(msg.id, "body", e.target.value);
-                          }
-                        }}
-                        rows={8}
-                        className="w-full px-3 py-2 text-sm text-text-primary leading-relaxed
-                                   bg-surface-2 border border-border rounded-sm
-                                   focus:border-brand focus:ring-2 focus:ring-brand-ring focus:outline-hidden
-                                   resize-y transition-colors duration-150"
-                      />
-                    </div>
-                  ) : (
-                    <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">
-                      {msg.body}
-                    </p>
-                  )}
-
-                  {/* Error message */}
                   {isFailed && msg.error_message && (
                     <p className="mt-2 text-xs text-danger">{msg.error_message}</p>
                   )}
 
-                  {/* Actions */}
-                  {(editable || isReceived || saving === msg.id) && (
-                    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border-light">
-                      {isDraft && (
-                        <button
-                          onClick={() => handleSend(msg.id)}
-                          disabled={sending}
-                          className="inline-flex items-center gap-2 bg-brand text-white border-brand
-                                     hover:bg-brand-hover active:bg-brand-active
-                                     px-4 py-2 rounded-lg text-sm font-medium
-                                     transition-colors duration-150
-                                     disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                          Send
-                        </button>
-                      )}
-                      {isReceived && (
-                        <button
-                          onClick={handleCreateDraft}
-                          className="inline-flex items-center gap-2 bg-brand text-white border-brand
-                                     hover:bg-brand-hover active:bg-brand-active
-                                     px-4 py-2 rounded-lg text-sm font-medium
-                                     transition-colors duration-150"
-                        >
-                          <Send size={14} />
-                          Reply
-                        </button>
-                      )}
-                      {msg.document_id && (
-                        <button
-                          onClick={() => setPreviewDocId(msg.document_id)}
-                          className="inline-flex items-center gap-2 bg-surface-2 text-text-primary border-border
-                                     hover:bg-surface-3 hover:border-border-strong
-                                     px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150"
-                        >
-                          <FileText size={14} />
-                          View Document
-                        </button>
-                      )}
-                      {saving === msg.id && (
-                        <span className="inline-flex items-center gap-1.5 text-xs text-text-disabled">
-                          <Loader2 size={12} className="animate-spin" />
-                          Saving…
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border-light">
+                    {isReceived && (
+                      <button
+                        onClick={ensureDraft}
+                        className="inline-flex items-center gap-2 bg-brand text-white border-brand
+                                   hover:bg-brand-hover active:bg-brand-active
+                                   px-4 py-2 rounded-lg text-sm font-medium
+                                   transition-colors duration-150"
+                      >
+                        <Send size={14} />
+                        Reply
+                      </button>
+                    )}
+                    {msg.document_id && (
+                      <button
+                        onClick={() => setPreviewDocId(msg.document_id)}
+                        className="inline-flex items-center gap-2 bg-surface-2 text-text-primary border-border
+                                   hover:bg-surface-3 hover:border-border-strong
+                                   px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150"
+                      >
+                        <FileText size={14} />
+                        View Document
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
           })}
 
-          {/* Create Draft button (shown when messages exist but none are draft) */}
-          {messages.length > 0 && !hasDraft && !hasSent && (
-            <div className="pt-1">
-              <button
-                onClick={handleCreateDraft}
-                className="w-full bg-surface-2 text-text-primary border-border
-                           hover:bg-surface-3 hover:border-border-strong
-                           px-4 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150"
-              >
-                Create Draft
-              </button>
+          {/* Draft — always at the bottom */}
+          {draft && (
+            <div className="bg-surface-1 border border-warning/30 rounded-lg overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border-light bg-surface-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-warning">
+                  Draft Reply
+                </span>
+                <button
+                  onClick={handleSend}
+                  disabled={sending || !draft.subject.trim()}
+                  className="ml-auto inline-flex items-center gap-1.5 bg-brand text-white
+                             hover:bg-brand-hover active:bg-brand-active
+                             disabled:opacity-50 disabled:cursor-not-allowed
+                             px-3 py-1 rounded text-xs font-medium transition-colors"
+                >
+                  {sending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+                  Send
+                </button>
+              </div>
+
+              <div className="p-4">
+                <div className="mb-3">
+                  <label className="block mb-1.5 text-xs font-medium text-text-secondary">
+                    Subject
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue={draft.subject}
+                    onBlur={(e) => handleBlur("subject", e.target.value)}
+                    className="w-full px-3 py-2 text-sm text-text-primary
+                               bg-surface-2 border border-border rounded-sm
+                               focus:border-brand focus:ring-2 focus:ring-brand-ring focus:outline-hidden
+                               transition-colors duration-150"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-1.5 text-xs font-medium text-text-secondary">
+                    Message
+                  </label>
+                  <textarea
+                    defaultValue={draft.body}
+                    onBlur={(e) => handleBlur("body", e.target.value)}
+                    rows={8}
+                    className="w-full px-3 py-2 text-sm text-text-primary leading-relaxed
+                               bg-surface-2 border border-border rounded-sm
+                               focus:border-brand focus:ring-2 focus:ring-brand-ring focus:outline-hidden
+                               resize-y transition-colors duration-150"
+                  />
+                </div>
+              </div>
             </div>
           )}
         </div>

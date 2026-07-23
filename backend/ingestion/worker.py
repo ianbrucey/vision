@@ -789,12 +789,43 @@ def process_inbound_email_job(job: dict) -> None:
                     (doc_id,),
                 )
 
-        # Store the body text so it's readable — documents needs at least
-        # one section/block to render in DocumentPreviewModal.
+        # Store the body text so it's readable.
         from core.db import insert_section, insert_block
         with tx() as conn:
             section_id = insert_section(conn, document_id=doc_id, title=subject, search_text=content)
             insert_block(conn, document_id=doc_id, section_id=section_id, text_content=content)
+
+        # Process any attachments the vendor included in their reply.
+        attachment_doc_ids: list[int] = []
+        for att_path_str in meta.get("attachment_paths") or []:
+            try:
+                att_path = Path(att_path_str)
+                if not att_path.exists():
+                    continue
+                att_result = ingest_file(
+                    case_id=case_id,
+                    file_path=att_path,
+                    document_name=att_path.name,
+                )
+                att_doc_id = att_result.get("document_id")
+                if att_doc_id:
+                    # Upload to MinIO + tag source
+                    storage_ref = _upload_to_minio(att_path, att_path.name)
+                    sp = f"{storage_ref['bucket']}/{storage_ref['object_key']}"
+                    with tx() as conn:
+                        with conn.cursor() as cur:
+                            cur.execute(
+                                "UPDATE documents SET source = 'email', storage_path = %s WHERE id = %s",
+                                (sp, att_doc_id),
+                            )
+                    attachment_doc_ids.append(att_doc_id)
+                # Clean up temp file
+                try:
+                    att_path.unlink()
+                except OSError:
+                    pass
+            except Exception as e:
+                print(f"[{WORKER_ID}] Job {job_id}: attachment ingest failed — {e}")
 
         mgr = VendorMatchManager()
         match = mgr.get_match(vendor_match_id)
