@@ -84,6 +84,26 @@ def upload_file(file_path: str | Path, original_name: str | None = None) -> dict
     }
 
 
+def upload_attachment(object_key: str, content: bytes) -> dict:
+    """Upload raw bytes to MinIO under the given object key.
+
+    Used by the Mailgun webhook for inbound email attachments — no local
+    file involved, just bytes in memory.
+    """
+    from io import BytesIO
+
+    ensure_bucket()
+    client = _get_client()
+    data = BytesIO(content)
+    client.put_object(
+        _MINIO_BUCKET,
+        object_key,
+        data,
+        length=len(content),
+    )
+    return {"bucket": _MINIO_BUCKET, "object_key": object_key, "size_bytes": len(content)}
+
+
 def download_file(bucket: str, object_key: str, dest_path: str | Path) -> Path:
     """Download a file from MinIO to a local path. Returns the destination path."""
     dest_path = Path(dest_path)

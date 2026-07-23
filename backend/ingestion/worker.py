@@ -35,7 +35,7 @@ from core.db import connect
 from core.case import CaseManager
 from core.solicitation import SolicitationManager
 from ingestion.jobs import claim_next, mark_complete, mark_failed, update_progress, enqueue
-from ingestion.storage import download_file, upload_file as _upload_to_minio
+from ingestion.storage import download_file, upload_file as _upload_to_minio, _MINIO_BUCKET
 from ingestion.dispatcher import ingest_file
 from ingestion.enricher import enrich_document
 from ingestion.synthesizer import synthesize_case
@@ -796,36 +796,40 @@ def process_inbound_email_job(job: dict) -> None:
             insert_block(conn, document_id=doc_id, section_id=section_id, text_content=content)
 
         # Process any attachments the vendor included in their reply.
+        # Attachments were uploaded to MinIO by the webhook — download,
+        # ingest, then tag with source='email'.
         attachment_doc_ids: list[int] = []
-        for att_path_str in meta.get("attachment_paths") or []:
+        for att in meta.get("attachment_keys") or []:
+            att_key = att.get("key")
+            att_name = att.get("name", "attachment")
+            if not att_key:
+                continue
+            tmp_path = TEMP_DIR / f"att_{job_id}_{uuid.uuid4().hex[:8]}_{att_name}"
             try:
-                att_path = Path(att_path_str)
-                if not att_path.exists():
-                    continue
+                download_file(_MINIO_BUCKET, att_key, tmp_path)
                 att_result = ingest_file(
                     case_id=case_id,
-                    file_path=att_path,
-                    document_name=att_path.name,
+                    file_path=tmp_path,
+                    document_name=att_name,
                 )
                 att_doc_id = att_result.get("document_id")
                 if att_doc_id:
-                    # Upload to MinIO + tag source
-                    storage_ref = _upload_to_minio(att_path, att_path.name)
-                    sp = f"{storage_ref['bucket']}/{storage_ref['object_key']}"
                     with tx() as conn:
                         with conn.cursor() as cur:
                             cur.execute(
-                                "UPDATE documents SET source = 'email', storage_path = %s WHERE id = %s",
-                                (sp, att_doc_id),
+                                "UPDATE documents SET source = 'email', "
+                                "storage_path = %s WHERE id = %s",
+                                (f"{_MINIO_BUCKET}/{att_key}", att_doc_id),
                             )
                     attachment_doc_ids.append(att_doc_id)
-                # Clean up temp file
-                try:
-                    att_path.unlink()
-                except OSError:
-                    pass
             except Exception as e:
                 print(f"[{WORKER_ID}] Job {job_id}: attachment ingest failed — {e}")
+            finally:
+                try:
+                    if tmp_path.exists():
+                        tmp_path.unlink()
+                except OSError:
+                    pass
 
         mgr = VendorMatchManager()
         match = mgr.get_match(vendor_match_id)

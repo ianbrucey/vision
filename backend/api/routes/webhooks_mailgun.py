@@ -25,6 +25,7 @@ from fastapi import APIRouter, Form, File, UploadFile, HTTPException
 
 from core.vendor_match import VendorMatchManager
 from ingestion.jobs import enqueue as _enqueue_job
+from ingestion.storage import upload_attachment
 
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
 
@@ -32,11 +33,6 @@ vendor_match_mgr = VendorMatchManager()
 
 _SIGNING_KEY = os.environ.get("MAILGUN_WEBHOOK_SIGNING_KEY", "")
 _RECIPIENT_RE = re.compile(r"^vmatch-([0-9a-f]{16})@", re.IGNORECASE)
-
-# Temp dir for saving inbound attachments before enqueuing
-# Shared volume between API and worker containers so the worker can
-# access attachment files saved by the webhook.
-_ATTACH_TMP = Path(os.environ.get("VISION_MAILGUN_TMP", "/tmp/vision-mailgun"))
 
 
 def _verify_signature(timestamp: str, token: str, signature: str) -> bool:
@@ -71,21 +67,17 @@ async def mailgun_inbound_webhook(
     attachment_5: UploadFile | None = File(None, alias="attachment-5"),
 ):
     """Mailgun inbound route target. Field names/casing per Mailgun's
-    documented inbound multipart payload (see PLAN.md §0 research —
-    'recipient', 'sender', 'subject', 'stripped-text', 'body-plain',
-    'timestamp', 'token', 'signature' are exact Mailgun field names).
+    documented inbound multipart payload.
 
     Returns 200 for all "handled" outcomes once signature is verified —
     including "no correlation token" and "no matching message" — so
-    Mailgun does not retry-storm us for cases we can never resolve. Only
-    signature failure (401) and genuine 5xx (e.g. DB down) are non-200.
+    Mailgun does not retry-storm us.
     """
     if not _verify_signature(timestamp, token, signature):
         raise HTTPException(status_code=401, detail="Invalid signature")
 
     m = _RECIPIENT_RE.match(recipient)
     if not m:
-        # Not a reply-correlation address — ignore silently (200, not an error).
         return {"status": "ignored", "reason": "no correlation token in recipient"}
 
     reply_token = m.group(1)
@@ -95,18 +87,20 @@ async def mailgun_inbound_webhook(
 
     text = stripped_text or body_plain or ""
 
-    # Save any attachments to temp files for the worker to pick up.
-    attachment_paths: list[str] = []
-    attach_count = int(attachment_count) if attachment_count else 0
+    # Upload attachments directly to MinIO — no shared filesystem needed.
+    # The worker downloads them from MinIO for OCR/ingestion.
+    attachment_keys: list[dict] = []
     for file_obj in [attachment_1, attachment_2, attachment_3, attachment_4, attachment_5]:
         if file_obj is None or not file_obj.filename:
             continue
-        _ATTACH_TMP.mkdir(parents=True, exist_ok=True)
-        safe_name = re.sub(r"[^a-zA-Z0-9._-]", "_", file_obj.filename or "attachment")
-        dest = _ATTACH_TMP / f"{uuid.uuid4().hex}_{safe_name}"
-        content = await file_obj.read()
-        dest.write_bytes(content)
-        attachment_paths.append(str(dest))
+        try:
+            content = await file_obj.read()
+            safe_name = re.sub(r"[^a-zA-Z0-9._-]", "_", file_obj.filename or "attachment")
+            obj_key = f"mailgun_attachments/{uuid.uuid4().hex}_{safe_name}"
+            upload_attachment(obj_key, content)
+            attachment_keys.append({"key": obj_key, "name": file_obj.filename})
+        except Exception as e:
+            print(f"Webhook: failed to upload attachment {file_obj.filename}: {e}")
 
     job = _enqueue_job(
         case_id=message["case_id"],
@@ -116,7 +110,7 @@ async def mailgun_inbound_webhook(
             "sender": sender,
             "subject": subject,
             "text": text,
-            "attachment_paths": attachment_paths,
+            "attachment_keys": attachment_keys,
         },
     )
     return {"status": "queued", "job_id": job["id"]}

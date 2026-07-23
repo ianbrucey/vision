@@ -55,8 +55,6 @@ services:
       VISION_DB_HOST: vision-db
       MINIO_ENDPOINT: vision-minio:9000
       MINIO_SERVER_URL: https://files-vision.justicequest.pro
-    volumes:
-      - vision_mailgun_tmp:/tmp/vision-mailgun
     depends_on:
       vision-db:
         condition: service_healthy
@@ -119,4 +117,3 @@ volumes:
   vision_minio_data:
   vision_caddy_data:
   vision_caddy_config:
-  vision_mailgun_tmp:
