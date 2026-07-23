@@ -386,6 +386,41 @@ def preview_document(doc_id: int, user: dict = Depends(get_current_user)):
 
     _db_id, doc_name, storage_path = row
 
+    # Infer file type from extension
+    ext = doc_name.rsplit(".", 1)[-1].lower() if "." in doc_name else ""
+    type_map = {
+        "pdf": "pdf", "jpg": "image", "jpeg": "image", "png": "image",
+        "gif": "image", "webp": "image", "bmp": "image",
+        "mp3": "audio", "wav": "audio", "m4a": "audio", "ogg": "audio",
+        "flac": "audio", "webm": "audio", "mp4": "audio",
+        "txt": "text", "csv": "text", "md": "text", "json": "text",
+        "docx": "text", "xlsx": "text", "pptx": "text",
+    }
+    doc_type = type_map.get(ext, "unknown")
+
+    # For text/office documents that were ingested (OCR/extracted),
+    # return the block text content so the frontend can display it
+    # directly instead of trying to render a binary file.
+    if doc_type == "text" and storage_path:
+        conn = connect()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """SELECT text_content FROM blocks
+                       WHERE document_id = %s
+                       ORDER BY page, id""",
+                    (doc_id,),
+                )
+                block_rows = cur.fetchall()
+        finally:
+            conn.close()
+
+        if block_rows:
+            content = "\n\n".join(r[0] for r in block_rows if r[0])
+            if content.strip():
+                return {"url": None, "name": doc_name, "type": "text", "content": content}
+
+    # No storage_path at all — try blocks as fallback.
     if not storage_path:
         conn = connect()
         try:
@@ -401,8 +436,7 @@ def preview_document(doc_id: int, user: dict = Depends(get_current_user)):
             conn.close()
 
         if not block_rows:
-            raise HTTPException(status_code=404, detail="Document has no storage path — was it ingested before the worker fix?")
-
+            raise HTTPException(status_code=404, detail="Document has no content available")
         content = "\n\n".join(r[0] for r in block_rows if r[0])
         return {"url": None, "name": doc_name, "type": "text", "content": content}
 
@@ -416,16 +450,6 @@ def preview_document(doc_id: int, user: dict = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate presigned URL: {e}")
 
-    # Infer file type from extension
-    ext = doc_name.rsplit(".", 1)[-1].lower() if "." in doc_name else ""
-    type_map = {
-        "pdf": "pdf", "jpg": "image", "jpeg": "image", "png": "image",
-        "gif": "image", "webp": "image", "bmp": "image",
-        "mp3": "audio", "wav": "audio", "m4a": "audio", "ogg": "audio",
-        "flac": "audio", "webm": "audio", "mp4": "audio",
-        "txt": "text", "csv": "text", "md": "text", "json": "text",
-        "docx": "office", "xlsx": "office",
-    }
     return {
         "url": url,
         "name": doc_name,
