@@ -28,13 +28,19 @@ export function useSystemAgent() {
       const resp = await fetch(`${API_BASE}/api/agent`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-        body: JSON.stringify({ message: text, session_id: sessionId }),
+        body: JSON.stringify({
+          message: text,
+          ...(sessionId != null ? { session_id: sessionId } : {}),
+        }),
         signal: ac.signal,
       });
 
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ detail: resp.statusText }));
-        throw new Error(err.detail || `HTTP ${resp.status}`);
+        const detail = Array.isArray(err.detail)
+          ? err.detail.map((d: Record<string, unknown>) => d.msg || JSON.stringify(d)).join("; ")
+          : err.detail;
+        throw new Error(detail || `HTTP ${resp.status}`);
       }
 
       // Read SSE stream
