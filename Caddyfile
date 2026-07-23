@@ -25,6 +25,6 @@ vision.justicequest.pro, http://vision.justicequest.pro {
 # Public MinIO — for browser-accessible presigned URLs (document previews).
 # Only the object storage port is exposed publicly; the MinIO console (:9003)
 # is NOT routed here.
-files-vision.justicequest.pro {
+files-vision.justicequest.pro, http://files-vision.justicequest.pro {
     reverse_proxy vision-minio:9000
 }
