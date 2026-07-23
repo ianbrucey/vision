@@ -571,6 +571,43 @@ def ensure_saved_reports_schema() -> list[str]:
     return applied
 
 
+def ensure_ga_doas_opportunities_schema() -> list[str]:
+    """Apply the GA DOAS opportunities migration (v31).
+
+    Creates ga_doas_opportunities table for Georgia state procurement.
+    Idempotent.
+    """
+    sql_path = _SCHEMA_DIR / "021_ga_doas_opportunities.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(f"GA DOAS opportunities schema file not found: {sql_path}")
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_dibbs_rfqs_schema() -> list[str]:
+    """Apply the DIBBS RFQs migration (v32). Idempotent."""
+    sql_path = _SCHEMA_DIR / "022_dibbs_rfqs.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(f"DIBBS RFQs schema file not found: {sql_path}")
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_publog_flis_schema() -> list[str]:
+    """Apply the Publog FLIS migration (v33). Idempotent."""
+    sql_path = _SCHEMA_DIR / "023_publog_flis.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(f"Publog FLIS schema file not found: {sql_path}")
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
 # ---------------------------------------------------------------------------
 # Journal CRUD
 # ---------------------------------------------------------------------------
@@ -1746,4 +1783,6 @@ __all__ = [
     "ensure_sam_notice_import_job_schema",
     "ensure_forecast_opportunities_schema",
     "ensure_saved_reports_schema",
+    "ensure_ga_doas_opportunities_schema",
+    "ensure_dibbs_rfqs_schema",
 ]
