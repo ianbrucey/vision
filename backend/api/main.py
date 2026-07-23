@@ -583,17 +583,18 @@ async def system_agent(
     import json as _json
 
     mgr = _SysChatMgr()
-    session_id = body.session_id
-    if session_id:
-        session = await mgr.get_session(session_id)
+    sid = body.session_id
+    if sid:
+        session = await mgr.get_session(sid)
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
     else:
         session = await mgr.create_session(case_id=0, system_prompt=_SYSTEM_PROMPT)
+        sid = session["session_id"]
 
     async def stream() -> AsyncIterator[str]:
         try:
-            async for e in mgr.stream_message(session["id"], body.message):
+            async for e in mgr.stream_message(session["session_id"], body.message):
                 if await request.is_disconnected():
                     break
                 yield e
