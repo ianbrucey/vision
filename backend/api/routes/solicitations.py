@@ -117,8 +117,8 @@ def list_solicitations_endpoint(
 
     # Attach unread reply counts for notification badges.
     if sols:
-        case_ids = [s["case_id"] for s in sols if s.get("case_id")]
-        if case_ids:
+        sol_ids = [s["id"] for s in sols if s.get("id")]
+        if sol_ids:
             conn = connect()
             try:
                 with conn.cursor() as cur:
@@ -130,7 +130,7 @@ def list_solicitations_endpoint(
                              AND vom.read_at IS NULL
                              AND vm.solicitation_id = ANY(%s)
                            GROUP BY vm.solicitation_id""",
-                        (case_ids,),
+                        (sol_ids,),
                     )
                     unread_map = {row[0]: row[1] for row in cur.fetchall()}
             finally:
