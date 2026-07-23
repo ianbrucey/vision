@@ -34,7 +34,9 @@ _SIGNING_KEY = os.environ.get("MAILGUN_WEBHOOK_SIGNING_KEY", "")
 _RECIPIENT_RE = re.compile(r"^vmatch-([0-9a-f]{16})@", re.IGNORECASE)
 
 # Temp dir for saving inbound attachments before enqueuing
-_ATTACH_TMP = Path(__file__).resolve().parent.parent.parent / "tmp" / "mailgun_attachments"
+# Shared volume between API and worker containers so the worker can
+# access attachment files saved by the webhook.
+_ATTACH_TMP = Path(os.environ.get("VISION_MAILGUN_TMP", "/tmp/vision-mailgun"))
 
 
 def _verify_signature(timestamp: str, token: str, signature: str) -> bool:
