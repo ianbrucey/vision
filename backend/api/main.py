@@ -575,8 +575,8 @@ class SysAgentReq(_BaseModel):
 
 @app.post("/api/agent")
 async def system_agent(
-    body: SysAgentReq,
     request: Request,
+    body: SysAgentReq,
     user: dict = Depends(get_current_user),
 ):
     """System-wide AI agent — SSE streaming, like case chat but global scope."""
