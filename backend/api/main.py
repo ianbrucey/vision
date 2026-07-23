@@ -582,14 +582,14 @@ async def system_agent(
     """System-wide AI agent — SSE streaming, like case chat but global scope."""
     import json as _json
 
-    mgr = _SysChatMgr(case_id=None, system_prompt=_SYSTEM_PROMPT)
+    mgr = _SysChatMgr()
     session_id = body.session_id
     if session_id:
         session = await mgr.get_session(session_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
     else:
-        session = await mgr.create_session(user["username"])
+        session = await mgr.create_session(case_id=0, system_prompt=_SYSTEM_PROMPT)
 
     async def stream() -> AsyncIterator[str]:
         try:

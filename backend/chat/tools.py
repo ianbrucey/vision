@@ -123,12 +123,11 @@ def create_vision_server(case_id: int | None = None):
     Each tool handler captures case_id from this function's closure.
     The agent never sees or provides a case_id — it's hardcoded per session.
 
-    When case_id is None (system agent), tools operate across ALL cases —
-    no case-level scoping. Some case-specific tools (get_case, list_documents)
-    require an explicit case_id parameter in system mode.
+    When case_id is None or 0 (system agent), tools operate across ALL cases —
+    no case-level scoping.
     """
 
-    _is_system = case_id is None
+    _is_system = case_id is None or case_id == 0
 
     # -- verification helpers (capture case_id) -------------------------------
 
