@@ -5086,6 +5086,57 @@ def create_vision_server(case_id: int | None = None):
         except Exception as exc:
             return _error(f"delete_report failed: {exc}")
 
+    # -- Layer 17: Solicitation Creation --------------------------------------
+
+    @tool(
+        "create_solicitation",
+        "Create a new federal solicitation from a SAM.gov URL. This enqueues "
+        "a sam_fetch job that downloads all documents and metadata, then "
+        "auto-triggers triage and vendor matching when complete.",
+        {
+            "type": "object",
+            "properties": {
+                "url": {
+                    "type": "string",
+                    "description": "Full SAM.gov opportunity URL (e.g. https://sam.gov/opp/abc123/view)",
+                },
+            },
+            "required": ["url"],
+        },
+    )
+    async def create_solicitation_from_url(args: dict) -> dict:
+        """Create a solicitation from a SAM.gov URL, enqueue sam_fetch."""
+        try:
+            from core.solicitation import SolicitationManager, DuplicateNoticeError
+            from ingestion.jobs import enqueue
+            from ingestion.sam_client import extract_notice_id
+
+            url = args["url"]
+            notice_id = extract_notice_id(url)
+            if not notice_id:
+                return _error("Could not extract notice ID from URL. Make sure it's a valid SAM.gov opportunity URL.")
+
+            mgr = SolicitationManager()
+            try:
+                sol = mgr.create(source_type="federal", url=url, notice_id=notice_id)
+            except DuplicateNoticeError as e:
+                return _error(str(e))
+
+            job = enqueue(
+                case_id=sol["case_id"],
+                job_type="sam_fetch",
+                metadata={"solicitation_id": sol["id"], "notice_id": notice_id},
+            )
+            return _result({
+                "solicitation_id": sol["id"],
+                "case_id": sol["case_id"],
+                "notice_id": notice_id,
+                "job_id": job["id"],
+                "title": sol.get("title", ""),
+            })
+        except Exception as exc:
+            return _error(f"create_solicitation failed: {exc}")
+
     # -- Build server --------------------------------------------------------
 
     return create_sdk_mcp_server(
@@ -5094,6 +5145,7 @@ def create_vision_server(case_id: int | None = None):
         tools=[
             list_jobs,
             get_job,
+            create_solicitation_from_url,
             retry_job,
             get_case,
             list_workspaces,
