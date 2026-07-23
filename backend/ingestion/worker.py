@@ -769,6 +769,7 @@ def process_inbound_email_job(job: dict) -> None:
         return
 
     try:
+        import uuid
         from core.db import tx, insert_document
         from core.vendor_match import VendorMatchManager
 
