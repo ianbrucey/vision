@@ -117,22 +117,37 @@ KB_CASE_NAME = "Knowledge Base — Cross-Case Reference"
 # ---------------------------------------------------------------------------
 
 
-def create_vision_server(case_id: int):
-    """Create a vision MCP server with all tools scoped to case_id.
+def create_vision_server(case_id: int | None = None):
+    """Create a vision MCP server with tools scoped to case_id.
 
     Each tool handler captures case_id from this function's closure.
     The agent never sees or provides a case_id — it's hardcoded per session.
+
+    When case_id is None (system agent), tools operate across ALL cases —
+    no case-level scoping. Some case-specific tools (get_case, list_documents)
+    require an explicit case_id parameter in system mode.
     """
+
+    _is_system = case_id is None
 
     # -- verification helpers (capture case_id) -------------------------------
 
     def _doc_in_case(document_id: int) -> bool:
+        if _is_system:
+            return _query_one("SELECT 1 FROM documents WHERE id = %s", (document_id,)) is not None
         return _query_one(
             "SELECT 1 FROM documents WHERE id = %s AND case_id = %s",
             (document_id, case_id),
         ) is not None
 
     def _block_in_case(block_id: int) -> bool:
+        if _is_system:
+            return _query_one(
+                """SELECT 1 FROM blocks b
+                   JOIN documents d ON b.document_id = d.id
+                   WHERE b.id = %s""",
+                (block_id,),
+            ) is not None
         return _query_one(
             """SELECT 1 FROM blocks b
                JOIN documents d ON b.document_id = d.id
@@ -141,6 +156,13 @@ def create_vision_server(case_id: int):
         ) is not None
 
     def _section_in_case(section_id: int) -> bool:
+        if _is_system:
+            return _query_one(
+                """SELECT 1 FROM sections s
+                   JOIN documents d ON s.document_id = d.id
+                   WHERE s.id = %s""",
+                (section_id,),
+            ) is not None
         return _query_one(
             """SELECT 1 FROM sections s
                JOIN documents d ON s.document_id = d.id

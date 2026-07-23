@@ -547,6 +547,66 @@ def synthesize_case(case_id: int, user: dict = Depends(get_current_user)):
 # Chat
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# System Agent — standalone AI with system-wide scope.
+# ---------------------------------------------------------------------------
+
+from chat.manager import ChatManager as _SysChatMgr
+
+_SYSTEM_PROMPT = """You are the Vision System Agent — an AI operations assistant for a
+government contracting platform. You have full visibility into the entire system.
+
+You can:
+- Check the status of any solicitation, case, or job
+- List pending triages, vendor matches, and outreach
+- Create new solicitations from SAM.gov URLs
+- Search the SAM notices databank (4k+ entries) and forecast databank (7k+ entries)
+- Show unread vendor replies and outreach status
+- Create and manage cases
+
+Be concise and direct. Use tools to answer questions — don't guess."""
+
+from fastapi.responses import StreamingResponse as _StreamingResponse
+from pydantic import BaseModel as _BaseModel
+
+class SysAgentReq(_BaseModel):
+    message: str
+    session_id: int | None = None
+
+@app.post("/api/agent")
+async def system_agent(
+    body: SysAgentReq,
+    request: Request,
+    user: dict = Depends(get_current_user),
+):
+    """System-wide AI agent — SSE streaming, like case chat but global scope."""
+    import json as _json
+
+    mgr = _SysChatMgr(case_id=None, system_prompt=_SYSTEM_PROMPT)
+    session_id = body.session_id
+    if session_id:
+        session = await mgr.get_session(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+    else:
+        session = await mgr.create_session(user["username"])
+
+    async def stream() -> AsyncIterator[str]:
+        try:
+            async for e in mgr.stream_message(session["id"], body.message):
+                if await request.is_disconnected():
+                    break
+                yield e
+        except Exception as exc:
+            yield f"data: {_json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
+
+    return _StreamingResponse(
+        stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
+    )
+
+
 from api.routes.chat import router as chat_router
 from api.routes.drafts import router as drafts_router
 from api.routes.workspace import router as workspace_router

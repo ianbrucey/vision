@@ -40,7 +40,7 @@ class AgentSession:
     Each turn: client.query(user_message) → client.receive_response().
     """
 
-    def __init__(self, session_id: int, case_id: int, system_prompt: str):
+    def __init__(self, session_id: int, case_id: int | None, system_prompt: str):
         self.session_id = session_id
         self.case_id = case_id
         self.system_prompt = system_prompt
@@ -55,7 +55,8 @@ class AgentSession:
         from claude_agent_sdk import ClaudeSDKClient, ClaudeAgentOptions
 
         store = PostgresSessionStore(lambda: connect())
-        sdk_workdir = _TMP_ROOT / f"case_{self.case_id}"
+        label = f"case_{self.case_id}" if self.case_id is not None else "system"
+        sdk_workdir = _TMP_ROOT / label
         sdk_workdir.mkdir(parents=True, exist_ok=True)
 
         # Create a per-session vision server — case_id is captured in

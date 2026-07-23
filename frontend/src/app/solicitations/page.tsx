@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { listSolicitations, createSolicitation, deleteSolicitation, triggerTriage, type Solicitation } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
-import { Plus, FolderOpen, Loader2, FileSearch, AlertTriangle, Trash2, RefreshCw, Search, ArrowUpDown, ArrowUp, ArrowDown, X } from "lucide-react";
+import { Plus, FolderOpen, Loader2, FileSearch, AlertTriangle, Trash2, RefreshCw, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Sparkles, Send, Bot } from "lucide-react";
+import { useSystemAgent, type SystemMessage } from "@/hooks/useSystemAgent";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-surface-2 text-text-disabled",
@@ -50,6 +51,9 @@ export default function SolicitationsPage() {
   const [createError, setCreateError] = useState("");
   const [creating, setCreating] = useState(false);
   const [showCreateMobile, setShowCreateMobile] = useState(false);
+  const [showAgent, setShowAgent] = useState(false);
+  const [agentInput, setAgentInput] = useState("");
+  const agent = useSystemAgent();
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [deleting, setDeleting] = useState<number | null>(null);
@@ -581,6 +585,81 @@ export default function SolicitationsPage() {
           )}
         </div>
       </div>
+      {/* System Agent FAB */}
+      <button
+        onClick={() => setShowAgent(!showAgent)}
+        className={`fixed bottom-6 right-6 z-40 size-14 rounded-full shadow-lg
+                     flex items-center justify-center transition-all duration-200
+                     ${showAgent ? "bg-danger text-white rotate-45" : "bg-brand text-white hover:bg-brand-hover"}`}
+        aria-label="System Agent"
+      >
+        {showAgent ? <X size={22} /> : <Sparkles size={22} />}
+      </button>
+
+      {/* System Agent Panel */}
+      {showAgent && (
+        <div className="fixed bottom-24 right-6 z-40 w-[380px] max-w-[calc(100vw-2rem)]
+                        h-[550px] max-h-[70vh] bg-surface-1 border border-border rounded-xl
+                        shadow-2xl flex flex-col overflow-hidden">
+          {/* Header */}
+          <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-border">
+            <div className="flex items-center gap-2">
+              <Bot size={18} className="text-brand" />
+              <span className="text-sm font-semibold">System Agent</span>
+            </div>
+            <button onClick={agent.clear} className="text-xs text-text-disabled hover:text-text-secondary">
+              Clear
+            </button>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {agent.messages.length === 0 && (
+              <p className="text-xs text-text-disabled text-center py-8">
+                Ask me anything — case status, job queue, SAM notices, vendor replies…
+              </p>
+            )}
+            {agent.messages.map((msg, i) => (
+              <div key={i} className={`text-xs leading-relaxed ${msg.role === "user" ? "text-right" : ""}`}>
+                <span className={`inline-block max-w-[85%] rounded-lg px-3 py-2 ${
+                  msg.role === "user"
+                    ? "bg-brand text-white"
+                    : "bg-surface-2 text-text-primary"
+                }`}>
+                  <span className="whitespace-pre-wrap">{msg.content}</span>
+                </span>
+              </div>
+            ))}
+            {agent.loading && (
+              <div className="text-xs text-text-disabled flex items-center gap-1">
+                <Loader2 size={12} className="animate-spin" />
+                Thinking…
+              </div>
+            )}
+          </div>
+
+          {/* Input */}
+          <form
+            onSubmit={(e) => { e.preventDefault(); agent.send(agentInput); setAgentInput(""); }}
+            className="shrink-0 border-t border-border p-3 flex gap-2"
+          >
+            <input
+              value={agentInput}
+              onChange={(e) => setAgentInput(e.target.value)}
+              placeholder="Ask about cases, jobs, notices..."
+              className="flex-1 text-xs bg-surface-2 border border-border rounded-lg px-3 py-2
+                         text-text-primary placeholder:text-text-disabled outline-none focus:border-brand"
+            />
+            <button
+              type="submit"
+              disabled={agent.loading || !agentInput.trim()}
+              className="bg-brand text-white px-3 py-2 rounded-lg disabled:opacity-50"
+            >
+              <Send size={14} />
+            </button>
+          </form>
+        </div>
+      )}
     </main>
   );
 }
