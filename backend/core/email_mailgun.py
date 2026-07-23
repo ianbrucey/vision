@@ -48,7 +48,7 @@ def send_email(
 
     to_field = f"{to_name} <{to_email}>" if to_name else to_email
     data = {
-        "from": f"Vision Outreach <postmaster@{_DOMAIN}>",
+        "from": f"Ian Bruce <ian.b@justicequest.pro>",
         "to": to_field,
         "subject": subject,
         "text": text_body,
