@@ -157,14 +157,24 @@ def get_public_url(bucket: str, object_key: str, expires_seconds: int = 3600) ->
     When MINIO_SERVER_URL is set, signs with the public hostname so S3 Signature
     V4 includes the correct Host header — no host rewriting needed.  Falls back
     to the internal client + host rewrite for local dev.
+
+    Includes response-content-type override so browsers render PDFs inline
+    instead of force-downloading (X-Content-Type-Options: nosniff + octet-stream
+    = download).
     """
+    import mimetypes as _mimetypes
+
+    ct, _ = _mimetypes.guess_type(object_key)
+    headers: dict[str, str] = {"response-content-disposition": "inline"}
+    if ct:
+        headers["response-content-type"] = ct
+
     public_client = _get_public_client()
     if public_client is not None:
-        # Client is secure=True so URL is already https:// with the correct host.
         return public_client.presigned_get_object(
             bucket, object_key,
             expires=timedelta(seconds=expires_seconds),
-            response_headers={"response-content-disposition": "inline"},
+            response_headers=headers,
         )
 
     # Fallback: internal client + host rewrite (local dev / no MINIO_SERVER_URL).
@@ -172,7 +182,7 @@ def get_public_url(bucket: str, object_key: str, expires_seconds: int = 3600) ->
     url = client.presigned_get_object(
         bucket, object_key,
         expires=timedelta(seconds=expires_seconds),
-        response_headers={"response-content-disposition": "inline"},
+        response_headers=headers,
     )
     if _MINIO_PUBLIC_ENDPOINT:
         parts = urlsplit(url)
