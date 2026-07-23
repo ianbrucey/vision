@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { X, Loader2, Download, AlertCircle, FileText } from "lucide-react";
 import { getDocumentPreviewUrl } from "@/lib/api";
 
@@ -17,6 +17,34 @@ interface DocumentPreviewModalProps {
   open: boolean;
   onClose: () => void;
 }
+
+/* ------------------------------------------------------------------ */
+/* Helpers                                                            */
+/* ------------------------------------------------------------------ */
+
+function isSpreadsheet(name: string): boolean {
+  const ext = name.split(".").pop()?.toLowerCase();
+  return ext === "csv" || ext === "xlsx" || ext === "xls";
+}
+
+function isDocument(name: string): boolean {
+  const ext = name.split(".").pop()?.toLowerCase();
+  return ext === "docx" || ext === "doc";
+}
+
+/** Parse CSV/XLSX block text into rows. Handles comma-separated and
+ *  tab-separated content. */
+function parseRows(text: string): string[][] {
+  const lines = text.split("\n").filter((l) => l.trim());
+  const separator = lines[0]?.includes("\t") ? "\t" : ",";
+  return lines.map((line) =>
+    line.split(separator).map((cell) => cell.trim().replace(/^"|"$/g, "")),
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Component                                                          */
+/* ------------------------------------------------------------------ */
 
 export default function DocumentPreviewModal({
   docId,
@@ -37,23 +65,18 @@ export default function DocumentPreviewModal({
     previousFocus.current = document.activeElement as HTMLElement;
     document.body.style.overflow = "hidden";
 
-    /* eslint-disable react-hooks/set-state-in-effect */
     setLoading(true);
     setError(null);
     setData(null);
     setTextContent(null);
-    /* eslint-enable react-hooks/set-state-in-effect */
 
     getDocumentPreviewUrl(docId)
       .then((d) => {
         setData(d);
-        // Inline content (e.g. storage-less documents like inbound email
-        // replies) is returned directly — no file to fetch.
         if (d.content !== undefined) {
           setTextContent(d.content);
           return;
         }
-        // For text files backed by a file, fetch the content.
         if (d.url && (d.type === "text" || d.type === "unknown")) {
           return fetch(d.url)
             .then((r) => r.text())
@@ -87,25 +110,43 @@ export default function DocumentPreviewModal({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, onKeyDown]);
 
+  /* ---- parsed table ---- */
+
+  const sheetRows = useMemo(() => {
+    if (!textContent) return null;
+    const displayName = data?.name || docName;
+    if (!isSpreadsheet(displayName)) return null;
+    return parseRows(textContent);
+  }, [textContent, data, docName]);
+
+  const showAsDoc = useMemo(() => {
+    if (!data) return false;
+    return isDocument(data.name) && !!textContent;
+  }, [data, textContent]);
+
   /* ---- render ---- */
+
+  const displayName = data?.name || docName;
 
   if (!open) return null;
 
   return (
     <div
       className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-2 sm:p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
-      <div className="bg-surface-1 border border-border rounded-t-xl sm:rounded-xl shadow-md
-                      w-full h-[95dvh] sm:h-[90vh] sm:max-w-[90vw] sm:max-w-3xl
+      <div
+        className="bg-surface-1 border border-border rounded-t-xl sm:rounded-xl shadow-md
+                      w-full h-[95dvh] sm:h-[90vh] sm:max-w-4xl
                       flex flex-col overflow-hidden
-                      animate-in fade-in zoom-in-95 duration-200">
+                      animate-in fade-in zoom-in-95 duration-200"
+      >
         {/* Header */}
         <div className="shrink-0 flex items-center justify-between px-4 sm:px-6 py-3 border-b border-border">
           <div className="min-w-0 mr-2">
-            <h2 className="text-sm font-semibold truncate">
-              {data?.name || docName}
-            </h2>
+            <h2 className="text-sm font-semibold truncate">{displayName}</h2>
             {data && (
               <p className="text-xs text-text-disabled capitalize">{data.type}</p>
             )}
@@ -149,10 +190,6 @@ export default function DocumentPreviewModal({
             <div className="flex flex-col items-center gap-3 text-center px-4">
               <AlertCircle size={32} className="text-danger" />
               <p className="text-sm text-danger">{error}</p>
-              <p className="text-xs text-text-secondary">
-                This document may have been uploaded before the storage fix.
-                Try re-uploading it.
-              </p>
             </div>
           )}
 
@@ -189,16 +226,69 @@ export default function DocumentPreviewModal({
                 </div>
               )}
 
-              {/* Text */}
-              {(data.type === "text" || (data.type === "unknown" && textContent)) && (
-                <pre className="w-full h-full overflow-auto p-4 sm:p-6 text-sm leading-relaxed
-                               whitespace-pre-wrap font-mono text-text-primary bg-surface-1">
-                  {textContent || "[No content]"}
+              {/* Spreadsheet — rendered as an HTML table */}
+              {sheetRows && (
+                <div className="w-full h-full overflow-auto">
+                  <table className="w-full text-xs border-collapse">
+                    <thead className="sticky top-0 z-10">
+                      <tr className="bg-surface-2">
+                        {sheetRows[0]?.map((h, i) => (
+                          <th
+                            key={i}
+                            className="px-3 py-2 text-left font-semibold text-text-primary
+                                       border-b border-border whitespace-nowrap"
+                          >
+                            {h || `Col ${i + 1}`}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sheetRows.slice(1).map((row, ri) => (
+                        <tr
+                          key={ri}
+                          className={ri % 2 === 0 ? "bg-surface-1" : "bg-surface-0"}
+                        >
+                          {row.map((cell, ci) => (
+                            <td
+                              key={ci}
+                              className="px-3 py-1.5 text-text-secondary border-b
+                                         border-border-light whitespace-nowrap"
+                            >
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Document (DOCX) — styled text, not monospace */}
+              {showAsDoc && !sheetRows && (
+                <div className="w-full h-full overflow-auto p-6 sm:p-8 bg-white">
+                  <div
+                    className="max-w-[7in] mx-auto text-sm leading-relaxed
+                               text-gray-900 font-sans whitespace-pre-wrap"
+                  >
+                    {textContent}
+                  </div>
+                </div>
+              )}
+
+              {/* Plain text (not a spreadsheet or doc) */}
+              {textContent && !sheetRows && !showAsDoc && (
+                <pre
+                  className="w-full h-full overflow-auto p-4 sm:p-6 text-sm leading-relaxed
+                             whitespace-pre-wrap font-mono text-text-primary bg-surface-1"
+                >
+                  {textContent}
                 </pre>
               )}
 
-              {/* Office / unsupported */}
-              {(data.type === "office" || (data.type === "unknown" && !textContent)) && (
+              {/* Unsupported — only download */}
+              {!textContent && data.type !== "pdf" && data.type !== "image" && data.type !== "audio" && (
                 <div className="flex flex-col items-center gap-4 text-center p-8">
                   <FileText size={48} className="text-text-disabled" />
                   <div>
@@ -207,16 +297,18 @@ export default function DocumentPreviewModal({
                       Preview not available for this file type.
                     </p>
                   </div>
-                  <a
-                    href={data.url ?? undefined}
-                    download={data.name}
-                    className="inline-flex items-center gap-2 bg-brand hover:bg-brand-hover
-                               text-white px-4 py-2 rounded-lg text-sm font-medium
-                               transition-colors"
-                  >
-                    <Download size={16} />
-                    Download File
-                  </a>
+                  {data.url && (
+                    <a
+                      href={data.url}
+                      download={data.name}
+                      className="inline-flex items-center gap-2 bg-brand hover:bg-brand-hover
+                                 text-white px-4 py-2 rounded-lg text-sm font-medium
+                                 transition-colors"
+                    >
+                      <Download size={16} />
+                      Download File
+                    </a>
+                  )}
                 </div>
               )}
             </>
