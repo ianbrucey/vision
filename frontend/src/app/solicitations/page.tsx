@@ -495,6 +495,11 @@ export default function SolicitationsPage() {
                   <p className="text-sm text-text-primary truncate">{s.title}</p>
                   <p className="text-[10px] text-text-disabled truncate">{s.agency || s.url}</p>
                 </div>
+                {s.unread_replies ? (
+                  <span className="text-[11px] px-2 py-0.5 rounded-full font-bold shrink-0 bg-danger text-white">
+                    {s.unread_replies}
+                  </span>
+                ) : null}
                 <span
                   className={`text-[11px] px-2 py-0.5 rounded-sm font-medium shrink-0 ${
                     SOURCE_TYPE_COLORS[s.source_type] || "bg-surface-2 text-text-secondary"

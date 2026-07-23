@@ -95,6 +95,7 @@ export interface Solicitation {
   matching_error: string | null;
   outreach_email_subject: string | null;
   outreach_email_body: string | null;
+  unread_replies?: number;
 }
 
 export interface SolicitationWithDocuments extends Solicitation {

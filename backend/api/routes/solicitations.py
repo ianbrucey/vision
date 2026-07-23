@@ -13,6 +13,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from auth import get_current_user
+from core.db import connect
 from core.solicitation import SolicitationManager, DuplicateNoticeError
 from core.vendor import VendorManager
 from core.vendor_match import VendorMatchManager
@@ -113,6 +114,30 @@ def list_solicitations_endpoint(
         limit=limit,
         offset=offset,
     )
+
+    # Attach unread reply counts for notification badges.
+    if sols:
+        case_ids = [s["case_id"] for s in sols if s.get("case_id")]
+        if case_ids:
+            conn = connect()
+            try:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """SELECT vm.solicitation_id, COUNT(*) AS unread
+                           FROM vendor_outreach_messages vom
+                           JOIN vendor_matches vm ON vm.id = vom.vendor_match_id
+                           WHERE vom.direction = 'inbound'
+                             AND vom.read_at IS NULL
+                             AND vm.solicitation_id = ANY(%s)
+                           GROUP BY vm.solicitation_id""",
+                        (case_ids,),
+                    )
+                    unread_map = {row[0]: row[1] for row in cur.fetchall()}
+            finally:
+                conn.close()
+            for sol in sols:
+                sol["unread_replies"] = unread_map.get(sol["id"], 0)
+
     return {"count": len(sols), "solicitations": sols}
 
 
