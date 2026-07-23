@@ -63,7 +63,7 @@ or weak). For each selected vendor, assign:
 
 Then DRAFT ONE outreach email (not per-vendor). This is a cold outreach to a
 potential subcontractor, supplier, or teaming partner. The goal is to start a
-conversation, not to dump the full solicitation. Follow these rules:
+real conversation — write like a person who knows the space, not a template.
 
 SUBJECT — 8 words max, no NAICS code:
   Format: "[Product/need] — [Agency] [solicitation #]"
@@ -71,67 +71,62 @@ SUBJECT — 8 words max, no NAICS code:
     RFQ:  "Snowmobile supply — USDA Forest Service RFQ 12444526Q0056"
     RFP:  "IT modernization — Dept of Labor RFP 1605C5-25-R-0003"
     SSN:  "Capability statements — DHS Sources Sought 70RTAC25SS00003"
-  The solicitation number tells them it's real. The product/need summary
-  tells them whether to keep reading.
+  The solicitation number tells them it's real. The product summary tells
+  them whether to keep reading.
 
-BODY — adapt structure to the notice type. 5 short paragraphs max:
+BODY — write naturally. A real person should be able to read it and think
+"a human wrote this." Structure:
 
-  FOR AN RFQ (defined commercial items, price-focused):
-    1. What we need — 2-3 sentences: product, quantity, buyer, and 3-4
-       specs that would disqualify someone. Mention brand-name-or-equal
-       if applicable.
-    2. What we're looking for — 1 sentence: supplier? teaming partner?
-    3. Why them — 1 sentence using {{match_reason}} placeholder.
-    4. CTA — see CALL TO ACTION section above (two-tier: email quote first,
-       then phone call). If the solicitation has a deadline, mention it.
-    5. Closing — sign as "Ian Bruce, Justice Quest LLC".
+  1. Opening — "Hi [company name]," or "Hello,". No "Dear X team."
 
-  FOR AN RFP (scope-of-work, evaluation criteria, proposal-heavy):
-    1. The opportunity — 2 sentences: agency, what's being procured,
-       contract type/vehicle if known.
-    2. What we're looking for — 1 sentence: specific role (e.g. "a
-       partner to handle the cloud migration workstream" or "a firm with
-       experience in [X] to strengthen our technical approach").
-    3. Why them — 1 sentence using {{match_reason}} placeholder.
-    4. CTA — see CALL TO ACTION section above. If there's a proposal
-       deadline, mention it.
-    5. Closing — sign as "Ian Bruce, Justice Quest LLC".
+  2. The opportunity — 2-4 sentences describing what's being procured,
+     for whom, key specs (the 3-4 that gate), quantity, delivery, and
+     contract type. State the facts. Use the solicitation number. If it's
+     set-aside, mention it. If it's brand-name-or-equal, mention it.
+     This paragraph tells them what they need to know to decide if they
+     can do the work.
 
-  FOR A SOURCES SOUGHT / RFI (market research, no priced proposal):
-    1. The notice — 1-2 sentences: agency, what they're researching,
-       notice number, and response deadline if close.
-    2. Why we're writing — 1 sentence: "We're responding to this notice
-       and looking for partners whose capabilities strengthen our
-       submission" or similar. If the notice is for small business
-       set-aside determination, mention that.
-    3. What we need from them — 1 sentence: a capability statement?
-       past performance examples? a quick call?
-    4. Why them — 1 sentence using {{match_reason}} placeholder.
-    5. CTA — see CALL TO ACTION section above.
-    6. Closing — sign as "Ian Bruce, Justice Quest LLC".
+  3. What we're looking for — 1-2 sentences. Be specific: supplier?
+     teaming partner? someone to handle a specific workstream? This
+     signals that we're serious and know what we need.
 
-CALL TO ACTION — always offer two options in order of preference:
-  1. "If you can provide a quote, reply to this email and we'll send the
-     full technical specs / scope of work."
-  2. "If a call is easier, let us know what time works and we'll set it up."
-  This lets vendors who can quote immediately do so over email, while
-  keeping the phone option open for those who prefer it.
+  4. Why them — 1-2 conversational sentences. Write the LITERAL
+     placeholder {{match_reason}} as a natural observation, not a
+     citation. Imagine you're pointing at their website and telling a
+     colleague why they're interesting. Examples of the tone:
+       Good: "Powersports dealer in Alaska — a prime snowmobile market.
+       Name directly signals snowmobile retail capability, and Alaska
+       dealers routinely supply mountain-class machines meeting
+       deep-powder specs. Exact NAICS match."
+       Good: "Your firm's experience with the VA's VistA imaging
+       modernization maps directly to the PACS replacement described in
+       the SOW, and you're already in the VA's ecosystem."
+       Bad: "Your firm was identified as a match because of your
+       capabilities in [X] which align with the solicitation's scope."
+     Never use the word "match" or "identified" in this paragraph. Just
+     state what they do and why it's relevant. If the connection is
+     thin, acknowledge it honestly rather than forcing it.
 
-TONE — direct, factual, human. Write like an email you'd actually send.
-No:
-  - "We believe your capabilities would be a valuable asset"
-  - "We look forward to the possibility of working together"
-  - "Strong potential partner" / "esteemed organization"
-  - Em-dashes (—) — use commas, periods, or semicolons instead
-  - Anything that sounds generated by a procurement bot
-Do:
-  - State facts plainly
-  - Use the solicitation number — it builds credibility
-  - Make the email easy to triage in under 10 seconds
+  5. Call to action — two options, email first:
+       "If you can provide a quote, reply to this email and we'll send
+       the full technical specs / scope of work."
+       "If a call is easier, let us know what time works and we'll set
+       it up."
+     If there's a deadline, mention it here: "The response deadline is
+     [date], so we'd want to connect before then."
 
-PLACEHOLDERS — use {{vendor_name}} in the salutation ONLY and
-{{match_reason}} EXACTLY ONCE in the "why them" paragraph. Do NOT use
-either placeholder anywhere else in the body.
+  6. Closing — "Thanks," or "Best," followed by "Ian Bruce, Justice
+     Quest LLC".
+
+TONE — conversational, confident, human. Read it out loud. If it sounds
+like a government document or a marketing email, rewrite it. No em-dashes.
+No exclamation points. No "we believe," "we feel," "esteemed," or
+"valuable partner." Just a person who knows what they need and thinks your
+company might be able to help.
+
+PLACEHOLDERS — use {{vendor_name}} in the salutation only. Use
+{{match_reason}} EXACTLY ONCE, in the "why them" paragraph. Do not use
+either placeholder anywhere else.
 
 When ready, call save_matches ONCE with the full ranked list, then call
 save_outreach_email ONCE with the subject and body. Do not respond with
