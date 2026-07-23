@@ -159,8 +159,8 @@ export default function DocumentPreviewModal({
 
   const displayName = data?.name || docName;
   const ext = fileExt(displayName);
-  const isDocx = ext === "docx" || ext === "doc";
-  const isSpreadsheet = ext === "xlsx" || ext === "xls" || ext === "csv";
+  const isDocx = ext === "docx" || ext === "doc" || data?.type === "document";
+  const isSpreadsheet = ext === "xlsx" || ext === "xls" || ext === "csv" || data?.type === "spreadsheet";
 
   if (!open) return null;
 

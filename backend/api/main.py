@@ -393,34 +393,12 @@ def preview_document(doc_id: int, user: dict = Depends(get_current_user)):
         "gif": "image", "webp": "image", "bmp": "image",
         "mp3": "audio", "wav": "audio", "m4a": "audio", "ogg": "audio",
         "flac": "audio", "webm": "audio", "mp4": "audio",
-        "txt": "text", "csv": "text", "md": "text", "json": "text",
-        "docx": "text", "xlsx": "text", "pptx": "text",
+        "txt": "text", "csv": "spreadsheet", "md": "text", "json": "text",
+        "docx": "document", "xlsx": "spreadsheet", "pptx": "document",
     }
     doc_type = type_map.get(ext, "unknown")
 
-    # For text/office documents that were ingested (OCR/extracted),
-    # return the block text content so the frontend can display it
-    # directly instead of trying to render a binary file.
-    if doc_type == "text" and storage_path:
-        conn = connect()
-        try:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """SELECT text_content FROM blocks
-                       WHERE document_id = %s
-                       ORDER BY page, id""",
-                    (doc_id,),
-                )
-                block_rows = cur.fetchall()
-        finally:
-            conn.close()
-
-        if block_rows:
-            content = "\n\n".join(r[0] for r in block_rows if r[0])
-            if content.strip():
-                return {"url": None, "name": doc_name, "type": "text", "content": content}
-
-    # No storage_path at all — try blocks as fallback.
+    # No storage_path — try blocks as fallback (email replies, etc.)
     if not storage_path:
         conn = connect()
         try:
@@ -440,6 +418,7 @@ def preview_document(doc_id: int, user: dict = Depends(get_current_user)):
         content = "\n\n".join(r[0] for r in block_rows if r[0])
         return {"url": None, "name": doc_name, "type": "text", "content": content}
 
+    # Generate presigned URL — the frontend libraries need the binary.
     parts = storage_path.split("/", 1)
     if len(parts) != 2:
         raise HTTPException(status_code=500, detail=f"Invalid storage path: {storage_path}")
@@ -450,11 +429,31 @@ def preview_document(doc_id: int, user: dict = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate presigned URL: {e}")
 
-    return {
+    # Fetch block text as inline content fallback (email replies,
+    # or for text display when the fancy renderer can't load).
+    conn = connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT text_content FROM blocks
+                   WHERE document_id = %s
+                   ORDER BY page, id""",
+                (doc_id,),
+            )
+            block_rows = cur.fetchall()
+    finally:
+        conn.close()
+
+    content = "\n\n".join(r[0] for r in block_rows if r[0]) if block_rows else None
+
+    result: dict = {
         "url": url,
         "name": doc_name,
-        "type": type_map.get(ext, "unknown"),
+        "type": doc_type,
     }
+    if content:
+        result["content"] = content
+    return result
 
 
 @app.delete("/api/documents/{doc_id}")
