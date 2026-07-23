@@ -672,20 +672,24 @@ class VendorMatchManager:
         return updated
 
     def record_inbound_message(
-        self, vendor_match_id: int, subject: str, body: str, document_id: int
+        self, vendor_match_id: int, subject: str, body: str,
+        document_id: int, metadata: str | None = None,
     ) -> dict:
         """Insert an inbound message row for a received reply (T10c).
 
         Called by process_inbound_email_job after storing the document.
+        Optional metadata (JSON string) stores attachment doc IDs etc.
         """
         with tx() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     """INSERT INTO vendor_outreach_messages
                        (vendor_match_id, direction, status, subject, body,
-                        document_id, received_at)
-                       VALUES (%s, 'inbound', 'received', %s, %s, %s, now())
+                        document_id, received_at, metadata)
+                       VALUES (%s, 'inbound', 'received', %s, %s, %s, now(),
+                               %s::jsonb)
                        RETURNING *""",
-                    (vendor_match_id, subject, body, document_id),
+                    (vendor_match_id, subject, body, document_id,
+                     metadata or "{}"),
                 )
                 return dict(cur.fetchone())

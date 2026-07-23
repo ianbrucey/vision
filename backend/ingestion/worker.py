@@ -834,8 +834,11 @@ def process_inbound_email_job(job: dict) -> None:
         mgr.update_outreach(
             vendor_match_id, outreach_status="received", outreach_doc_id=doc_id
         )
+        import json as _json
+        att_meta = _json.dumps({"attachment_doc_ids": attachment_doc_ids}) if attachment_doc_ids else None
         msg_row = mgr.record_inbound_message(
-            vendor_match_id, subject=subject, body=content, document_id=doc_id
+            vendor_match_id, subject=subject, body=content,
+            document_id=doc_id, metadata=att_meta,
         )
 
         # Send notification email to the operator.

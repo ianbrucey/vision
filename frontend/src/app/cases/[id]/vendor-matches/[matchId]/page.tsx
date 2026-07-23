@@ -259,6 +259,27 @@ export default function VendorMatchThreadPage() {
                     <p className="mt-2 text-xs text-danger">{msg.error_message}</p>
                   )}
 
+                  {/* Attachments */}
+                  {isReceived && (msg as any).metadata?.attachment_doc_ids?.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-border-light">
+                      <p className="text-xs font-medium text-text-secondary mb-2">Attachments</p>
+                      <div className="flex flex-wrap gap-2">
+                        {(msg as any).metadata.attachment_doc_ids.map((did: number) => (
+                          <button
+                            key={did}
+                            onClick={() => setPreviewDocId(did)}
+                            className="inline-flex items-center gap-1.5 bg-surface-2 text-text-primary
+                                       border border-border hover:bg-surface-3 hover:border-border-strong
+                                       px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                          >
+                            <FileText size={12} />
+                            Document #{did}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border-light">
                     {isReceived && (
                       <button
