@@ -16,7 +16,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, Depends, File, HTTPException, Query, UploadFile
+from fastapi import FastAPI, Depends, File, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
