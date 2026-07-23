@@ -91,15 +91,20 @@ def upload_attachment(object_key: str, content: bytes) -> dict:
     file involved, just bytes in memory.
     """
     from io import BytesIO
+    import mimetypes
 
     ensure_bucket()
     client = _get_client()
     data = BytesIO(content)
+    # Detect content type from filename extension so browsers render
+    # PDFs inline instead of showing application/octet-stream.
+    ct, _ = mimetypes.guess_type(object_key)
     client.put_object(
         _MINIO_BUCKET,
         object_key,
         data,
         length=len(content),
+        content_type=ct or "application/octet-stream",
     )
     return {"bucket": _MINIO_BUCKET, "object_key": object_key, "size_bytes": len(content)}
 
