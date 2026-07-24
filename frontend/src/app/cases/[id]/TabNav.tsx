@@ -79,7 +79,7 @@ export default function TabNav({
       {/* Desktop Sidebar                                                  */}
       {/* ================================================================ */}
       <aside className="hidden lg:flex fixed left-0 top-14 bottom-0 w-[220px] bg-surface-1 border-r border-border flex-col z-20">
-        <nav className="flex-1 p-2 flex flex-col gap-0.5">
+        <nav className="flex-1 p-2 flex flex-col gap-0.5 overflow-y-auto">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
