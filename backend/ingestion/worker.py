@@ -250,26 +250,46 @@ def process_sam_fetch_job(job: dict) -> None:
     else:
         TEMP_DIR.mkdir(parents=True, exist_ok=True)
         total = len(resource_links)
-
-        TEMP_DIR.mkdir(parents=True, exist_ok=True)
-        total = len(resource_links)
         for i, link in enumerate(resource_links):
+            # Stagger requests to avoid SAM.gov rate limiting.
+            # 3 workers × 5 docs each = 15 concurrent requests without
+            # this — SAM.gov throttles aggressively beyond a few.
+            if i > 0:
+                time.sleep(2)
+
             pct = 30 + int((i / total) * 60)
             update_progress(job_id, pct)
             local_path = TEMP_DIR / f"{job_id}_sam_{i}"
+
+            # Single retry with backoff for rate-limited downloads.
+            for attempt in (1, 2):
+                try:
+                    print(
+                        f"[{WORKER_ID}] Job {job_id}: downloading resource "
+                        f"{i+1}/{total}..."
+                    )
+                    downloaded = download_resource_link(link, local_path)
+                    break  # success — skip retry
+                except Exception as e:
+                    if attempt == 2:
+                        raise  # final attempt failed
+                    print(
+                        f"[{WORKER_ID}] Job {job_id}: resource {i+1}/{total} "
+                        f"attempt {attempt} FAILED — {e}. Retrying in 5s..."
+                    )
+                    time.sleep(5)
+
+            filename = downloaded["filename"]
+            fpath = downloaded["path"]
+
+            suffix = Path(filename).suffix
+            if suffix and fpath.suffix != suffix:
+                renamed = fpath.with_suffix(suffix)
+                fpath.rename(renamed)
+                fpath = renamed
+                local_path = renamed
+
             try:
-                print(f"[{WORKER_ID}] Job {job_id}: downloading resource {i+1}/{total}...")
-                downloaded = download_resource_link(link, local_path)
-                filename = downloaded["filename"]
-                fpath = downloaded["path"]
-
-                suffix = Path(filename).suffix
-                if suffix and fpath.suffix != suffix:
-                    renamed = fpath.with_suffix(suffix)
-                    fpath.rename(renamed)
-                    fpath = renamed
-                    local_path = renamed
-
                 result = ingest_file(
                     case_id=case_id,
                     file_path=fpath,
@@ -295,7 +315,7 @@ def process_sam_fetch_job(job: dict) -> None:
 
                 print(f"[{WORKER_ID}] Job {job_id}: ingested {filename} (doc_id={doc_id})")
             except Exception as e:
-                print(f"[{WORKER_ID}] Job {job_id}: resource {i+1}/{total} FAILED — {e}")
+                print(f"[{WORKER_ID}] Job {job_id}: resource {i+1}/{total} ingest FAILED — {e}")
                 traceback.print_exc()
                 has_missing_docs = True
             finally:
