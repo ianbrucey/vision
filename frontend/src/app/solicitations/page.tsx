@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { listSolicitations, createSolicitation, deleteSolicitation, triggerTriage, type Solicitation } from "@/lib/api";
+import { listSolicitations, createSolicitation, deleteSolicitation, rerunSolicitation, triggerTriage, type Solicitation } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
-import { Plus, FolderOpen, Loader2, FileSearch, AlertTriangle, Trash2, RefreshCw, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Sparkles, Send, Bot } from "lucide-react";
+import { Plus, FolderOpen, Loader2, FileSearch, AlertTriangle, Trash2, RefreshCw, RotateCcw, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Sparkles, Send, Bot } from "lucide-react";
 import { useSystemAgent, type SystemMessage } from "@/hooks/useSystemAgent";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -125,6 +125,7 @@ export default function SolicitationsPage() {
   };
 
   const [triaging, setTriaging] = useState<number | null>(null);
+  const [rerunning, setRerunning] = useState<number | null>(null);
 
   const handleTriage = async (id: number) => {
     setTriaging(id);
@@ -145,6 +146,19 @@ export default function SolicitationsPage() {
       // keep the row, let user retry
     } finally {
       setTriaging(null);
+    }
+  };
+
+  const handleRerun = async (id: number) => {
+    if (!confirm("Restart this solicitation from scratch? This re-fetches SAM.gov, re-runs triage, and re-matches vendors. Old data will be replaced.")) return;
+    setRerunning(id);
+    try {
+      await rerunSolicitation(id);
+      refresh();
+    } catch {
+      // keep row, let user retry
+    } finally {
+      setRerunning(null);
     }
   };
 
@@ -559,6 +573,27 @@ export default function SolicitationsPage() {
                       <Loader2 size={14} className="animate-spin" />
                     ) : (
                       <RefreshCw size={14} />
+                    )}
+                  </button>
+                )}
+                {s.source_type === "federal" && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRerun(s.id);
+                    }}
+                    disabled={rerunning === s.id}
+                    title="Restart from SAM.gov fetch"
+                    className="p-1.5 rounded-md text-text-disabled shrink-0
+                               hover:bg-info-bg hover:text-info
+                               disabled:opacity-50 disabled:cursor-not-allowed
+                               transition-colors duration-150"
+                    aria-label="Rerun solicitation"
+                  >
+                    {rerunning === s.id ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <RotateCcw size={14} />
                     )}
                   </button>
                 )}

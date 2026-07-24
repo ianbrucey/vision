@@ -271,6 +271,9 @@ export const createSolicitation = (
 export const getSolicitation = (id: number): Promise<SolicitationWithDocuments> =>
   fetchAPI(`/api/solicitations/${id}`);
 
+export const rerunSolicitation = (id: number): Promise<{ solicitation_id: number; job_id: number; status: string }> =>
+  fetchAPI(`/api/solicitations/${id}/rerun`, { method: "POST" });
+
 export const deleteSolicitation = (id: number): Promise<{ deleted: boolean }> =>
   fetchAPI(`/api/solicitations/${id}`, { method: "DELETE" });
 

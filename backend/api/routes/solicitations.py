@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from auth import get_current_user
-from core.db import connect
+from core.db import connect, tx
 from core.solicitation import SolicitationManager, DuplicateNoticeError
 from core.vendor import VendorManager
 from core.vendor_match import VendorMatchManager
@@ -335,6 +335,67 @@ def update_vendor_match_outreach_endpoint(
         detail = str(e)
         status_code = 404 if "not found" in detail else 400
         raise HTTPException(status_code=status_code, detail=detail)
+
+
+# ---------------------------------------------------------------------------
+# Rerun — restart full pipeline from sam_fetch
+# ---------------------------------------------------------------------------
+
+@router.post("/solicitations/{solicitation_id}/rerun")
+def rerun_solicitation_endpoint(
+    solicitation_id: int,
+    user: dict = Depends(get_current_user),
+):
+    """Restart a solicitation from scratch — re-fetch SAM.gov docs, re-triage,
+    re-match. Resets all statuses, deletes old vendor matches and jobs, then
+    enqueues a fresh sam_fetch job. Only works for federal solicitations
+    with a notice_id."""
+    sol = mgr.get(solicitation_id)
+    if sol is None:
+        raise HTTPException(status_code=404, detail="Solicitation not found")
+    if sol.get("source_type") != "federal":
+        raise HTTPException(status_code=400, detail="Only federal solicitations can be re-run")
+    if not sol.get("notice_id"):
+        raise HTTPException(status_code=400, detail="Solicitation has no SAM.gov notice_id")
+
+    case_id = sol["case_id"]
+    notice_id = sol["notice_id"]
+
+    # Reset solicitation status columns
+    mgr.update(
+        solicitation_id,
+        ingestion_status="fetching",
+        has_missing_docs=False,
+        error_message=None,
+        triage_status="pending",
+        triage_error=None,
+        has_partial_artifacts=False,
+        notice_type=None,
+        quick_kill=None,
+        quick_kill_reason=None,
+        matching_status="pending",
+        matching_error=None,
+    )
+
+    # Clear old vendor messages, matches, and jobs
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM vendor_outreach_messages "
+                "WHERE vendor_match_id IN (SELECT id FROM vendor_matches WHERE solicitation_id = %s)",
+                (solicitation_id,),
+            )
+            cur.execute("DELETE FROM vendor_matches WHERE solicitation_id = %s", (solicitation_id,))
+            cur.execute("DELETE FROM jobs WHERE case_id = %s", (case_id,))
+
+    # Enqueue fresh sam_fetch
+    job = _enqueue_job(
+        case_id=case_id,
+        job_type="sam_fetch",
+        metadata={"solicitation_id": solicitation_id, "notice_id": notice_id},
+    )
+
+    return {"solicitation_id": solicitation_id, "job_id": job["id"], "status": "rerun_queued"}
 
 
 # ---------------------------------------------------------------------------
