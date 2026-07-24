@@ -608,6 +608,17 @@ def ensure_publog_flis_schema() -> list[str]:
     return [str(sql_path)]
 
 
+def ensure_dla_batch_search_schema() -> list[str]:
+    """Apply the DLA Batch Search migration (v34). Idempotent."""
+    sql_path = _SCHEMA_DIR / "024_dla_batch_search.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(f"DLA Batch Search schema file not found: {sql_path}")
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
 # ---------------------------------------------------------------------------
 # Journal CRUD
 # ---------------------------------------------------------------------------

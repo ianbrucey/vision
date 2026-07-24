@@ -23,6 +23,7 @@ import SamNoticesTab from "./tabs/SamNoticesTab";
 import ForecastsTab from "./tabs/ForecastsTab";
 import GaDoasTab from "./tabs/GaDoasTab";
 import DibbsTab from "./tabs/DibbsTab";
+import DlaBatchSearchTab from "./tabs/DlaBatchSearchTab";
 import FloatingChat, { FloatingChatButton } from "@/components/FloatingChat";
 
 /* ------------------------------------------------------------------ */
@@ -253,6 +254,7 @@ function CaseDashboardInner() {
         {activeTab === "forecasts" && <ForecastsTab caseId={Number(id)} />}
         {activeTab === "ga_doas" && <GaDoasTab caseId={Number(id)} />}
         {activeTab === "dibbs" && <DibbsTab caseId={Number(id)} />}
+        {activeTab === "dla_batch" && <DlaBatchSearchTab caseId={Number(id)} />}
       </div>
 
       {/* Tab Navigation */}

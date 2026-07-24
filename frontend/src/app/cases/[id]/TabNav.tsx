@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Eye, MessageCircle, FolderOpen, FolderTree, PenLine, Mail, CheckSquare, CalendarDays, MoreHorizontal, FileSearch, Users, Send, Building2, Database, TrendingUp, MapPin, Truck } from "lucide-react";
 
-export type TabId = "overview" | "chat" | "documents" | "drafts" | "workspace" | "correspondence" | "tasks" | "calendar" | "triage" | "vendor_matches" | "outreach" | "vendors" | "sam_notices" | "forecasts" | "ga_doas" | "dibbs";
+export type TabId = "overview" | "chat" | "documents" | "drafts" | "workspace" | "correspondence" | "tasks" | "calendar" | "triage" | "vendor_matches" | "outreach" | "vendors" | "sam_notices" | "forecasts" | "ga_doas" | "dibbs" | "dla_batch";
 
 interface TabNavProps {
   activeTab: TabId;
@@ -37,6 +37,7 @@ const BASE_TABS: TabDef[] = [
   { id: "forecasts", label: "Forecasts", shortLabel: "Forecast", icon: TrendingUp },
   { id: "ga_doas", label: "GA DOAS", shortLabel: "GA", icon: MapPin },
   { id: "dibbs", label: "DIBBS RFQs", shortLabel: "DIBBS", icon: Truck },
+  { id: "dla_batch", label: "DLA Batch Search", shortLabel: "DLA Batch", icon: FileSearch },
 ];
 
 /** First 4 tabs are always visible on mobile */

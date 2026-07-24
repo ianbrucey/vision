@@ -1223,6 +1223,75 @@ export const deleteForecast = (id: number): Promise<{ deleted: number }> =>
   fetchAPI(`/api/forecasts/${id}`, { method: "DELETE" });
 
 // ---------------------------------------------------------------------------
+// DLA Batch Search
+// ---------------------------------------------------------------------------
+
+export interface DlaBatchRow {
+  id: number;
+  nsn: string;
+  fsc: string | null;
+  niin: string | null;
+  nomenclature: string | null;
+  amc: string | null;
+  amsc: string | null;
+  aac: string | null;
+  competable: string | null;
+  competability_notes: string | null;
+  unit_price: number | null;
+  ui: string | null;
+  slc: string | null;
+  ciic: string | null;
+  dmil: string | null;
+  hmic: string | null;
+  crit_cd: string | null;
+  approved_cage: string | null;
+  approved_part: string | null;
+  cage_company: string | null;
+  cage_city: string | null;
+  cage_state: string | null;
+  vendor_name: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  website: string | null;
+  is_small_business: string | null;
+  qty: string | null;
+  solicitation: string | null;
+  purchase_request: string | null;
+  source_file: string | null;
+  created_at: string;
+}
+
+export interface DlaBatchResponse {
+  total: number;
+  limit: number;
+  offset: number;
+  count: number;
+  results: DlaBatchRow[];
+}
+
+export interface DlaBatchStats {
+  total: number;
+  competable: number;
+  with_vendor: number;
+  with_email: number;
+  priced: number;
+  unique_nsns: number;
+  unique_sols: number;
+}
+
+export const queryDlaBatch = (params: Record<string, string | number | undefined>): Promise<DlaBatchResponse> => {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== "") qs.set(k, String(v));
+  });
+  return fetchAPI(`/api/dla-batch/query?${qs.toString()}`);
+};
+
+export const getDlaBatchStats = (): Promise<DlaBatchStats> =>
+  fetchAPI("/api/dla-batch/stats");
+
+// ---------------------------------------------------------------------------
 // Saved Reports
 // ---------------------------------------------------------------------------
 
