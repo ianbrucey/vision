@@ -582,6 +582,7 @@ export default function SolicitationsPage() {
                 </button>
               </div>
             </div>
+            </div>
           ))}
 
           {filtered.length === 0 && (
