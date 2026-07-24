@@ -494,35 +494,43 @@ export default function SolicitationsPage() {
                          hover:bg-surface-2 hover:border-border-strong active:border-brand
                          transition-colors duration-150 cursor-pointer"
             >
-              <div className="flex items-center gap-3 p-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-text-primary truncate">{s.title}</p>
-                  <p className="text-[10px] text-text-disabled truncate">{s.agency || s.url}</p>
+              <div className="p-3">
+                <div className="flex items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-text-primary truncate">{s.title}</p>
+                    <p className="text-[10px] text-text-disabled truncate mt-0.5">{s.agency || s.url}</p>
+                  </div>
+                  {s.unread_replies ? (
+                    <span className="text-[11px] px-2 py-0.5 rounded-full font-bold shrink-0 bg-danger text-white">
+                      {s.unread_replies}
+                    </span>
+                  ) : null}
                 </div>
-                {s.unread_replies ? (
-                  <span className="text-[11px] px-2 py-0.5 rounded-full font-bold shrink-0 bg-danger text-white">
-                    {s.unread_replies}
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-sm font-medium ${
+                      SOURCE_TYPE_COLORS[s.source_type] || "bg-surface-2 text-text-secondary"
+                    }`}
+                  >
+                    {s.source_type}
                   </span>
-                ) : null}
-                <span
-                  className={`text-[11px] px-2 py-0.5 rounded-sm font-medium shrink-0 ${
-                    SOURCE_TYPE_COLORS[s.source_type] || "bg-surface-2 text-text-secondary"
-                  }`}
-                >
-                  {s.source_type}
-                </span>
-                <span
-                  className={`text-[11px] px-2 py-0.5 rounded-sm font-medium shrink-0 ${
-                    STATUS_COLORS[s.ingestion_status] || "bg-surface-2 text-text-secondary"
-                  }`}
-                >
-                  {s.ingestion_status}
-                </span>
-                {s.has_missing_docs && (
-                  <span title="Some attachments failed to download" className="shrink-0">
-                    <AlertTriangle size={14} className="text-warning" />
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-sm font-medium ${
+                      STATUS_COLORS[s.ingestion_status] || "bg-surface-2 text-text-secondary"
+                    }`}
+                  >
+                    {s.ingestion_status}
                   </span>
-                )}
+                  {s.has_outreach && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-sm font-medium bg-success-bg text-success">
+                      outreach sent
+                    </span>
+                  )}
+                  {s.has_missing_docs && (
+                    <span title="Some attachments failed to download" className="shrink-0">
+                      <AlertTriangle size={14} className="text-warning" />
+                    </span>
+                  )}
                 {s.ingestion_status === "complete" && (
                   <span
                     title={s.triage_error || undefined}

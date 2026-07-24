@@ -96,6 +96,7 @@ export interface Solicitation {
   outreach_email_subject: string | null;
   outreach_email_body: string | null;
   unread_replies?: number;
+  has_outreach?: boolean;
 }
 
 export interface SolicitationWithDocuments extends Solicitation {
@@ -1259,3 +1260,72 @@ export const getReport = (id: number): Promise<{ report: SavedReport }> =>
 
 export const deleteReport = (id: number): Promise<{ deleted: number }> =>
   fetchAPI(`/api/reports/${id}`, { method: "DELETE" });
+
+// ---------------------------------------------------------------------------
+// GA DOAS Opportunities
+// ---------------------------------------------------------------------------
+
+export interface GaDoasOpportunity {
+  id: number; event_id: string; event_url: string | null;
+  title: string; government_entity: string | null;
+  start_date: string | null; end_date: string | null;
+  ends_in: string | null; status: string | null;
+  source_file: string | null; upload_batch_id: string | null; created_at: string;
+}
+
+export interface GaDoasQuery {
+  q?: string; government_entity?: string; event_id?: string; status?: string;
+  limit?: number; offset?: number; order_by?: string; order_dir?: string;
+}
+
+export interface GaDoasResponse {
+  total: number; limit: number; offset: number; count: number; results: GaDoasOpportunity[];
+}
+
+export const queryGaDoas = (body: GaDoasQuery): Promise<GaDoasResponse> =>
+  fetchAPI("/api/ga-doas/query", { method: "POST", body: JSON.stringify(body) });
+
+export const uploadGaDoasHtml = (file: File): Promise<{ batch_id: string; rows_imported: number; rows_inserted: number; source: string }> => {
+  const fd = new FormData(); fd.append("file", file);
+  const token = localStorage.getItem("vision_token");
+  return fetch(`${API_BASE}/api/ga-doas/upload`, { method: "POST", headers: token ? { Authorization: `Bearer ${token}` } : {}, body: fd })
+    .then(r => { if (r.status === 401) { localStorage.clear(); window.location.href = "/login"; throw new Error("Session expired"); }
+      if (!r.ok) return r.json().then(e => { throw new Error(e.detail || `HTTP ${r.status}`); }); return r.json(); });
+};
+
+export const deleteAllGaDoas = (): Promise<{ deleted: number }> =>
+  fetchAPI("/api/ga-doas/all", { method: "DELETE" });
+
+// ---------------------------------------------------------------------------
+// DIBBS RFQs
+// ---------------------------------------------------------------------------
+
+export interface DibbsRfq {
+  id: number; row_num: number | null; nsn: string | null; mil_spec: string | null;
+  nomenclature: string; tech_docs: string | null; solicitation: string;
+  status: string | null; purchase_request: string | null; qty: number | null;
+  issued: string | null; return_by: string | null; fsc_code: string | null;
+  unit_price: number | null; estimated_total: number | null; ui: string | null; moe: string | null;
+  upload_batch_id: string | null; source_file: string | null; created_at: string;
+}
+
+export interface DibbsQuery {
+  q?: string; nsn?: string; fsc_code?: string; solicitation?: string; status?: string;
+  limit?: number; offset?: number; order_by?: string; order_dir?: string;
+}
+
+export interface DibbsResponse { total: number; limit: number; offset: number; count: number; results: DibbsRfq[]; }
+
+export const queryDibbs = (body: DibbsQuery): Promise<DibbsResponse> =>
+  fetchAPI("/api/dibbs/query", { method: "POST", body: JSON.stringify(body) });
+
+export const uploadDibbsCsv = (file: File): Promise<{ batch_id: string; rows_imported: number; rows_inserted: number; source: string }> => {
+  const fd = new FormData(); fd.append("file", file);
+  const t = localStorage.getItem("vision_token");
+  return fetch(`${API_BASE}/api/dibbs/upload`, { method: "POST", headers: t ? { Authorization: `Bearer ${t}` } : {}, body: fd })
+    .then(r => { if (r.status === 401) { localStorage.clear(); window.location.href = "/login"; throw new Error("Session expired"); }
+      if (!r.ok) return r.json().then(e => { throw new Error(e.detail || `HTTP ${r.status}`); }); return r.json(); });
+};
+
+export const deleteAllDibbs = (): Promise<{ deleted: number }> =>
+  fetchAPI("/api/dibbs/all", { method: "DELETE" });

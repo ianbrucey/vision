@@ -21,6 +21,8 @@ import CalendarTab from "./tabs/CalendarTab";
 import VendorsTab from "./tabs/VendorsTab";
 import SamNoticesTab from "./tabs/SamNoticesTab";
 import ForecastsTab from "./tabs/ForecastsTab";
+import GaDoasTab from "./tabs/GaDoasTab";
+import DibbsTab from "./tabs/DibbsTab";
 import FloatingChat, { FloatingChatButton } from "@/components/FloatingChat";
 
 /* ------------------------------------------------------------------ */
@@ -52,7 +54,7 @@ function CaseDashboardInner() {
   // Tab state lives in the URL — survives refresh
   const tabParam = searchParams.get("tab");
   const activeTab: TabId =
-    tabParam === "chat" || tabParam === "documents" || tabParam === "drafts" || tabParam === "triage" || tabParam === "vendor_matches" || tabParam === "outreach" || tabParam === "workspace" || tabParam === "correspondence" || tabParam === "tasks" || tabParam === "calendar" || tabParam === "vendors" || tabParam === "sam_notices" || tabParam === "forecasts"
+    tabParam === "chat" || tabParam === "documents" || tabParam === "drafts" || tabParam === "triage" || tabParam === "vendor_matches" || tabParam === "outreach" || tabParam === "workspace" || tabParam === "correspondence" || tabParam === "tasks" || tabParam === "calendar" || tabParam === "vendors" || tabParam === "sam_notices" || tabParam === "forecasts" || tabParam === "ga_doas" || tabParam === "dibbs"
       ? tabParam
       : "overview";
 
@@ -220,7 +222,7 @@ function CaseDashboardInner() {
       {hasSolicitation && <PipelineStatusBar caseId={Number(id)} />}
 
       {/* Tab Content — pb-14 on mobile clears the fixed bottom nav */}
-      <div className="flex-1 flex flex-col overflow-hidden pb-14 md:pb-0 md:ml-[220px]">
+      <div className="flex-1 flex flex-col overflow-hidden pb-14 lg:pb-0 lg:ml-[220px]">
         {activeTab === "overview" && (
           <OverviewTab
             key={`${case_.id}-${case_.updated_at}`}
@@ -249,6 +251,8 @@ function CaseDashboardInner() {
         {activeTab === "vendors" && <VendorsTab caseId={Number(id)} />}
         {activeTab === "sam_notices" && <SamNoticesTab caseId={Number(id)} />}
         {activeTab === "forecasts" && <ForecastsTab caseId={Number(id)} />}
+        {activeTab === "ga_doas" && <GaDoasTab caseId={Number(id)} />}
+        {activeTab === "dibbs" && <DibbsTab caseId={Number(id)} />}
       </div>
 
       {/* Tab Navigation */}

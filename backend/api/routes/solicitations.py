@@ -138,6 +138,26 @@ def list_solicitations_endpoint(
             for sol in sols:
                 sol["unread_replies"] = unread_map.get(sol["id"], 0)
 
+    # Attach outreach-sent indicator.
+    if sols:
+        sol_ids = [s["id"] for s in sols if s.get("id")]
+        if sol_ids:
+            conn = connect()
+            try:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """SELECT DISTINCT vm.solicitation_id
+                           FROM vendor_matches vm
+                           WHERE vm.solicitation_id = ANY(%s)
+                             AND vm.outreach_status IN ('requested', 'received')""",
+                        (sol_ids,),
+                    )
+                    outreach_set = {row[0] for row in cur.fetchall()}
+            finally:
+                conn.close()
+            for sol in sols:
+                sol["has_outreach"] = sol["id"] in outreach_set
+
     return {"count": len(sols), "solicitations": sols}
 
 

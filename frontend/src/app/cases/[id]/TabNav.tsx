@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Eye, MessageCircle, FolderOpen, FolderTree, PenLine, Mail, CheckSquare, CalendarDays, MoreHorizontal, FileSearch, Users, Send, Building2, Database, TrendingUp } from "lucide-react";
+import { Eye, MessageCircle, FolderOpen, FolderTree, PenLine, Mail, CheckSquare, CalendarDays, MoreHorizontal, FileSearch, Users, Send, Building2, Database, TrendingUp, MapPin, Truck } from "lucide-react";
 
-export type TabId = "overview" | "chat" | "documents" | "drafts" | "workspace" | "correspondence" | "tasks" | "calendar" | "triage" | "vendor_matches" | "outreach" | "vendors" | "sam_notices" | "forecasts";
+export type TabId = "overview" | "chat" | "documents" | "drafts" | "workspace" | "correspondence" | "tasks" | "calendar" | "triage" | "vendor_matches" | "outreach" | "vendors" | "sam_notices" | "forecasts" | "ga_doas" | "dibbs";
 
 interface TabNavProps {
   activeTab: TabId;
@@ -35,6 +35,8 @@ const BASE_TABS: TabDef[] = [
   { id: "vendors", label: "Vendors", shortLabel: "Vendors", icon: Building2 },
   { id: "sam_notices", label: "Sam Notices", shortLabel: "SAM", icon: Database },
   { id: "forecasts", label: "Forecasts", shortLabel: "Forecast", icon: TrendingUp },
+  { id: "ga_doas", label: "GA DOAS", shortLabel: "GA", icon: MapPin },
+  { id: "dibbs", label: "DIBBS RFQs", shortLabel: "DIBBS", icon: Truck },
 ];
 
 /** First 4 tabs are always visible on mobile */
@@ -75,7 +77,7 @@ export default function TabNav({
       {/* ================================================================ */}
       {/* Desktop Sidebar                                                  */}
       {/* ================================================================ */}
-      <aside className="hidden md:flex fixed left-0 top-14 bottom-0 w-[220px] bg-surface-1 border-r border-border flex-col z-20">
+      <aside className="hidden lg:flex fixed left-0 top-14 bottom-0 w-[220px] bg-surface-1 border-r border-border flex-col z-20">
         <nav className="flex-1 p-2 flex flex-col gap-0.5">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -142,7 +144,7 @@ export default function TabNav({
       {/* ================================================================ */}
       {/* Mobile Bottom Tab Bar                                            */}
       {/* ================================================================ */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-1 border-t border-border
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface-1 border-t border-border
                       flex items-stretch justify-around
                       h-14 pb-[env(safe-area-inset-bottom,0px)] z-30">
         {/* Primary tabs */}
@@ -207,6 +209,27 @@ export default function TabNav({
                   </button>
                 );
               })}
+              <div className="border-t border-border mt-1 pt-1">
+                <p className="px-3 py-1 text-[10px] text-text-disabled uppercase">Reference Desk</p>
+                <a href="/vendors" onClick={() => setMoreOpen(false)}
+                   className="w-full text-left px-3 py-2.5 text-xs flex items-center gap-2.5
+                              text-text-secondary hover:bg-surface-3 hover:text-text-primary
+                              transition-colors">
+                  <Building2 size={16} />Vendors
+                </a>
+                <a href="/sam-notices" onClick={() => setMoreOpen(false)}
+                   className="w-full text-left px-3 py-2.5 text-xs flex items-center gap-2.5
+                              text-text-secondary hover:bg-surface-3 hover:text-text-primary
+                              transition-colors">
+                  <Database size={16} />SAM Notices
+                </a>
+                <a href="/forecasts" onClick={() => setMoreOpen(false)}
+                   className="w-full text-left px-3 py-2.5 text-xs flex items-center gap-2.5
+                              text-text-secondary hover:bg-surface-3 hover:text-text-primary
+                              transition-colors">
+                  <TrendingUp size={16} />Forecasts
+                </a>
+              </div>
             </div>
           )}
         </div>
