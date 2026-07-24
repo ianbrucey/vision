@@ -21,7 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from core.case import CaseManager
-from core.db import ensure_schema, ensure_strategy_schema, ensure_chat_schema, ensure_correspondence_schema, ensure_solicitations_schema, ensure_solicitation_triage_schema, ensure_vendors_schema, ensure_vendor_matching_schema, ensure_vendor_matches_manual_schema, ensure_vendor_matches_cap_schema, ensure_vendor_outreach_schema, ensure_vendor_outreach_email_schema, ensure_vendor_outreach_messages_schema, ensure_workspace_pdf_filetype_schema, ensure_sam_notices_schema, ensure_sam_notice_import_job_schema, ensure_forecast_opportunities_schema, ensure_saved_reports_schema, ensure_ga_doas_opportunities_schema, ensure_dibbs_rfqs_schema, ensure_publog_flis_schema
+from core.db import ensure_schema, ensure_strategy_schema, ensure_chat_schema, ensure_correspondence_schema, ensure_solicitations_schema, ensure_solicitation_triage_schema, ensure_vendors_schema, ensure_vendor_matching_schema, ensure_vendor_matches_manual_schema, ensure_vendor_matches_cap_schema, ensure_vendor_outreach_schema, ensure_vendor_outreach_email_schema, ensure_vendor_outreach_messages_schema, ensure_workspace_pdf_filetype_schema, ensure_sam_notices_schema, ensure_sam_notice_import_job_schema, ensure_forecast_opportunities_schema, ensure_saved_reports_schema, ensure_ga_doas_opportunities_schema, ensure_dibbs_rfqs_schema
 from core.vendor import VendorManager
 from ingestion.storage import upload_file as _upload_to_minio
 from ingestion.jobs import enqueue as _enqueue_job, get_job, list_jobs
@@ -82,7 +82,6 @@ def _apply_schemas():
     ensure_saved_reports_schema()           # 020 — saved reports table
     ensure_ga_doas_opportunities_schema()   # 021 — GA DOAS opportunities table
     ensure_dibbs_rfqs_schema()              # 022 — DIBBS RFQs table
-    ensure_publog_flis_schema()             # 023 — Publog FLIS tables
 
 
 mgr = CaseManager()
@@ -628,7 +627,6 @@ from api.routes.forecasts import router as forecasts_router
 from api.routes.reports import router as reports_router
 from api.routes.ga_doas import router as ga_doas_router
 from api.routes.dibbs import router as dibbs_router
-from api.routes.publog import router as publog_router
 app.include_router(chat_router)
 app.include_router(drafts_router)
 app.include_router(workspace_router)
@@ -644,7 +642,6 @@ app.include_router(forecasts_router)
 app.include_router(reports_router)
 app.include_router(ga_doas_router)
 app.include_router(dibbs_router)
-app.include_router(publog_router)
 
 # ---------------------------------------------------------------------------
 # Health check
