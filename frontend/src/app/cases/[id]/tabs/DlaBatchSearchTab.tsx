@@ -23,6 +23,7 @@ export default function DlaBatchSearchTab({ caseId: _caseId }: Props) {
   const [stats, setStats] = useState<DlaBatchStats | null>(null);
 
   const [q, setQ] = useState("");
+  const [nsns, setNsns] = useState("");
   const [competable, setCompetable] = useState("");
   const [fsc, setFsc] = useState("");
   const [amc, setAmc] = useState("");
@@ -34,6 +35,7 @@ export default function DlaBatchSearchTab({ caseId: _caseId }: Props) {
     try {
       const params: Record<string, string | number | undefined> = {
         q: q.trim() || undefined,
+        nsns: nsns.trim() || undefined,
         fsc: fsc || undefined,
         amc: amc || undefined,
         competable: competable || undefined,
@@ -59,7 +61,7 @@ export default function DlaBatchSearchTab({ caseId: _caseId }: Props) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Search failed");
     } finally { setLoading(false); }
-  }, [q, competable, fsc, amc, hasVendor]);
+  }, [q, nsns, competable, fsc, amc, hasVendor]);
 
   useEffect(() => { search(0); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -67,7 +69,7 @@ export default function DlaBatchSearchTab({ caseId: _caseId }: Props) {
   }, []);
 
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); search(0); };
-  const clearFilters = () => { setQ(""); setCompetable(""); setFsc(""); setAmc(""); setHasVendor(""); };
+  const clearFilters = () => { setQ(""); setNsns(""); setCompetable(""); setFsc(""); setAmc(""); setHasVendor(""); };
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
@@ -90,6 +92,18 @@ export default function DlaBatchSearchTab({ caseId: _caseId }: Props) {
             <StatChip label="Solicitations" value={stats.unique_sols} total={0} raw />
           </div>
         )}
+      </div>
+
+      {/* Bulk NSN lookup */}
+      <div className="shrink-0 px-4 py-3 border-b border-border bg-surface-2">
+        <div className="flex gap-2 items-start">
+          <textarea value={nsns} onChange={e => setNsns(e.target.value)}
+            placeholder="Paste NSNs — comma-separated, up to 200&#10;e.g. 4110-01-453-2373, 6515-01-314-6694, 6240-01-353-9709"
+            rows={2}
+            className="flex-1 text-xs bg-surface-1 border border-border rounded-lg px-3 py-2 text-text-primary placeholder:text-text-disabled outline-none focus:border-brand resize-none font-mono" />
+          <button type="button" onClick={() => search(0)}
+            className="px-4 py-2 text-sm bg-brand text-white rounded-lg hover:opacity-90 whitespace-nowrap">Lookup NSNs</button>
+        </div>
       </div>
 
       {/* Search bar */}

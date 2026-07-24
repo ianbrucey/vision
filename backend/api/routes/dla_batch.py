@@ -42,6 +42,7 @@ def query_dla_batch(
     cage_company: str | None = Query(None),
     contact_email: str | None = Query(None),
     source_file: str | None = Query(None),
+    nsns: str | None = Query(None, description="Comma-separated NSNs e.g. 4110-01-453-2373,6515-01-314-6694"),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     order_by: str = Query("unit_price", description="Sort column"),
@@ -65,6 +66,13 @@ def query_dla_batch(
                     parts = " || ".join(["plainto_tsquery('english', %s)"] * len(w))
                     where.append(f"search_vector @@ ({parts})")
                     params.extend(w)
+
+            # Bulk NSN lookup (comma-separated, dash-format or bare digits)
+            if nsns and nsns.strip():
+                nsn_list = [n.strip().replace("-", "").replace(" ", "") for n in nsns.split(",") if n.strip()]
+                if nsn_list:
+                    where.append("REPLACE(nsn, '-', '') = ANY(%s)")
+                    params.append(nsn_list)
 
             # Column filters
             raw_filters = {
