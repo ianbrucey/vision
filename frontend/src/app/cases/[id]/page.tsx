@@ -55,7 +55,7 @@ function CaseDashboardInner() {
   // Tab state lives in the URL — survives refresh
   const tabParam = searchParams.get("tab");
   const activeTab: TabId =
-    tabParam === "chat" || tabParam === "documents" || tabParam === "drafts" || tabParam === "triage" || tabParam === "vendor_matches" || tabParam === "outreach" || tabParam === "workspace" || tabParam === "correspondence" || tabParam === "tasks" || tabParam === "calendar" || tabParam === "vendors" || tabParam === "sam_notices" || tabParam === "forecasts" || tabParam === "ga_doas" || tabParam === "dibbs"
+    tabParam === "chat" || tabParam === "documents" || tabParam === "drafts" || tabParam === "triage" || tabParam === "vendor_matches" || tabParam === "outreach" || tabParam === "workspace" || tabParam === "correspondence" || tabParam === "tasks" || tabParam === "calendar" || tabParam === "vendors" || tabParam === "sam_notices" || tabParam === "forecasts" || tabParam === "ga_doas" || tabParam === "dibbs" || tabParam === "dla_batch"
       ? tabParam
       : "overview";
 
