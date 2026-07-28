@@ -287,8 +287,9 @@ export default function DocumentPreviewModal({
                 />
               )}
 
-              {/* Text content (email bodies, inline text) */}
-              {textContent && !isDocx && !isSpreadsheet && (
+              {/* Text content — only when no richer renderer is showing.
+                   PDFs display in the iframe above; don't duplicate as text. */}
+              {textContent && !isDocx && !isSpreadsheet && data.type !== "pdf" && (
                 <pre
                   className="w-full h-full overflow-auto p-4 sm:p-6 text-sm leading-relaxed
                              whitespace-pre-wrap font-mono text-text-primary bg-surface-1"
