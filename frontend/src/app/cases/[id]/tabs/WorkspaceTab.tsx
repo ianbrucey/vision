@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { FileText, FilePlus, Plus, Check, X, Loader2, Trash2, Pencil } from "lucide-react";
+import { FileText, FilePlus, Plus, Check, X, Loader2, Trash2, Pencil, PanelLeft } from "lucide-react";
 import {
   listWorkspaces,
   createWorkspace,
@@ -172,6 +172,7 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
   const [editMode, setEditMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<"list" | "preview">("list");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(initialFolder);
   const [showNewFileMenu, setShowNewFileMenu] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -563,7 +564,8 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
       </div>
 
       <div className="flex-1 flex min-h-0">
-        {/* File explorer sidebar */}
+        {/* File explorer sidebar — collapsible */}
+        {sidebarOpen && (
         <aside
           className={`w-[260px] flex-shrink-0 bg-surface-1 border-r border-border flex flex-col
                       overflow-hidden ${mobileView === "preview" ? "max-md:hidden" : "max-md:w-full max-md:border-r-0"}`}
@@ -596,6 +598,7 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
             refreshKey={explorerRefreshKey}
           />
         </aside>
+        )}
 
         {/* Main viewport */}
         <main
@@ -603,6 +606,15 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
         >
           {openTabIds.length > 0 && (
             <div className="flex flex-row overflow-x-auto bg-surface-1 border-b border-border shrink-0 hide-scrollbar">
+              {/* Sidebar toggle */}
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="shrink-0 px-2 text-text-disabled hover:text-text-secondary
+                           transition-colors border-r border-border"
+                title={sidebarOpen ? "Hide file list" : "Show file list"}
+              >
+                <PanelLeft size={14} className={sidebarOpen ? "" : "rotate-180"} />
+              </button>
               {openTabIds.map(id => {
                 const summary = items.find(i => i.id === id) || openItemsData[id];
                 const isActive = activeTabId === id;
