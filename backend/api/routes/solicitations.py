@@ -21,6 +21,8 @@ from core.email_mailgun import MailgunSendError
 from ingestion.jobs import enqueue as _enqueue_job
 from ingestion.sam_client import extract_notice_id
 
+import psycopg2.extras
+
 router = APIRouter(prefix="/api", tags=["solicitations"])
 
 mgr = SolicitationManager()
@@ -104,13 +106,17 @@ def create_solicitation_endpoint(
 def list_solicitations_endpoint(
     source_type: str | None = None,
     ingestion_status: str | None = None,
+    naics_code: str | None = None,
+    state: str | None = None,
     limit: int = 50,
     offset: int = 0,
     user: dict = Depends(get_current_user),
 ):
-    sols = mgr.list(
+    sols, total = mgr.list(
         source_type=source_type,
         ingestion_status=ingestion_status,
+        naics_code=naics_code,
+        state=state,
         limit=limit,
         offset=offset,
     )
@@ -158,7 +164,7 @@ def list_solicitations_endpoint(
             for sol in sols:
                 sol["has_outreach"] = sol["id"] in outreach_set
 
-    return {"count": len(sols), "solicitations": sols}
+    return {"total": total, "limit": limit, "offset": offset, "count": len(sols), "solicitations": sols}
 
 
 @router.get("/solicitations/{solicitation_id}")
@@ -183,6 +189,24 @@ def get_solicitation_by_case_endpoint(
     if sol is None:
         raise HTTPException(status_code=404, detail="No solicitation for this case")
     return sol
+
+
+# ---------------------------------------------------------------------------
+# NAICS codes — lookup for filter dropdowns
+# ---------------------------------------------------------------------------
+
+@router.get("/naics-codes")
+def list_naics_codes_endpoint(
+    user: dict = Depends(get_current_user),
+):
+    """Return all 6-digit NAICS codes with titles for filter dropdowns."""
+    conn = connect()
+    try:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute("SELECT code, title FROM naics_codes ORDER BY code")
+            return [dict(row) for row in cur.fetchall()]
+    finally:
+        conn.close()
 
 
 # ---------------------------------------------------------------------------

@@ -40,6 +40,11 @@ from core.db import (
     ensure_sam_notice_import_job_schema,
     ensure_forecast_opportunities_schema,
     ensure_saved_reports_schema,
+    ensure_ga_doas_opportunities_schema,
+    ensure_dibbs_rfqs_schema,
+    ensure_pipeline_processing_schema,
+    ensure_subcontracting_leads_schema,
+    ensure_fix_sam_notices_unique_schema,
 )
 
 # ---------------------------------------------------------------------------
@@ -211,6 +216,26 @@ def main() -> int:
         reports = ensure_saved_reports_schema()
         for path in reports:
             print(f"  Reports:  {path}")
+
+        ga_doas = ensure_ga_doas_opportunities_schema()
+        for path in ga_doas:
+            print(f"  GaDoas:   {path}")
+
+        dibbs = ensure_dibbs_rfqs_schema()
+        for path in dibbs:
+            print(f"  DIBBS:    {path}")
+
+        pipeline = ensure_pipeline_processing_schema()
+        for path in pipeline:
+            print(f"  Pipeline: {path}")
+
+        sub_leads = ensure_subcontracting_leads_schema()
+        for path in sub_leads:
+            print(f"  SubLeads: {path}")
+
+        fix_unique = ensure_fix_sam_notices_unique_schema()
+        for path in fix_unique:
+            print(f"  FixUnique:{path}")
     except Exception as e:
         print(f"  ERROR applying schemas: {e}", file=sys.stderr)
         return 1

@@ -619,6 +619,69 @@ def ensure_dla_batch_search_schema() -> list[str]:
     return [str(sql_path)]
 
 
+def ensure_pipeline_processing_schema() -> list[str]:
+    """Apply the Pipeline Processing migration (v35). Idempotent.
+
+    Adds pipeline_status, pipeline_category, pipeline_urgency,
+    pipeline_skip_reason, and pipeline_solicitation_id columns
+    to sam_notices for the databank-to-solicitation processor.
+    """
+    sql_path = _SCHEMA_DIR / "025_pipeline_processing.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(f"Pipeline processing schema file not found: {sql_path}")
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_subcontracting_leads_schema() -> list[str]:
+    """Apply the Subcontracting Leads migration (v36). Idempotent.
+
+    Creates the subcontracting_leads table for USASpending.gov
+    IDV vehicle data — primes with subcontracting obligations.
+    """
+    sql_path = _SCHEMA_DIR / "026_subcontracting_leads.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(f"Subcontracting leads schema file not found: {sql_path}")
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_fix_sam_notices_unique_schema() -> list[str]:
+    """Apply the fix for sam_notices unique index (v37). Idempotent.
+
+    Drops the incorrectly-added unique index on sam_notices.notice_id
+    (the raw CSV dump table) and replaces it with a non-unique index.
+    The unique constraint belongs on solicitations.notice_id, not here.
+    """
+    sql_path = _SCHEMA_DIR / "027_fix_sam_notices_unique.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(f"Fix sam_notices unique schema file not found: {sql_path}")
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_naics_codes_schema() -> list[str]:
+    """Apply the NAICS code lookup table migration (v38). Idempotent.
+
+    Creates a static reference table of 2022 6-digit NAICS codes with
+    titles, used for display labels and filtering on solicitations.
+    Data is seeded separately via the companion seed script.
+    """
+    sql_path = _SCHEMA_DIR / "028_naics_codes.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(f"NAICS codes schema file not found: {sql_path}")
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
 # ---------------------------------------------------------------------------
 # Journal CRUD
 # ---------------------------------------------------------------------------

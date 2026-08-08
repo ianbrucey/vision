@@ -10,9 +10,11 @@ import {
   lookupSolicitationUrl,
   deleteSamNotice,
   deleteAllSamNotices,
+  processBatch,
   type SamNotice,
   type SamNoticesQuery,
   type SamNoticeBatch,
+  type ProcessBatchResult,
   type SavedReport,
 } from "@/lib/api";
 import ReportsSidebar from "@/components/ReportsSidebar";
@@ -64,6 +66,11 @@ export default function SamNoticesTab({ caseId }: SamNoticesTabProps) {
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
   const [batches, setBatches] = useState<SamNoticeBatch[]>([]);
   const [showBatches, setShowBatches] = useState(false);
+  const [lastBatchId, setLastBatchId] = useState<string | null>(null);
+
+  // Pipeline processing
+  const [processing, setProcessing] = useState(false);
+  const [processResult, setProcessResult] = useState<ProcessBatchResult | null>(null);
 
   // Expanded row
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -101,8 +108,12 @@ export default function SamNoticesTab({ caseId }: SamNoticesTabProps) {
     try {
       const data = await listSamNoticeBatches();
       setBatches(data.batches);
+      // Auto-select most recent batch so the Filter button survives refresh
+      if (data.batches.length > 0 && !lastBatchId) {
+        setLastBatchId(data.batches[0].batch_id);
+      }
     } catch { /* silent */ }
-  }, []);
+  }, [lastBatchId]);
 
   useEffect(() => {
     refreshBatches();
@@ -117,7 +128,12 @@ export default function SamNoticesTab({ caseId }: SamNoticesTabProps) {
     setUploadMsg(null);
     try {
       const result = await uploadSamNoticesCsv(file);
-      setUploadMsg(`✅ Uploaded ${result.rows_inserted.toLocaleString()} rows from ${result.source}`);
+      const dupMsg = result.duplicates_skipped > 0
+        ? ` (${result.duplicates_skipped.toLocaleString()} duplicates skipped)`
+        : "";
+      setUploadMsg(`✅ ${result.rows_inserted.toLocaleString()} new rows from ${result.source}${dupMsg}`);
+      setLastBatchId(result.batch_id);
+      setProcessResult(null);
       refreshBatches();
       search(0);
     } catch (err) {
@@ -134,6 +150,22 @@ export default function SamNoticesTab({ caseId }: SamNoticesTabProps) {
       refreshBatches();
       search(0);
     } catch { /* silent */ }
+  };
+
+  const handleProcess = async (batchId: string) => {
+    setProcessing(true);
+    setProcessResult(null);
+    try {
+      const result = await processBatch(batchId, false);
+      setProcessResult(result);
+      setUploadMsg(
+        `Pipeline: ${result.queued} solicitations created, ${result.skipped} skipped, ${result.duplicate} duplicates`
+      );
+    } catch (err) {
+      setUploadMsg(`❌ Pipeline failed: ${err instanceof Error ? err.message : "Unknown error"}`);
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -260,15 +292,51 @@ export default function SamNoticesTab({ caseId }: SamNoticesTabProps) {
           <label className={`px-3 py-2 text-sm border border-border rounded-lg cursor-pointer
                             text-text-secondary hover:text-text-primary transition-colors
                             ${uploading ? "opacity-50 pointer-events-none" : ""}`}>
-            <Upload size={14} className="inline mr-1" />
-            Upload CSV
-            <input type="file" accept=".csv" onChange={handleUpload} className="hidden" />
+            {uploading ? (
+              <><Loader2 size={14} className="inline mr-1 animate-spin" /> Uploading...</>
+            ) : (
+              <><Upload size={14} className="inline mr-1" /> Upload CSV</>
+            )}
+            <input type="file" accept=".csv" onChange={handleUpload} className="hidden" disabled={uploading} />
           </label>
+
+          {lastBatchId && (
+            <button
+              onClick={() => handleProcess(lastBatchId)}
+              disabled={processing}
+              className="px-3 py-2 text-sm border border-border rounded-lg
+                         text-text-secondary hover:text-text-primary transition-colors
+                         disabled:opacity-50"
+            >
+              {processing ? (
+                <><Loader2 size={14} className="inline mr-1 animate-spin" /> Processing...</>
+              ) : (
+                "Filter → Solicitations"
+              )}
+            </button>
+          )}
         </form>
 
         {uploadMsg && (
-          <div className={`mt-2 text-xs ${uploadMsg.startsWith("✅") ? "text-success" : "text-danger"}`}>
+          <div className={`mt-2 text-xs ${uploadMsg.startsWith("✅") || uploadMsg.startsWith("Pipeline") ? "text-success" : "text-danger"}`}>
             {uploadMsg}
+          </div>
+        )}
+
+        {processResult && (
+          <div className="mt-2 p-2 bg-surface-50 border border-border rounded-md text-xs">
+            <div className="flex gap-3">
+              <span className="text-success font-medium">{processResult.queued} queued</span>
+              <span className="text-text-secondary">{processResult.skipped} skipped</span>
+              <span className="text-text-tertiary">{processResult.duplicate} duplicates</span>
+            </div>
+            <div className="mt-1 flex flex-wrap gap-1 text-text-tertiary">
+              {Object.entries(processResult.skipped_breakdown).map(([reason, count]) => (
+                <span key={reason} className="bg-white px-1.5 py-0.5 rounded border border-border">
+                  {reason}: {count}
+                </span>
+              ))}
+            </div>
           </div>
         )}
       </div>

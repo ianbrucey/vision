@@ -136,6 +136,65 @@ def _datalab_convert(
 
 
 # ---------------------------------------------------------------------------
+def _convert_to_pdf(docx_path: Path) -> Path:
+    """Convert a DOCX/DOC file to PDF using LibreOffice headless.
+
+    Returns the path to the generated PDF. The caller is responsible
+    for cleaning up the PDF after ingestion.
+    """
+    import subprocess
+    import shutil
+
+    out_dir = docx_path.parent / f"_convert_{docx_path.stem}"
+    out_dir.mkdir(exist_ok=True)
+
+    # LibreOffice headless: convert to PDF in the output directory
+    result = subprocess.run(
+        [
+            "soffice",
+            "--headless",
+            "--convert-to", "pdf",
+            "--outdir", str(out_dir),
+            str(docx_path),
+        ],
+        capture_output=True, text=True, timeout=60,
+    )
+
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"LibreOffice conversion failed for {docx_path.name}: {result.stderr}"
+        )
+
+    # LibreOffice names the output {stem}.pdf
+    pdf_path = out_dir / f"{docx_path.stem}.pdf"
+    if not pdf_path.exists():
+        # Try .PDF uppercase
+        pdf_path = out_dir / f"{docx_path.stem}.PDF"
+
+    if not pdf_path.exists():
+        # LibreOffice may have put it elsewhere — search the output dir
+        candidates = list(out_dir.glob("*.pdf")) + list(out_dir.glob("*.PDF"))
+        if candidates:
+            pdf_path = candidates[0]
+        else:
+            raise RuntimeError(
+                f"LibreOffice conversion produced no PDF for {docx_path.name}"
+            )
+
+    # Move the PDF next to the original file for clean handling
+    final_path = docx_path.with_suffix(".pdf")
+    shutil.move(str(pdf_path), str(final_path))
+
+    # Clean up the temp output dir
+    try:
+        out_dir.rmdir()
+    except OSError:
+        pass
+
+    print(f"  Converted: {docx_path.name} → {final_path.name}")
+    return final_path
+
+
 # Normalization — DataLab JSON → PostgreSQL
 # ---------------------------------------------------------------------------
 
@@ -412,11 +471,17 @@ def ingest_pdf(
 
     # -- Step 1: Insert placeholder document row (visible immediately) ---------
     with tx() as conn:
+        # Determine document_type from file extension
+        suffix = pdf_path.suffix.lower()
+        doc_type = "pdf" if suffix == ".pdf" else (
+            "docx" if suffix in (".docx", ".doc") else None
+        )
         doc_id = insert_document(
             conn,
             case_id=case_id,
             name=document_name,
             page_count=None,     # unknown until OCR completes
+            document_type=doc_type,
             source="user_upload",
         )
         with conn.cursor() as cur:
@@ -1110,27 +1175,26 @@ def ingest_file(
             document_name=document_name, mode=mode,
         )
 
-    # DOCX path
+    # DOCX/DOC path — convert to PDF first, then run through DataLab OCR.
+    # The original DOCX is replaced by the PDF on disk so the worker
+    # uploads the correct file to MinIO for preview/download.
     if suffix in _DOCX_EXTENSIONS:
-        print(f"Ingest (DOCX): {document_name}")
-        with tx() as conn:
-            doc_id = insert_document(conn, case_id=case_id, name=document_name,
-                                     page_count=1, source="user_upload")
-            with conn.cursor() as cur:
-                cur.execute("UPDATE documents SET ocr_status='complete', ocr_provider='python-docx' WHERE id=%s", (doc_id,))
-        t0 = time.time()
-        with tx() as conn:
-            _normalize_docx(conn, file_path, doc_id)
-        print(f"  ← Extracted in {time.time() - t0:.1f}s")
-        conn = connect()
+        print(f"Ingest (DOCX→PDF): {document_name}")
+        pdf_name = Path(document_name).stem + ".pdf"
+        pdf_path = _convert_to_pdf(file_path)
+        # Replace the original file with the PDF so the worker uploads
+        # the correct format to MinIO.
+        docx_path = file_path
+        file_path = pdf_path
         try:
-            with conn.cursor() as cur:
-                cur.execute("SELECT count(*) FROM sections WHERE document_id=%s", (doc_id,)); sc = cur.fetchone()[0]
-                cur.execute("SELECT count(*) FROM blocks WHERE document_id=%s", (doc_id,)); bc = cur.fetchone()[0]
-        finally:
-            conn.close()
-        result = {"document_id": doc_id, "document_name": document_name, "page_count": 1, "section_count": sc, "block_count": bc}
-        print(f"  Done: doc_id={doc_id}, {sc} sections, {bc} blocks")
+            docx_path.unlink()  # discard original DOCX
+        except OSError:
+            pass
+        result = ingest_pdf(
+            case_id=case_id, pdf_path=file_path,
+            document_name=pdf_name, mode=mode,
+        )
+        result["converted"] = True
         return result
 
     # CSV path

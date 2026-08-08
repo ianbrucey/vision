@@ -35,7 +35,7 @@ from core.db import connect
 from core.case import CaseManager
 from core.solicitation import SolicitationManager
 from ingestion.jobs import claim_next, mark_complete, mark_failed, update_progress, enqueue
-from ingestion.storage import download_file, upload_file as _upload_to_minio, _MINIO_BUCKET
+from ingestion.storage import download_file, upload_file as _upload_to_minio, delete_file as _delete_from_minio, _MINIO_BUCKET
 from ingestion.dispatcher import ingest_file
 from ingestion.enricher import enrich_document
 from ingestion.synthesizer import synthesize_case
@@ -106,8 +106,28 @@ def process_ingest_job(job: dict) -> None:
         except Exception as e:
             print(f"[{WORKER_ID}] Job {job_id}: failed to enqueue enrich — {e}")
 
-        # Store the MinIO path on the document for preview/download
-        storage_path = f"{bucket}/{object_key}"
+        # Store the MinIO path on the document for preview/download.
+        # If the file was converted (DOCX→PDF), ingest_file replaced the
+        # original file on disk with the PDF. The worker's local_path
+        # pointed to the DOCX which is now gone — look for the PDF at the
+        # expected converted path instead.
+        converted = result.get("converted")
+        if converted:
+            pdf_name = result.get("document_name", original_name)
+            pdf_path = local_path.with_suffix(".pdf")
+            try:
+                converted_ref = _upload_to_minio(pdf_path, pdf_name)
+                storage_path = f"{converted_ref['bucket']}/{converted_ref['object_key']}"
+                try:
+                    _delete_from_minio(bucket, object_key)
+                except Exception:
+                    pass  # non-fatal
+            except Exception as e:
+                print(f"[{WORKER_ID}] Job {job_id}: PDF upload failed — {e}. Falling back to original.")
+                storage_path = f"{bucket}/{object_key}"
+        else:
+            storage_path = f"{bucket}/{object_key}"
+
         try:
             from core.db import tx
             with tx() as conn:
@@ -131,12 +151,13 @@ def process_ingest_job(job: dict) -> None:
         mark_failed(job_id, str(e))
 
     finally:
-        # Clean up local temp file
-        try:
-            if local_path.exists():
-                local_path.unlink()
-        except OSError:
-            pass
+        # Clean up local temp files
+        for p in (local_path, local_path.with_suffix(".pdf")):
+            try:
+                if p.exists():
+                    p.unlink()
+            except OSError:
+                pass
 
 
 def _build_solicitation_narrative(metadata: dict[str, Any], description: str) -> str:

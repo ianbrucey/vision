@@ -163,20 +163,71 @@ async def upload_sam_notices_csv(
 
     all_cols = db_cols + ["upload_batch_id", "source_csv"]
 
+    # Row-level idempotency via temp table.
+    # COPY into temp table first (fast), then INSERT only rows whose
+    # (notice_id, naics_description) doesn't already exist. This handles
+    # re-uploads regardless of filename — the CSV is treated as a
+    # point-in-time snapshot and duplicates are harmless.
     with tx() as conn:
         with conn.cursor() as cur:
+            # Create temp table matching sam_notices structure (no indexes/constraints)
+            cur.execute(
+                "CREATE TEMP TABLE sam_notices_temp (LIKE sam_notices INCLUDING DEFAULTS)"
+            )
+
+            # COPY into temp table
             buf.seek(0)
             cur.copy_from(
                 buf,
-                "sam_notices",
+                "sam_notices_temp",
                 sep="\t",
                 null="\\N",
                 columns=all_cols,
             )
 
+            # Insert only new rows. A row is new if the (notice_id, naics_description)
+            # pair doesn't already exist in sam_notices. NULL-safe comparison: both
+            # NULL naics_description values match as "same".
+            cur.execute(
+                """INSERT INTO sam_notices (
+                       contracting_office, procurement_aac_code, sub_tier_code,
+                       sub_tier_name, notice_id, contract_opportunity_type,
+                       opportunity_title, description, current_response_date,
+                       current_set_aside, initiative, naics_code, psc_code,
+                       pop_country, pop_zip, pop_city, pop_state,
+                       ivl_enabled, attachment_count, poc_name, poc_email,
+                       awardee_uei, awardee_name, last_published_date,
+                       inactive_date, last_updated_date, status,
+                       current_set_aside_code, upload_batch_id, source_csv
+                   )
+                   SELECT contracting_office, procurement_aac_code, sub_tier_code,
+                          sub_tier_name, notice_id, contract_opportunity_type,
+                          opportunity_title, description, current_response_date,
+                          current_set_aside, initiative, naics_code, psc_code,
+                          pop_country, pop_zip, pop_city, pop_state,
+                          ivl_enabled, attachment_count, poc_name, poc_email,
+                          awardee_uei, awardee_name, last_published_date,
+                          inactive_date, last_updated_date, status,
+                          current_set_aside_code, upload_batch_id, source_csv
+                   FROM sam_notices_temp t
+                   WHERE NOT EXISTS (
+                       SELECT 1 FROM sam_notices s
+                       WHERE s.notice_id = t.notice_id
+                         AND s.naics_code IS NOT DISTINCT FROM t.naics_code
+                   )""",
+            )
+            new_rows = cur.rowcount
+
+            # Drop temp table
+            cur.execute("DROP TABLE sam_notices_temp")
+
+    duplicates_skipped = rows_written - new_rows
+
     return {
         "batch_id": batch_id,
-        "rows_inserted": rows_written,
+        "rows_in_csv": rows_written,
+        "rows_inserted": new_rows,
+        "duplicates_skipped": duplicates_skipped,
         "source": file.filename,
     }
 

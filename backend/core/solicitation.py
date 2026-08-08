@@ -112,7 +112,11 @@ class SolicitationManager:
         try:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
-                    "SELECT * FROM solicitations WHERE id = %s", (solicitation_id,)
+                    """SELECT s.*, nc.title AS naics_label
+                       FROM solicitations s
+                       LEFT JOIN naics_codes nc ON nc.code = s.naics_code
+                       WHERE s.id = %s""",
+                    (solicitation_id,),
                 )
                 row = cur.fetchone()
                 if row is None:
@@ -135,7 +139,11 @@ class SolicitationManager:
         try:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
-                    "SELECT * FROM solicitations WHERE case_id = %s", (case_id,)
+                    """SELECT s.*, nc.title AS naics_label
+                       FROM solicitations s
+                       LEFT JOIN naics_codes nc ON nc.code = s.naics_code
+                       WHERE s.case_id = %s""",
+                    (case_id,),
                 )
                 row = cur.fetchone()
                 if row is None:
@@ -163,30 +171,51 @@ class SolicitationManager:
         self,
         source_type: str | None = None,
         ingestion_status: str | None = None,
+        naics_code: str | None = None,
+        state: str | None = None,
         limit: int = 50,
         offset: int = 0,
-    ) -> list[dict]:
-        """List solicitations, optionally filtered by source_type/ingestion_status."""
+    ) -> tuple[list[dict], int]:
+        """List solicitations, optionally filtered. Returns (rows, total_count)."""
         conn = connect()
         try:
             clauses = []
             params: list[Any] = []
             if source_type:
-                clauses.append("source_type = %s")
+                clauses.append("s.source_type = %s")
                 params.append(source_type)
             if ingestion_status:
-                clauses.append("ingestion_status = %s")
+                clauses.append("s.ingestion_status = %s")
                 params.append(ingestion_status)
+            if naics_code:
+                clauses.append("s.naics_code = %s")
+                params.append(naics_code)
+            if state:
+                clauses.append("s.place_of_performance->'state'->>'code' = %s")
+                params.append(state.upper())
             where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
-            params.extend([limit, offset])
+
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                # Total count
                 cur.execute(
-                    f"""SELECT * FROM solicitations {where}
-                        ORDER BY created_at DESC
+                    f"SELECT COUNT(*) FROM solicitations s {where}",
+                    tuple(params),
+                )
+                total = cur.fetchone()["count"]
+
+                # Page
+                params.extend([limit, offset])
+                cur.execute(
+                    f"""SELECT s.*, nc.title AS naics_label
+                        FROM solicitations s
+                        LEFT JOIN naics_codes nc ON nc.code = s.naics_code
+                        {where}
+                        ORDER BY s.created_at DESC
                         LIMIT %s OFFSET %s""",
                     tuple(params),
                 )
-                return [dict(row) for row in cur.fetchall()]
+                rows = [dict(row) for row in cur.fetchall()]
+                return rows, total
         finally:
             conn.close()
 

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { FileText, PenLine, Code2, Braces, ChevronRight, ChevronDown, FolderOpen, FolderPlus, FilePlus, Maximize2, Trash2 } from "lucide-react";
-import type { WorkspaceItemSummary, FileType, Folder } from "@/lib/api";
+import { FileText, PenLine, Code2, Braces, ChevronRight, ChevronDown, FolderOpen, FolderPlus, FilePlus, Maximize2, Trash2, Paperclip } from "lucide-react";
+import type { WorkspaceItemSummary, FileType, Folder, DocumentSummary } from "@/lib/api";
 import { listFolders, createFolder, deleteFolder, deleteWorkspaceItem } from "@/lib/api";
 
 /* ------------------------------------------------------------------ */
@@ -22,6 +22,10 @@ interface FileExplorerProps {
   onWorkspaceChange: (id: number) => void;
   onCreateWorkspace: (name: string) => void;
   refreshKey: number;
+  // Uploaded documents
+  documents: DocumentSummary[];
+  activeDocumentId: number | null;
+  onSelectDocument: (docId: number) => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -67,8 +71,10 @@ const FILE_TYPE_ICON_COLOR: Record<FileType, string> = {
 export default function FileExplorer({
   items, activeItemId, caseId, workspaceId, workspaceName, workspaces,
   onSelectItem, onNewFile, onBrowse, onWorkspaceChange, onCreateWorkspace, refreshKey,
+  documents, activeDocumentId, onSelectDocument,
 }: FileExplorerProps) {
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [docsExpanded, setDocsExpanded] = useState(false);  // default collapsed
   const expandedKey = `vision_explorer_expanded_${caseId}_${workspaceId}`;
   const [expanded, setExpanded] = useState<Set<number>>(() => {
     try {
@@ -294,6 +300,52 @@ export default function FileExplorer({
             className="text-[10px] bg-[--surface-2] border border-[--border] rounded px-2 py-0.5 w-full outline-none" />
         </div>
       )}
+
+      {/* Uploaded Documents — top, default collapsed */}
+      <div className="border-b border-[--border]">
+        <button
+          onClick={() => setDocsExpanded(!docsExpanded)}
+          className="flex items-center gap-1.5 w-full px-3 py-1.5 text-xs text-[--text-secondary] hover:text-[--text-primary] transition-colors"
+        >
+          {docsExpanded ? <ChevronDown size={10} className="text-text-disabled shrink-0" />
+                        : <ChevronRight size={10} className="text-text-disabled shrink-0" />}
+          <Paperclip size={12} className="text-text-disabled shrink-0" />
+          <span className="flex-1 text-left font-medium">Uploaded Documents</span>
+          <span className="text-[9px] text-[--text-disabled]">{documents.length}</span>
+        </button>
+        {docsExpanded && documents.length > 0 && (
+          <div className="pb-1">
+            {documents.map(doc => {
+              const isActive = doc.id === activeDocumentId;
+              const isPdf = doc.document_type === "pdf" || doc.name?.toLowerCase().endsWith(".pdf");
+              const isDocx = doc.document_type === "docx" || doc.name?.toLowerCase().endsWith(".docx");
+              const icon = isPdf ? "📄" : isDocx ? "📝" : "📎";
+              return (
+                <div
+                  key={`doc-${doc.id}`}
+                  onClick={() => onSelectDocument(doc.id)}
+                  className={`tree-item flex items-center gap-1.5 py-1 px-3 cursor-pointer transition-colors text-xs border-l-2 ml-2 ${
+                    isActive
+                      ? "bg-brand-bg/50 border-brand text-brand"
+                      : "border-transparent text-text-primary hover:bg-surface-2"
+                  }`}
+                >
+                  <span className="shrink-0 text-[11px]">{icon}</span>
+                  <span className="flex-1 truncate">{doc.name}</span>
+                  {doc.page_count != null && (
+                    <span className="text-[9px] text-[--text-disabled] shrink-0">{doc.page_count}p</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {docsExpanded && documents.length === 0 && (
+          <div className="pb-2 px-3">
+            <p className="text-[10px] text-text-disabled ml-4">No documents uploaded yet.</p>
+          </div>
+        )}
+      </div>
 
       {/* Tree */}
       <div className="flex-1 overflow-y-auto py-1">

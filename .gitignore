@@ -1,6 +1,18 @@
 # Environment — contains real API keys, NEVER commit
 .env
 
+# Large data files — analysis artifacts, not code
+*.db
+*.csv
+*.zip
+BQ260723/
+discussions/gov-talent-network/*.csv
+discussions/gov-talent-network/*.db
+discussions/gov-talent-network/*.zip
+test_sdk.py
+check_far.py
+load_publog.py
+
 # Python
 __pycache__/
 *.pyc
@@ -43,3 +55,4 @@ scratch.md
 PublogDVD/
 publog_export/
 publog_data/
+company_info/

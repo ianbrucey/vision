@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GovCon Engine — Partner Briefing</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 18px; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0f1117; color: #e4e6ed; overflow: hidden; height: 100vh;
+  }
+
+  /* ---- Slides ---- */
+  .deck { position: relative; width: 100%; height: 100vh; }
+  .slide {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 4rem 5rem;
+    opacity: 0; transition: opacity 0.4s ease; pointer-events: none;
+  }
+  .slide.active { opacity: 1; pointer-events: auto; }
+
+  /* ---- Typography ---- */
+  h1 { font-size: 2.8rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 1rem; }
+  h2 { font-size: 2rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 1.5rem; }
+  h3 { font-size: 1.3rem; font-weight: 600; margin-bottom: 0.75rem; color: #c9a84c; }
+  p, li { line-height: 1.65; color: #b0b4c0; }
+  ul { padding-left: 1.5rem; }
+  li { margin-bottom: 0.35rem; }
+  .sub { font-size: 0.9rem; color: #6b7080; margin-top: 0.5rem; }
+  .accent { color: #c9a84c; }
+  .big-num { font-size: 3.5rem; font-weight: 800; color: #c9a84c; line-height: 1; }
+
+  /* ---- Layout helpers ---- */
+  .cols { display: grid; gap: 2rem; width: 100%; max-width: 1100px; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .card {
+    background: #1a1d28; border: 1px solid #2a2d3a; border-radius: 12px;
+    padding: 1.5rem; text-align: left;
+  }
+  .card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .card p, .card li { font-size: 0.85rem; }
+  .tag {
+    display: inline-block; padding: 0.2rem 0.6rem; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 600; margin-right: 0.3rem;
+  }
+  .tag-gold { background: rgba(201,168,76,0.15); color: #c9a84c; }
+  .tag-green { background: rgba(45,138,78,0.15); color: #2d8a4e; }
+  .tag-blue { background: rgba(59,108,181,0.15); color: #7ba4e0; }
+  .tag-red { background: rgba(197,48,48,0.15); color: #e07070; }
+
+  /* ---- Flow diagram ---- */
+  .flow { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+  .flow-step {
+    background: #1a1d28; border: 1px solid #2a2d3a; border-radius: 10px;
+    padding: 0.85rem 1.2rem; text-align: center; font-size: 0.85rem; font-weight: 600;
+  }
+  .flow-arrow { font-size: 1.4rem; color: #c9a84c; font-weight: 700; }
+
+  /* ---- Navigation ---- */
+  .nav {
+    position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 1rem; z-index: 100;
+  }
+  .nav button {
+    background: #1a1d28; border: 1px solid #2a2d3a; color: #e4e6ed;
+    padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+  }
+  .nav button:hover { background: #2a2d3a; }
+  .nav .page-num { font-size: 0.8rem; color: #6b7080; min-width: 3rem; text-align: center; }
+
+  /* ---- Cover ---- */
+  .cover { text-align: center; }
+  .cover h1 { font-size: 3.5rem; margin-bottom: 0.5rem; }
+  .cover .subtitle { font-size: 1.2rem; color: #6b7080; margin-bottom: 2rem; }
+
+  /* ---- Stat row ---- */
+  .stat-row { display: flex; gap: 2rem; justify-content: center; margin: 1.5rem 0; }
+  .stat { text-align: center; }
+  .stat .val { font-size: 2.5rem; font-weight: 800; color: #c9a84c; }
+  .stat .lbl { font-size: 0.8rem; color: #6b7080; margin-top: 0.3rem; }
+
+  /* ---- Pipeline comparison ---- */
+  .pipe-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; width: 100%; max-width: 1000px; }
+  .pipe-col { background: #1a1d28; border-radius: 12px; padding: 1.5rem; border-top: 3px solid #c9a84c; }
+  .pipe-col.right { border-top-color: #7ba4e0; }
+
+  /* ---- Table ---- */
+  .mini-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.75rem; }
+  .mini-table th { text-align: left; color: #6b7080; font-weight: 500; padding: 0.4rem 0.5rem; border-bottom: 1px solid #2a2d3a; }
+  .mini-table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid #1a1d28; }
+  .mini-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 900px) {
+    .slide { padding: 2rem 1.5rem; }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.5rem; }
+    .cols-2, .cols-3 { grid-template-columns: 1fr; }
+    .pipe-cols { grid-template-columns: 1fr; }
+    .stat-row { flex-wrap: wrap; gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- ====== SLIDE 0: Cover ====== -->
+  <div class="slide active cover" data-slide="0">
+    <h1>GovCon Engine</h1>
+    <p class="subtitle">A software-powered federal contracting company</p>
+    <div class="stat-row">
+      <div class="stat"><div class="val">2,000+</div><div class="lbl">daily solicitations</div></div>
+      <div class="stat"><div class="val">~200</div><div class="lbl">qualified leads/day</div></div>
+      <div class="stat"><div class="val">2</div><div class="lbl">revenue pipelines</div></div>
+    </div>
+    <p class="sub" style="margin-top:2rem">Partner Briefing · August 2026</p>
+  </div>
+
+  <!-- ====== SLIDE 1: The Problem ====== -->
+  <div class="slide" data-slide="1">
+    <h2>The Problem We Solve</h2>
+    <div class="cols cols-2" style="max-width:1000px">
+      <div class="card">
+        <h3>The Government's Side</h3>
+        <p>Federal agencies <span class="accent">must</span> award a share of contracts to small businesses. They want to — but the process defeats most small contractors before they even bid.</p>
+        <ul style="margin-top:0.5rem">
+          <li>Registration, bonding, compliance</li>
+          <li>Proposal writing, past performance</li>
+          <li>Invoicing, milestone tracking</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>The Small Business Side</h3>
+        <p>Most small contractors never bid on federal work. Not because they can't do the job — because the <span class="accent">paperwork</span> is the real barrier.</p>
+        <ul style="margin-top:0.5rem">
+          <li>~250 active SB construction set-asides this week alone</li>
+          <li>$100K–$150K+ opportunities: big enough to build on, small enough that large players don't compete</li>
+        </ul>
+      </div>
+    </div>
+    <p class="accent" style="margin-top:1.5rem; font-size:1.1rem; text-align:center">We remove the process. Subs do what they're great at. We do what they're not.</p>
+  </div>
+
+  <!-- ====== SLIDE 2: The Model ====== -->
+  <div class="slide" data-slide="2">
+    <h2>How It Works — The Three Roles</h2>
+    <div class="cols cols-3" style="max-width:1100px">
+      <div class="card" style="text-align:center">
+        <div style="font-size:2rem; margin-bottom:0.5rem">🏛️</div>
+        <h3>We (The Prime)</h3>
+        <p>Hold the contract. Face the agency. Own the compliance and paperwork. Manage to completion.</p>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:2rem; margin-bottom:0.5rem">🔧</div>
+        <h3>Subcontractors</h3>
+        <p>Skilled trades who perform the work — HVAC, electrical, plumbing, roofing, janitorial, landscaping. Vetted once, used repeatedly.</p>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:2rem; margin-bottom:0.5rem">⚙️</div>
+        <h3>The Engine</h3>
+        <p>Software that finds opportunities, reads them, matches subs, collects pricing, drafts responses, and tracks contracts.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SLIDE 3: The Six Steps ====== -->
+  <div class="slide" data-slide="3">
+    <h2>The Engine — Six Steps</h2>
+    <div class="flow" style="max-width:1050px">
+      <div class="flow-step">1. Find<br><span class="sub">Scan federal portals daily</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">2. Read<br><span class="sub">AI reads &amp; summarizes each posting</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">3. Match<br><span class="sub">Match to vetted subs by trade &amp; location</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">4. Price<br><span class="sub">Subs send back a number. No jargon, no forms.</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">5. Respond<br><span class="sub">AI drafts the proposal. We review &amp; submit.</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">6. Manage<br><span class="sub">Track milestones, approvals, payments.</span></div>
+    </div>
+  </div>
+
+  <!-- ====== SLIDE 4: Two Pipelines ====== -->
+  <div class="slide" data-slide="4">
+    <h2>Two Revenue Pipelines</h2>
+    <div class="pipe-cols">
+      <div class="pipe-col">
+        <h3>Pipeline A — Bid as Prime</h3>
+        <p class="sub">SAM.gov → Filter → AI Triage → Match Subs → Price → Submit Bid → Win → Manage</p>
+        <table class="mini-table">
+          <tr><th>Source</th><td>SAM.gov Databank (daily pull)</td></tr>
+          <tr><th>Volume</th><td>~46,000 active → ~1,400 qualified SB set-asides</td></tr>
+          <tr><th>Filter</th><td>Construction, Facilities, IT · SB set-aside · ≥7 day deadline</td></tr>
+          <tr><th>Output</th><td>Ranked bid opportunities with AI-extracted scope, requirements, evaluation criteria</td></tr>
+        </table>
+      </div>
+      <div class="pipe-col right">
+        <h3>Pipeline B — Subcontract Under Primes</h3>
+        <p class="sub">USASpending.gov → Filter → ID IQ/MATOC Pools → Rank Primes → Outreach → On Roster → Quote → Win</p>
+        <table class="mini-table">
+          <tr><th>Source</th><td>USASpending.gov (monthly sweep)</td></tr>
+          <tr><th>Volume</th><td>~136,000 IDV vehicles → ~2,000 active F/G plan holders</td></tr>
+          <tr><th>Filter</th><td>Plan F/G · Active ordering period · Construction/IT/Facilities NAICS</td></tr>
+          <tr><th>Output</th><td>Ranked prime leads with vehicle data, pool membership, SBLO contacts</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SLIDE 5: The Volume ====== -->
+  <div class="slide" data-slide="5">
+    <h2>The Volume Challenge — Why Software</h2>
+    <div class="stat-row">
+      <div class="stat"><div class="val">2,000–4,000</div><div class="lbl">raw solicitations posted daily</div></div>
+      <div class="stat"><div class="val">~1,000</div><div class="lbl">after SB set-aside filter</div></div>
+      <div class="stat"><div class="val">~80</div><div class="lbl">targeted triage/day (our NAICS)</div></div>
+    </div>
+    <p style="max-width:800px; text-align:center; margin-top:1.5rem">
+      Triaging a few hundred targeted opportunities per day manually is <span class="accent">labor-intensive and costly</span>.
+      Our system does the first three steps automatically — find, read, match — so a human only touches
+      the opportunities that are already qualified and matched to subs.
+    </p>
+    <div style="margin-top:2rem; max-width:800px; width:100%">
+      <table class="mini-table">
+        <tr><th></th><th>Manual</th><th>With GovCon Engine</th></tr>
+        <tr><td>Find opportunities</td><td>Hours searching SAM.gov</td><td class="accent">Automated, daily</td></tr>
+        <tr><td>Read &amp; classify</td><td>Hours reading PDFs</td><td class="accent">AI extracts in minutes</td></tr>
+        <tr><td>Match to subs</td><td>Days of calls/emails</td><td class="accent">Automated matching + pricing requests</td></tr>
+        <tr><td>Draft proposal</td><td>Days of writing</td><td class="accent">AI draft, human review</td></tr>
+        <tr><td>Opportunities/week</td><td>Maybe 5–10</td><td class="accent">50+</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ====== SLIDE 6: Verticals ====== -->
+  <div class="slide" data-slide="6">
+    <h2>Core Verticals</h2>
+    <div class="cols cols-3" style="max-width:1100px">
+      <div class="card">
+        <h3>🏗️ Facilities &amp; Construction</h3>
+        <p>HVAC, plumbing, general contracting, pest control, janitorial, landscaping, roofing, electrical, fire protection.</p>
+        <p style="margin-top:0.5rem"><span class="tag tag-gold">Primary</span> <span class="tag tag-green">Live</span></p>
+      </div>
+      <div class="card">
+        <h3>💻 IT Services</h3>
+        <p>Custom programming, systems design, cloud infrastructure, cybersecurity, data processing.</p>
+        <p style="margin-top:0.5rem"><span class="tag tag-blue">Secondary</span> <span class="tag tag-green">Live</span></p>
+      </div>
+      <div class="card">
+        <h3>🚗 Vehicle Maintenance</h3>
+        <p>Automotive repair, auto body work. Fleet maintenance contracts.</p>
+        <p style="margin-top:0.5rem"><span class="tag tag-blue">Secondary</span></p>
+      </div>
+      <div class="card">
+        <h3>🏢 Commercial Real Estate</h3>
+        <p>Government lease solicitations. Source properties, negotiate with owners, secure Right to Represent agreements.</p>
+        <p style="margin-top:0.5rem"><span class="tag tag-blue">Partnership</span></p>
+      </div>
+      <div class="card">
+        <h3>📦 Product Supply</h3>
+        <p>Net-30/Net-45 credit terms with vendors. Lower cash requirement than construction.</p>
+        <p style="margin-top:0.5rem"><span class="tag tag-blue">Future</span></p>
+      </div>
+      <div class="card">
+        <h3>➕ Expandable</h3>
+        <p>The engine is NAICS-agnostic. Add any vertical by configuring filter rules — no code changes needed.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SLIDE 7: Financial Strategy ====== -->
+  <div class="slide" data-slide="7">
+    <h2>Financial &amp; Bonding Strategy</h2>
+    <div class="cols cols-2" style="max-width:1000px">
+      <div class="card">
+        <h3>Under $150,000</h3>
+        <p>The <span class="accent">Simplified Acquisition Threshold</span> — no bid bond or performance bond required.</p>
+        <ul style="margin-top:0.5rem">
+          <li>Focus construction opportunities here initially</li>
+          <li>Low barrier to entry</li>
+          <li>Build past performance while minimizing risk</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Over $150,000</h3>
+        <p>Partner or piggyback with <span class="accent">established construction companies</span> that already have:</p>
+        <ul style="margin-top:0.5rem">
+          <li>Strong bonding capacity</li>
+          <li>Past performance records</li>
+          <li>We bring the deal flow — they bring the credentials</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="max-width:1000px; margin-top:1.5rem; text-align:center">
+      <h3>Revenue Model</h3>
+      <p>We earn the full contract value as prime. Our margin is the difference between the price we win and the prices our subs quote. <span class="accent">Scale comes from software and network, not headcount.</span></p>
+    </div>
+  </div>
+
+  <!-- ====== SLIDE 8: The Tech — What's Already Built ====== -->
+  <div class="slide" data-slide="8">
+    <h2>What's Already Built</h2>
+    <div class="cols cols-2" style="max-width:1100px">
+      <div class="card">
+        <h3>SAM.gov Pipeline ✅</h3>
+        <ul>
+          <li>CSV upload: 46K rows in ~2 seconds</li>
+          <li>Five-gate filter: type → NAICS → set-aside → urgency → dedup</li>
+          <li>Row-level idempotency: same CSV uploaded twice = zero duplicates</li>
+          <li>One-click "Filter → Solicitations": creates solicitation records for all qualifying notices</li>
+          <li>AI triage pipeline wired and ready (sam_fetch → triage → vendor matching)</li>
+          <li>Clickable notice IDs resolve to SAM.gov URLs</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>USASpending Pipeline ✅</h3>
+        <ul>
+          <li>136K-row CSV upload with streaming (no memory issues)</li>
+          <li>Four-gate filter: plan F/G → active ordering → NAICS → valid keys</li>
+          <li>Priority scoring: 0–100 based on plan type, value, pool membership</li>
+          <li>Multi-award pool identification: groups primes by solicitation</li>
+          <li>Dedup via (award_id_piid, recipient_uei)</li>
+          <li>Expandable row detail: agency, NAICS, socioeconomic flags, permalink</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="max-width:1100px; margin-top:1rem">
+      <h3>Infrastructure</h3>
+      <p>FastAPI backend · Next.js 16 frontend · PostgreSQL + pgvector · Claude AI integration · Background job queue · JWT auth · Mailgun email · SAM.gov API client · OCR pipeline for PDFs/DOCX</p>
+    </div>
+  </div>
+
+  <!-- ====== SLIDE 9: Subcontractor Network ====== -->
+  <div class="slide" data-slide="9">
+    <h2>The Subcontractor Network</h2>
+    <div class="cols cols-3" style="max-width:1100px">
+      <div class="card" style="text-align:center">
+        <div style="font-size:2rem; margin-bottom:0.5rem">📋</div>
+        <h3>Register Once</h3>
+        <p>Subs provide licenses, insurance, bonding, and capabilities. Stored once, reused for every bid.</p>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:2rem; margin-bottom:0.5rem">📬</div>
+        <h3>Steady Pipeline</h3>
+        <p>Matched subs receive simple pricing requests — no jargon, no forms, no SAM.gov navigation.</p>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:2rem; margin-bottom:0.5rem">💵</div>
+        <h3>Get Paid On Time</h3>
+        <p>We handle the government invoicing. Subs get paid when we get paid. No chasing agencies.</p>
+      </div>
+    </div>
+    <p style="max-width:800px; text-align:center; margin-top:1.5rem">
+      <span class="accent">Key insight (Eric Coffie):</span> "Stop trying to be the whole contract. Be a line item."
+      A solo HVAC tech can join a maintenance contract. A one-truck cleaner can land a facilities contract line.
+      Line items → cash flow → credibility → past performance → contracts.
+    </p>
+  </div>
+
+  <!-- ====== SLIDE 10: Open Questions ====== -->
+  <div class="slide" data-slide="10">
+    <h2>Open Questions for Discussion</h2>
+    <div class="cols cols-2" style="max-width:1100px">
+      <div class="card">
+        <h3>1. Triage &amp; Pipeline</h3>
+        <p>Automated bulk import + AI triage, or lean manual triage of a highly refined daily feed?</p>
+      </div>
+      <div class="card">
+        <h3>2. Subcontractor Network</h3>
+        <p>What process to recruit, vet, and lock in quotes from local subs before submitting bids?</p>
+      </div>
+      <div class="card">
+        <h3>3. Vendor Credit Lines</h3>
+        <p>Who takes point on establishing Net-30/Net-45 trade credit with suppliers for product solicitations?</p>
+      </div>
+      <div class="card">
+        <h3>4. Real Estate Partnership</h3>
+        <p>Protocol, timeline, and fee-sharing for property lease solicitations with our real estate partner?</p>
+      </div>
+      <div class="card">
+        <h3>5. Capacity &amp; Bottlenecks</h3>
+        <p>What's currently stopping us from submitting a consistent number of bids per week?</p>
+      </div>
+      <div class="card">
+        <h3>6. Over $150K Strategy</h3>
+        <p>Which established contractors can we partner with for bonding and past performance?</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SLIDE 11: Roadmap ====== -->
+  <div class="slide" data-slide="11">
+    <h2>The Roadmap</h2>
+    <div class="cols cols-3" style="max-width:1100px">
+      <div class="card">
+        <h3>Stage 1 · Launch</h3>
+        <p><span class="tag tag-gold">Now</span></p>
+        <ul style="margin-top:0.5rem">
+          <li>Sourcing pipelines (SAM + USASpending) ✅</li>
+          <li>AI triage &amp; classification</li>
+          <li>Vendor matching</li>
+          <li>Automated responses</li>
+        </ul>
+        <p class="sub" style="margin-top:0.5rem">Win our first construction set-aside contracts</p>
+      </div>
+      <div class="card">
+        <h3>Stage 2 · Growth</h3>
+        <ul style="margin-top:0.5rem">
+          <li>Subcontractor portal (self-service registration)</li>
+          <li>Credential management &amp; expiry tracking</li>
+          <li>Award tracking &amp; contract management</li>
+          <li>More subs, more bids, repeat wins</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Stage 3 · Scale</h3>
+        <ul style="margin-top:0.5rem">
+          <li>Finance automation</li>
+          <li>Milestone tracking</li>
+          <li>New markets: IT, services, product supply, real estate</li>
+          <li>A self-running contracting business</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SLIDE 12: Summary ====== -->
+  <div class="slide cover" data-slide="12">
+    <h1>The Government Wants to Buy From Small Business</h1>
+    <p class="subtitle" style="font-size:1.3rem">The only real barrier is process. We remove the process.</p>
+    <div class="stat-row" style="margin:2rem 0">
+      <div class="stat"><div class="val">$100K–$150K+</div><div class="lbl">sweet spot per contract</div></div>
+      <div class="stat"><div class="val">~250</div><div class="lbl">active SB construction set-asides weekly</div></div>
+      <div class="stat"><div class="val">0</div><div class="lbl">equipment/crews/payroll needed</div></div>
+    </div>
+    <p style="font-size:1.2rem; color:#c9a84c; margin-top:1.5rem">Scale comes from software and network, not headcount.</p>
+    <p class="sub" style="margin-top:2rem">GovCon Engine · Partner Briefing · August 2026</p>
+  </div>
+
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <button onclick="prev()">← Prev</button>
+  <span class="page-num" id="pagenum">1 / 13</span>
+  <button onclick="next()">Next →</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+  function show(i) {
+    slides[current].classList.remove('active');
+    current = (i + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    document.getElementById('pagenum').textContent = `${current + 1} / ${slides.length}`;
+  }
+  function next() { show(current + 1); }
+  function prev() { show(current - 1); }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); }
+  });
+</script>
+</body>
+</html>

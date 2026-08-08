@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { listSolicitations, createSolicitation, deleteSolicitation, rerunSolicitation, triggerTriage, type Solicitation } from "@/lib/api";
+import { listSolicitations, createSolicitation, deleteSolicitation, rerunSolicitation, triggerTriage, lookupSolicitationUrl, listNaicsCodes, type Solicitation } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
-import { Plus, FolderOpen, Loader2, FileSearch, AlertTriangle, Trash2, RefreshCw, RotateCcw, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Sparkles, Send, Bot } from "lucide-react";
+import { Plus, FolderOpen, Loader2, FileSearch, AlertTriangle, Trash2, RefreshCw, RotateCcw, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Sparkles, Send, Bot, ExternalLink } from "lucide-react";
 import { useSystemAgent, type SystemMessage } from "@/hooks/useSystemAgent";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -39,6 +39,35 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "ingestion_status", label: "Status" },
 ];
 
+const US_STATES: { code: string; name: string }[] = [
+  { code: "AL", name: "Alabama" }, { code: "AK", name: "Alaska" },
+  { code: "AZ", name: "Arizona" }, { code: "AR", name: "Arkansas" },
+  { code: "CA", name: "California" }, { code: "CO", name: "Colorado" },
+  { code: "CT", name: "Connecticut" }, { code: "DE", name: "Delaware" },
+  { code: "DC", name: "District of Columbia" }, { code: "FL", name: "Florida" },
+  { code: "GA", name: "Georgia" }, { code: "HI", name: "Hawaii" },
+  { code: "ID", name: "Idaho" }, { code: "IL", name: "Illinois" },
+  { code: "IN", name: "Indiana" }, { code: "IA", name: "Iowa" },
+  { code: "KS", name: "Kansas" }, { code: "KY", name: "Kentucky" },
+  { code: "LA", name: "Louisiana" }, { code: "ME", name: "Maine" },
+  { code: "MD", name: "Maryland" }, { code: "MA", name: "Massachusetts" },
+  { code: "MI", name: "Michigan" }, { code: "MN", name: "Minnesota" },
+  { code: "MS", name: "Mississippi" }, { code: "MO", name: "Missouri" },
+  { code: "MT", name: "Montana" }, { code: "NE", name: "Nebraska" },
+  { code: "NV", name: "Nevada" }, { code: "NH", name: "New Hampshire" },
+  { code: "NJ", name: "New Jersey" }, { code: "NM", name: "New Mexico" },
+  { code: "NY", name: "New York" }, { code: "NC", name: "North Carolina" },
+  { code: "ND", name: "North Dakota" }, { code: "OH", name: "Ohio" },
+  { code: "OK", name: "Oklahoma" }, { code: "OR", name: "Oregon" },
+  { code: "PA", name: "Pennsylvania" }, { code: "RI", name: "Rhode Island" },
+  { code: "SC", name: "South Carolina" }, { code: "SD", name: "South Dakota" },
+  { code: "TN", name: "Tennessee" }, { code: "TX", name: "Texas" },
+  { code: "UT", name: "Utah" }, { code: "VT", name: "Vermont" },
+  { code: "VA", name: "Virginia" }, { code: "WA", name: "Washington" },
+  { code: "WV", name: "West Virginia" }, { code: "WI", name: "Wisconsin" },
+  { code: "WY", name: "Wyoming" },
+];
+
 export default function SolicitationsPage() {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -56,14 +85,28 @@ export default function SolicitationsPage() {
   const agent = useSystemAgent();
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [loaded, setLoaded] = useState(false);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [search, setSearch] = useState("");
+  const [naicsFilter, setNaicsFilter] = useState<string>("");
+  const [stateFilter, setStateFilter] = useState<string>("");
+  const [naicsCodes, setNaicsCodes] = useState<{ code: string; title: string }[]>([]);
+  const [naicsDropdownOpen, setNaicsDropdownOpen] = useState(false);
+  const [naicsSearch, setNaicsSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
-  const refresh = useCallback(async () => {
-    const res = await listSolicitations();
+  // Pagination
+  const PAGE_SIZE = 50;
+  const [offset, setOffset] = useState(0);
+  const [total, setTotal] = useState(0);
+
+  const refresh = useCallback(async (newOffset = 0) => {
+    const res = await listSolicitations({ limit: PAGE_SIZE, offset: newOffset });
     setSolicitations(res.solicitations);
+    setTotal(res.total ?? res.count ?? 0);
+    setOffset(newOffset);
+    setLoaded(true);
   }, []);
 
   // Initial load
@@ -73,6 +116,11 @@ export default function SolicitationsPage() {
     mountedRef.current = true;
     refresh();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load NAICS codes for filter dropdown
+  useEffect(() => {
+    listNaicsCodes().then(setNaicsCodes).catch(() => {});
+  }, []);
 
   // Poll while any row is still ingesting (federal async intake) or triaging
   useEffect(() => {
@@ -193,6 +241,8 @@ export default function SolicitationsPage() {
       (s) =>
         (typeFilter === "all" || s.source_type === typeFilter) &&
         (!statusFilter || s.ingestion_status === statusFilter) &&
+        (!naicsFilter || s.naics_code === naicsFilter) &&
+        (!stateFilter || ((s.place_of_performance as Record<string, unknown> | null)?.state as Record<string, unknown> | undefined)?.code === stateFilter) &&
         (!q ||
           s.title.toLowerCase().includes(q) ||
           (s.agency || "").toLowerCase().includes(q)),
@@ -475,6 +525,102 @@ export default function SolicitationsPage() {
           </select>
         </div>
 
+        {/* === NAICS + State filters === */}
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          {/* NAICS searchable combobox */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder={naicsFilter ? `${naicsFilter} — ${naicsCodes.find(n => n.code === naicsFilter)?.title?.slice(0, 40) || ""}` : "Filter by NAICS…"}
+              value={naicsFilter ? `${naicsFilter} — ${naicsCodes.find(n => n.code === naicsFilter)?.title || ""}` : naicsSearch}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (naicsFilter) {
+                  // Clear the filter if user starts typing
+                  setNaicsFilter("");
+                  setNaicsSearch(val);
+                } else {
+                  setNaicsSearch(val);
+                }
+                setNaicsDropdownOpen(true);
+              }}
+              onFocus={() => setNaicsDropdownOpen(true)}
+              onBlur={() => setTimeout(() => setNaicsDropdownOpen(false), 200)}
+              className={`bg-surface-2 border rounded-sm px-3 py-2 text-sm
+                         focus:border-brand focus:ring-2 focus:ring-brand-ring focus:outline-hidden
+                         transition-colors duration-150 min-w-[200px] ${
+                           naicsFilter ? "border-brand text-brand" : "border-border"
+                         }`}
+            />
+            {naicsFilter && (
+              <button
+                onClick={() => { setNaicsFilter(""); setNaicsSearch(""); }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-text-disabled hover:text-text-secondary"
+              >
+                <X size={14} />
+              </button>
+            )}
+            {naicsDropdownOpen && !naicsFilter && (
+              <div className="absolute top-full mt-1 left-0 z-40 max-h-48 overflow-y-auto
+                              bg-surface-1 border border-border rounded-md shadow-lg min-w-[320px]">
+                {naicsCodes
+                  .filter(n => !naicsSearch ||
+                    n.code.includes(naicsSearch) ||
+                    n.title.toLowerCase().includes(naicsSearch.toLowerCase()))
+                  .slice(0, 50)
+                  .map(n => (
+                    <button
+                      key={n.code}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setNaicsFilter(n.code);
+                        setNaicsSearch("");
+                        setNaicsDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-surface-2
+                                 transition-colors flex items-center gap-2"
+                    >
+                      <span className="text-text-disabled text-[11px] font-mono shrink-0">{n.code}</span>
+                      <span className="text-text-secondary truncate">{n.title}</span>
+                    </button>
+                  ))}
+                {naicsCodes.filter(n => !naicsSearch ||
+                    n.code.includes(naicsSearch) ||
+                    n.title.toLowerCase().includes(naicsSearch.toLowerCase())).length === 0 && (
+                  <div className="px-3 py-2 text-sm text-text-disabled">No matching NAICS codes</div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* State dropdown */}
+          <select
+            value={stateFilter}
+            onChange={(e) => setStateFilter(e.target.value)}
+            className="bg-surface-2 border border-border rounded-sm px-3 py-2 text-sm
+                       focus:border-brand focus:ring-2 focus:ring-brand-ring focus:outline-hidden
+                       transition-colors duration-150"
+          >
+            <option value="">All states</option>
+            {US_STATES.map((st) => (
+              <option key={st.code} value={st.code}>{st.name}</option>
+            ))}
+          </select>
+
+          {/* Clear filters */}
+          {(naicsFilter || stateFilter) && (
+            <button
+              onClick={() => { setNaicsFilter(""); setNaicsSearch(""); setStateFilter(""); }}
+              className="text-[11px] px-2.5 py-1 rounded-md border border-border
+                         text-text-secondary hover:border-border-strong hover:text-text-primary
+                         transition-colors inline-flex items-center gap-1"
+            >
+              <X size={12} />
+              Clear filters
+            </button>
+          )}
+        </div>
+
         {/* === SortBar === */}
         <div className="flex items-center gap-1.5 mb-4 flex-wrap">
           <span className="text-[11px] text-text-disabled inline-flex items-center gap-1">
@@ -512,7 +658,33 @@ export default function SolicitationsPage() {
                 <div className="flex items-start gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-text-primary truncate">{s.title}</p>
-                    <p className="text-[10px] text-text-disabled truncate mt-0.5">{s.agency || s.url}</p>
+                    <p className="text-[10px] text-text-disabled truncate mt-0.5">
+                      {s.agency || s.url}
+                      {s.notice_id && (
+                        <>
+                          {" · "}
+                          <a
+                            href={`https://sam.gov/search?index=opp&keywords=${encodeURIComponent(s.notice_id)}&sort=-modifiedDate`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              try {
+                                const result = await lookupSolicitationUrl(s.notice_id!);
+                                window.open(result.ui_link, "_blank", "noopener,noreferrer");
+                              } catch {
+                                window.open(e.currentTarget.getAttribute("href")!, "_blank", "noopener,noreferrer");
+                              }
+                            }}
+                            className="text-brand hover:underline inline-flex items-center gap-0.5"
+                          >
+                            {s.notice_id}
+                            <ExternalLink size={10} />
+                          </a>
+                        </>
+                      )}
+                    </p>
                   </div>
                   {s.unread_replies ? (
                     <span className="text-[11px] px-2 py-0.5 rounded-full font-bold shrink-0 bg-danger text-white">
@@ -520,6 +692,36 @@ export default function SolicitationsPage() {
                     </span>
                   ) : null}
                 </div>
+                {/* NAICS + Place of Performance metadata */}
+                {(s.naics_code || s.place_of_performance) && (
+                  <div className="flex items-center gap-2 mt-1.5 text-[11px] text-text-secondary">
+                    {s.naics_code && (
+                      <span className="inline-flex items-center gap-1">
+                        <span className="text-text-disabled">NAICS:</span>
+                        <span className="font-mono text-text-secondary">{s.naics_code}</span>
+                        {s.naics_label && (
+                          <span className="text-text-disabled truncate max-w-[200px]">
+                            — {s.naics_label}
+                          </span>
+                        )}
+                      </span>
+                    )}
+                    {s.naics_code && s.place_of_performance && (
+                      <span className="text-text-disabled">·</span>
+                    )}
+                    {s.place_of_performance && (
+                      <span className="inline-flex items-center gap-1 truncate">
+                        <span className="text-text-disabled shrink-0">📍</span>
+                        {(() => {
+                          const pop = s.place_of_performance as Record<string, unknown>;
+                          const city = (pop?.city as Record<string, unknown>)?.name;
+                          const state = (pop?.state as Record<string, unknown>)?.code;
+                          return city && state ? `${city}, ${state}` : null;
+                        })()}
+                      </span>
+                    )}
+                  </div>
+                )}
                 <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                   <span
                     className={`text-[10px] px-2 py-0.5 rounded-sm font-medium ${
@@ -626,6 +828,31 @@ export default function SolicitationsPage() {
               <p className="text-sm text-text-secondary">No solicitations yet</p>
               <p className="text-xs text-text-disabled">Paste a SAM.gov URL above to get started.</p>
             </div>
+          )}
+
+          {/* Pagination — only render after first data load to avoid hydration mismatch */}
+          {loaded && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border text-sm">
+            <span className="text-text-secondary">
+              {total.toLocaleString()} total · showing {offset + 1}–{Math.min(offset + PAGE_SIZE, total)}
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => refresh(Math.max(0, offset - PAGE_SIZE))}
+                disabled={offset === 0}
+                className="px-3 py-1 border border-border rounded-md disabled:opacity-30 hover:bg-surface-50"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => refresh(offset + PAGE_SIZE)}
+                disabled={offset + PAGE_SIZE >= total}
+                className="px-3 py-1 border border-border rounded-md disabled:opacity-30 hover:bg-surface-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
           )}
         </div>
       </div>

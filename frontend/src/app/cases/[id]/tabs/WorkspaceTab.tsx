@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { FileText, FilePlus, Plus, Check, X, Loader2, Trash2, Pencil, PanelLeft } from "lucide-react";
+import { FileText, FilePlus, Plus, Check, X, Loader2, Trash2, Pencil, PanelLeft, ExternalLink } from "lucide-react";
 import {
   listWorkspaces,
   createWorkspace,
@@ -12,11 +12,14 @@ import {
   updateWorkspaceItem,
   updateWorkspaceBlock,
   deleteWorkspaceItem,
+  listDocumentsSummary,
+  getDocumentPreviewUrl,
   type Workspace,
   type WorkspaceItemSummary,
   type WorkspaceItemFull,
   type FileType,
   type Block,
+  type DocumentSummary,
 } from "@/lib/api";
 import FileExplorer from "@/components/FileExplorer";
 import DraftPreview from "@/components/DraftPreview";
@@ -180,16 +183,25 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [explorerRefreshKey, setExplorerRefreshKey] = useState(0);
 
+  // Uploaded documents
+  const [documents, setDocuments] = useState<DocumentSummary[]>([]);
+  const [activeDocumentId, setActiveDocumentId] = useState<number | null>(null);
+
+  /** Document tabs use negative IDs to avoid collision with draft IDs. */
+  const docTabId = (docId: number) => -docId;
+  const isDocTab = (tabId: number) => tabId < 0;
+  const docIdFromTab = (tabId: number) => -tabId;
+
   /* ---- fetch ---- */
 
   const refreshList = useCallback(async () => {
     try {
-      const [wsRes, itemRes] = await Promise.all([
+      const [wsRes, itemRes, docRes] = await Promise.all([
         listWorkspaces(caseId),
         listWorkspaceItems(caseId),
+        listDocumentsSummary(caseId),
       ]);
       setWorkspaces(wsRes.workspaces);
-      // Restore from URL or default to first workspace
       if (!activeWorkspaceId && wsRes.workspaces.length > 0) {
         const restored = initialWsId && wsRes.workspaces.some(w => w.id === initialWsId)
           ? initialWsId
@@ -198,6 +210,7 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
         setUrlParams({ ws: restored });
       }
       setItems(itemRes.items);
+      setDocuments(docRes.documents);
       setError(null);
       return itemRes.items;
     } catch (err) {
@@ -289,14 +302,35 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
     }
   };
 
+  const selectDocument = (docId: number) => {
+    setEditMode(false);
+    setSaveStatus("idle");
+    setActiveDocumentId(docId);
+    setActiveTabId(null);  // deselect any draft tab
+    setUrlParams({ item: null });
+
+    const tabId = docTabId(docId);
+    setOpenTabIds(prev => prev.includes(tabId) ? prev : [...prev, tabId]);
+  };
+
   const closeTab = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
     setOpenTabIds(prev => {
       const next = prev.filter(tid => tid !== id);
-      if (activeTabId === id) {
+      if (activeTabId === id || (isDocTab(id) && activeDocumentId === docIdFromTab(id))) {
+        if (isDocTab(id)) {
+          setActiveDocumentId(null);
+          setActiveTabId(null);
+        }
         const newActive = next.length > 0 ? next[next.length - 1] : null;
-        setActiveTabId(newActive);
-        setUrlParams({ item: newActive });
+        if (newActive != null && isDocTab(newActive)) {
+          setActiveDocumentId(docIdFromTab(newActive));
+          setActiveTabId(null);
+        } else {
+          setActiveTabId(newActive);
+          setActiveDocumentId(null);
+        }
+        setUrlParams({ item: newActive != null && !isDocTab(newActive) ? newActive : null });
       }
       return next;
     });
@@ -596,6 +630,9 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
               } catch { /* silent */ }
             }}
             refreshKey={explorerRefreshKey}
+            documents={documents}
+            activeDocumentId={activeDocumentId}
+            onSelectDocument={selectDocument}
           />
         </aside>
         )}
@@ -616,6 +653,31 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
                 <PanelLeft size={14} className={sidebarOpen ? "" : "rotate-180"} />
               </button>
               {openTabIds.map(id => {
+                if (isDocTab(id)) {
+                  const docId = docIdFromTab(id);
+                  const doc = documents.find(d => d.id === docId);
+                  const isActive = activeDocumentId === docId;
+                  return (
+                    <div
+                      key={id}
+                      onClick={() => selectDocument(docId)}
+                      className={`flex items-center gap-2 px-3 py-2 cursor-pointer border-r border-border min-w-[120px] max-w-[200px] group transition-colors ${
+                        isActive
+                          ? 'bg-surface-2 border-t-2 border-t-blue-500 text-text-primary'
+                          : 'bg-surface-1 text-text-secondary hover:bg-surface-2 border-t-2 border-t-transparent'
+                      }`}
+                    >
+                      <FileText size={12} className={isActive ? "text-blue-500" : "text-text-disabled"} />
+                      <span className="text-xs truncate flex-1 font-medium">{doc?.name || "Document"}</span>
+                      <button
+                        onClick={(e) => closeTab(id, e)}
+                        className={`p-0.5 rounded hover:bg-surface-3 transition-colors ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                      >
+                        <X size={12} className="text-text-secondary hover:text-text-primary" />
+                      </button>
+                    </div>
+                  );
+                }
                 const summary = items.find(i => i.id === id) || openItemsData[id];
                 const isActive = activeTabId === id;
                 return (
@@ -623,8 +685,8 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
                     key={id}
                     onClick={() => selectItem(id)}
                     className={`flex items-center gap-2 px-3 py-2 cursor-pointer border-r border-border min-w-[120px] max-w-[200px] group transition-colors ${
-                      isActive 
-                        ? 'bg-surface-2 border-t-2 border-t-brand text-text-primary' 
+                      isActive
+                        ? 'bg-surface-2 border-t-2 border-t-brand text-text-primary'
                         : 'bg-surface-1 text-text-secondary hover:bg-surface-2 border-t-2 border-t-transparent'
                     }`}
                   >
@@ -642,7 +704,53 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
             </div>
           )}
 
-          {activeItem ? (
+          {activeDocumentId ? (
+            /* Document viewer (read-only) — all documents are PDFs after ingestion */
+            (() => {
+              const doc = documents.find(d => d.id === activeDocumentId);
+              return (
+                <>
+                  <div className="hidden md:flex shrink-0 items-center justify-between px-4 py-2
+                                  bg-surface-1 border-b border-border">
+                    <div className="min-w-0 mr-2">
+                      <p className="text-sm font-semibold text-text-primary truncate">{doc?.name || "Document"}</p>
+                      <p className="text-[10px] text-text-disabled">
+                        {doc?.page_count != null ? `${doc.page_count} pages` : ""}{doc?.page_count != null && doc?.source ? " · " : ""}{doc?.source || ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          if (activeDocumentId) {
+                            getDocumentPreviewUrl(activeDocumentId).then(data => {
+                              if (data.url) window.open(data.url, "_blank", "noopener,noreferrer");
+                            });
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 text-xs px-3 py-1 rounded border border-border bg-surface-1 hover:bg-surface-2 text-text-secondary transition-colors"
+                      >
+                        <ExternalLink size={12} />
+                        Open in new tab
+                      </button>
+                      <button
+                        onClick={() => {
+                          setActiveDocumentId(null);
+                          setOpenTabIds(prev => prev.filter(tid => !isDocTab(tid)));
+                        }}
+                        className="text-text-disabled hover:text-danger p-1 transition-colors"
+                        title="Close"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-h-0">
+                    <PdfRenderer content={[{document_id: activeDocumentId}]} />
+                  </div>
+                </>
+              );
+            })()
+          ) : activeItem ? (
             <>
               {/* Desktop toolbar */}
               <div className="hidden md:flex shrink-0 items-center justify-between px-4 py-2
@@ -716,8 +824,8 @@ export default function WorkspaceTab({ caseId }: WorkspaceTabProps) {
                 <FileText size={32} className="text-text-disabled mx-auto mb-3 opacity-50" />
                 <p className="text-sm text-text-secondary">No file selected</p>
                 <p className="text-xs text-text-disabled mt-1">
-                  {items.length === 0
-                    ? "Create a file with the + button, or ask the agent in chat."
+                  {items.length === 0 && documents.length === 0
+                    ? "Upload documents or create a new file to get started."
                     : "Select a file from the explorer."}
                 </p>
               </div>

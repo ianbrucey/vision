@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Confidential Settlement Agreement and Release — Revised Draft</title>
+  <style>
+    @page {
+      size: letter;
+      margin: 1in;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Times New Roman', Times, Georgia, serif;
+      font-size: 12pt;
+      line-height: 1.6;
+      color: #1a1a1a;
+      max-width: 8.5in;
+      margin: 0 auto;
+      padding: 1in;
+      background: #fff;
+    }
+
+    /* --- Document Title --- */
+    .doc-title {
+      text-align: center;
+      font-size: 14pt;
+      font-weight: bold;
+      margin-bottom: 24px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .doc-subtitle {
+      text-align: center;
+      font-size: 12pt;
+      font-weight: bold;
+      margin-bottom: 32px;
+    }
+
+    /* --- Introductory Paragraph --- */
+    .intro {
+      margin-bottom: 16px;
+      text-align: justify;
+    }
+
+    /* --- Recitals --- */
+    .section-heading {
+      text-align: center;
+      font-weight: bold;
+      font-size: 12pt;
+      margin: 28px 0 14px 0;
+      letter-spacing: 1px;
+    }
+
+    .recital, .body-text {
+      margin-bottom: 12px;
+      text-align: justify;
+      padding-left: 24px;
+      text-indent: -24px;
+    }
+
+    .recital strong {
+      margin-right: 6px;
+    }
+
+    /* --- Article Headings --- */
+    .article {
+      font-weight: bold;
+      font-size: 12pt;
+      margin-top: 28px;
+      margin-bottom: 12px;
+    }
+
+    .sub-article {
+      font-weight: bold;
+      margin-top: 16px;
+      margin-bottom: 6px;
+    }
+
+    .sub-sub-article {
+      font-weight: bold;
+      font-style: italic;
+      margin-top: 12px;
+      margin-bottom: 4px;
+    }
+
+    .numbered, .body-text-numbered {
+      margin-bottom: 10px;
+      text-align: justify;
+      padding-left: 36px;
+      text-indent: -36px;
+    }
+
+    .continuation {
+      margin-bottom: 10px;
+      text-align: justify;
+    }
+
+    /* --- Highlighted Changes --- */
+    .revised {
+      background-color: #fffde7;
+      border-left: 3px solid #c62828;
+      padding-left: 12px;
+      margin-left: -15px;
+      padding-top: 2px;
+      padding-bottom: 2px;
+      padding-right: 4px;
+    }
+
+    .new-text {
+      background-color: #e8f5e9;
+      border-left: 3px solid #2e7d32;
+      padding-left: 12px;
+      margin-left: -15px;
+      padding-top: 2px;
+      padding-bottom: 2px;
+      padding-right: 4px;
+    }
+
+    .stricken {
+      text-decoration: line-through;
+      color: #999;
+    }
+
+    /* --- Signature Block --- */
+    .acknowledgment {
+      margin-top: 36px;
+      margin-bottom: 24px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .sig-block {
+      margin-top: 28px;
+      display: flex;
+      justify-content: space-between;
+      gap: 40px;
+    }
+
+    .sig-col {
+      flex: 1;
+    }
+
+    .sig-label {
+      font-size: 10pt;
+      color: #555;
+      margin-bottom: 4px;
+      border-bottom: 1px solid #1a1a1a;
+      padding-bottom: 2px;
+    }
+
+    .sig-name {
+      font-weight: bold;
+      margin-top: 4px;
+    }
+
+    /* --- Footer --- */
+    .footer {
+      margin-top: 48px;
+      text-align: center;
+      font-size: 8pt;
+      color: #999;
+      border-top: 1px solid #ddd;
+      padding-top: 8px;
+    }
+
+    /* --- Legend --- */
+    .legend {
+      margin-top: 36px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      font-size: 9pt;
+      background: #fafafa;
+    }
+
+    .legend-title {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .legend-item {
+      display: inline-block;
+      margin-right: 24px;
+    }
+
+    .legend-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    .legend-swatch.revised-swatch {
+      background-color: #fffde7;
+      border: 1px solid #c62828;
+      border-left: 3px solid #c62828;
+    }
+
+    .legend-swatch.new-swatch {
+      background-color: #e8f5e9;
+      border: 1px solid #2e7d32;
+      border-left: 3px solid #2e7d32;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+        margin: 0;
+      }
+      .legend {
+        display: none;
+      }
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ====== BEGIN DOCUMENT ====== -->
+
+<!-- Source: Please_DocuSign_Confidential_Settlement_Agre.pdf (original Amex draft) -->
+<!-- Review: scratch.md (Gemini legal analysis — 5 recommended modifications) -->
+
+<div class="doc-title">
+  CONFIDENTIAL SETTLEMENT AGREEMENT AND RELEASE
+</div>
+
+<!-- <div class="doc-subtitle">
+  [REVISED DRAFT — INCORPORATING PLAINTIFF'S REQUESTED MODIFICATIONS]
+</div> -->
+
+<div class="intro">
+  This Confidential Settlement Agreement and Release (the "Agreement") is entered
+  into between Ian Bruce (referred to as "Plaintiff"), on the one hand, and American Express
+  National Bank ("Defendant" or "American Express"), on the other hand. Plaintiff and
+  American Express are collectively referred to as the "Parties."
+</div>
+
+<!-- ===== RECITALS ===== -->
+<div class="section-heading">RECITALS</div>
+
+<div class="recital">
+  <strong>WHEREAS,</strong> Plaintiff is the Basic Card Member on American Express Hilton Honors
+  Card Account ending in 5-61009, which is cancelled and closed and has an outstanding balance
+  of $1,645.47 (the "Account").
+</div>
+
+<div class="recital">
+  <strong>WHEREAS,</strong> on or about July 2, 2026, Plaintiff filed suit in the Magistrate Court for
+  Gwinnett County, Georgia, styled <em>Ian Bruce v. American Express National Bank</em>, Case No. 26-M-
+  32128, therein alleging violations of the Fair Credit Reporting Act, among other allegations,
+  against American Express in connection with the Account (the "Action").
+</div>
+
+<div class="recital">
+  <strong>WHEREAS,</strong> American Express denies any liability in connection with the Action or
+  any dispute with Plaintiff or associated with the Account.
+</div>
+
+<div class="recital">
+  <strong>WHEREAS,</strong> the Parties desire to fully resolve the underlying Action and any other
+  claims, actions, disputes, controversies or legal causes of action that were asserted or that could
+  have been asserted in connection with the Action and the Account.
+</div>
+
+<div class="body-text">
+  <strong>NOW, THEREFORE,</strong> it is hereby agreed by and between the Parties that:
+</div>
+
+<!-- ===== ARTICLE I: EFFECTIVE DATE ===== -->
+<div class="article">I. Effective Date</div>
+
+<div class="numbered">
+  This Agreement will become effective when fully executed by all of the Parties
+  ("Effective Date").
+</div>
+
+<!-- ===== ARTICLE II: CONSIDERATION ===== -->
+<div class="article">II. Consideration</div>
+
+<!-- II.A: Plaintiff -->
+<div class="sub-article">A. Plaintiff.</div>
+
+<div class="numbered">
+  <strong>1. Notice of Settlement and Dismissal with Prejudice of the Action:</strong>
+  Plaintiff shall file with the Court in the Action a Notice of Settlement within
+  five (5) days of the Effective Date. Plaintiff shall also file with the Court in
+  the Action a Dismissal with Prejudice, and any other appropriate
+  pleading(s)/paper(s) or stipulation as may be necessary to effectuate a full and
+  complete resolution of the Action against American Express within five (5)
+  days of Plaintiff's receipt of the Settlement Payment set forth in Paragraph
+  II(B)(1). Plaintiff shall notify and/or provide American Express with a copy
+  of said Dismissal with Prejudice to CCML@aexp.com. If an adverse order
+  and/or judgment is entered by the Court against American Express after the
+  execution of this Agreement, Plaintiff shall file any documents necessary for
+  the Court to vacate any such order and/or judgment, and facilitate dismissal
+  with prejudice of the Action.
+</div>
+
+<div class="numbered">
+  <strong>2. Accounts:</strong> Plaintiff understands and acknowledges that this Agreement does
+  not release it from its obligations with respect to any past, current, or future
+  accounts that it may have with American Express.
+</div>
+
+<!-- II.A.3 — MODIFIED: Tax Characterization -->
+<div class="numbered revised">
+  <strong>3. Tax Information Reporting:</strong>
+  <span class="stricken">Plaintiff acknowledges and agrees that American Express will report this settlement
+  to the Internal Revenue Service as required by law.</span>
+  The Parties acknowledge and agree that the Settlement Payment of $1,000.00 referenced
+  in Paragraph II(B)(1) constitutes non-taxable compensatory damages for alleged
+  statutory violations of the Fair Credit Reporting Act, 15 U.S.C. § 1681 et seq.,
+  paid on account of personal injuries within the meaning of 26 U.S.C. § 104(a)(2).
+  American Express agrees to characterize and report the Settlement Payment consistent
+  with this treatment to the extent permitted by law. With respect to the balance waiver
+  referenced in Paragraph II(B)(2), American Express shall provide Plaintiff with written
+  notice, no fewer than thirty (30) days prior to issuance, of whether it intends to issue
+  a Form 1099-C (Cancellation of Debt) for the $1,645.47 forgiven balance, including
+  the amount to be reported and the identifiable event code relied upon.
+  American Express cannot provide tax advice. Should
+  Plaintiff have any questions or concerns regarding the tax treatment of the
+  settlement, Plaintiff should consult with a tax advisor.
+</div>
+
+<!-- II.B: American Express -->
+<div class="sub-article">B. American Express.</div>
+<div class="continuation">
+  In full and final settlement of Plaintiff's asserted and/or
+  potential disputes, claims, and/or legal causes of action, inclusive of attorney's fees
+  and costs, in the Action, American Express agrees to take the following action(s):
+</div>
+
+<div class="numbered">
+  <strong>1. Payment:</strong> Within thirty (30) days of receipt by the American Express General
+  Counsel's Organization, Center for Cardmember &amp; Merchant Litigation of (1) this
+  Agreement executed by Plaintiff, (2) an executed IRS Form W-9 (March 2024 version),
+  which includes the tax identification number and/or social security number for Plaintiff,
+  and (3) a completed copy of the Electronic Deposit Authorization Form attached hereto
+  and incorporated herein as Exhibit "A", American Express shall issue an ACH transfer
+  in the amount of One Thousand Dollars and Zero Cents ($1,000.00), made payable to
+  Plaintiff ("Settlement Payment"), to their bank, as provided on Exhibit "A."
+</div>
+
+<div class="continuation">
+  Plaintiff understands that American Express shall not process the settlement
+  obligations until the completed and signed Agreement, completed and signed
+  Forms W-9s, and Electronic Deposit Authorization Form are received by
+  American Express. Plaintiff further understands and acknowledges that a delay
+  might occur in processing the ACH transfer should there be any discrepancies
+  and/or incorrect information provided on the Electronic Deposit
+  Authorization Form.
+</div>
+
+<div class="numbered">
+  <strong>2. Release of Liability:</strong> Within thirty (30) days of receipt by the American
+  Express General Counsel's Organization, Center for Cardmember &amp;
+  Merchant Litigation of this Agreement executed by Plaintiff, American
+  Express shall release Plaintiff from liability for the remaining outstanding
+  balance of $1,645.47 on the Account.
+</div>
+
+<!-- II.B.3 — MODIFIED: Credit Bureau Deletion Protections -->
+<div class="numbered revised">
+  <strong>3. Deletion of Reporting:</strong> Within thirty (30) days of receipt by the American
+  Express General Counsel's Organization, Center for Cardmember &amp;
+  Merchant Litigation of this Agreement executed by Plaintiff, American
+  Express shall submit a request to the following consumer reporting agencies,
+  requesting that they delete any information relating to the Account from
+  Plaintiff's consumer credit reports: Equifax Information Services, LLC,
+  Experian Information Solutions, Inc., and Trans Union LLC (collectively, the
+  "CRAs"). <strong>Within five (5) business days of submitting such deletion
+  requests, American Express shall provide Plaintiff with written confirmation
+  of the submission, including copies of the completed e-OSCAR (Online
+  Solution for Complete and Accurate Reporting) or Automated Universal
+  Dataform (AUD) submissions transmitted to each CRA.</strong>
+</div>
+
+<div class="continuation revised">
+  In the unlikely event that negative information regarding the Account appears
+  on Plaintiff's consumer credit reports with any of the CRAs more than sixty
+  (60) days after American Express submits its request pursuant to this
+  Paragraph, Plaintiff agrees to give American Express written notice of such
+  report and thirty (30) days to request that the CRAs, or any one of them as the
+  case may be, remove such information from Plaintiff's consumer credit
+  report(s). The notice shall be sent to American Express General Counsel's
+  Organization, Center for Cardmember and Merchant Litigation via email to
+  CCML@aexp.com, and via mail to 1801 NW 66th Avenue, Suite 103,
+  Plantation, Florida 33313, Mailcode FL05-03-58.
+</div>
+
+<div class="continuation revised">
+  It is expressly agreed and stipulated by and between the Parties that
+  <span class="stricken">American Express's sole obligation with respect to Plaintiff's credit history and
+  credit history reporting associated with the Account is to communicate the above
+  request to the CRAs, and that American Express has not and cannot make
+  representations or guarantees as to the speed at which each of the CRAs will
+  comply with such request from American Express, if at all.</span>
+  American Express shall use its reasonable best efforts to ensure that the CRAs
+  process and complete the deletion request in a timely manner. If, after providing the
+  confirmation described above, any CRA fails to delete the Account information within
+  ninety (90) days of American Express's submission, American Express shall, upon
+  written request from Plaintiff, re-submit the deletion request and provide Plaintiff
+  with confirmation of such re-submission. Nothing in this Paragraph shall be
+  construed to waive Plaintiff's rights under the Fair Credit Reporting Act, 15 U.S.C.
+  § 1681 et seq., with respect to any conduct or omission by American Express
+  occurring after the Effective Date.
+</div>
+
+<div class="continuation revised">
+  <span class="stricken">Once American Express completes and submits the necessary forms to the
+  CRAs to request deletion of the Account, American Express's obligations
+  under this Agreement are fully satisfied and Plaintiff waives any and all claims,
+  whether arising in contract or tort, common law or statute, and/or federal or
+  state law (including, but not limited to, claims for any damages, attorneys' fees
+  and/or costs), against American Express that may arise subsequent to the date
+  of this Agreement.</span>
+
+  <em>[The preceding paragraph is stricken in its entirety. Plaintiff's release
+  under Article III is limited to claims arising prior to the Effective Date.
+  Plaintiff retains all rights to enforce the terms of this Agreement and to bring
+  claims based on conduct occurring after the Effective Date, including but not
+  limited to claims under the Fair Credit Reporting Act for failure to comply
+  with the deletion obligations set forth in this Paragraph.]</em>
+</div>
+
+<!-- ===== ARTICLE III: RELEASE (MODIFIED — Mutual) ===== -->
+<div class="article">III. Release.</div>
+
+<div class="sub-article">A. Release by Plaintiff.</div>
+
+<div class="numbered">
+  Except as to such rights or claims as may be created by this Agreement, in
+  consideration for the good and valuable consideration as set forth herein, receipt
+  of which is hereby acknowledged, Plaintiff, on behalf of Plaintiff and Plaintiff's
+  affiliates, attorneys, spouses, heirs and assigns, hereby specifically releases and
+  forever discharges American Express National Bank, American Express
+  Company, American Express Travel Related Services Company, Inc., and their
+  directors, officers, agents, employees, representatives, servants, attorneys,
+  predecessors, successors, assigns, subsidiaries, parent, vendors, collection
+  affiliated entities (the "Released Parties"), from any and all claims, actions, causes
+  of action, demands, liabilities, or obligations of any nature or kind, whether at
+  present known or unknown, upon or by reason of any damage, agencies and loss
+  or injury, which heretofore has been or which hereafter may be sustained by the
+  undersigned, or for any other matters whatsoever from the beginning of the
+  world to the Effective Date related to the subject matters of the Action and the
+  Account (the "Release"). Plaintiff further agrees that Plaintiff will not file any
+  claims, complaints, subpoenas, affidavits, arbitrations and/or proceedings with
+  any court, arbitration forum, regulatory or administrative agency ("Proceedings")
+  against the aforementioned Released Parties with respect to the matters released
+  in this Agreement, and any such Proceedings filed prior to the execution of this
+  Agreement shall promptly be dismissed or withdrawn, with prejudice. This
+  Agreement is intended to resolve forever the entire disagreement between
+  Plaintiff and American Express related to the Action and the Account.
+</div>
+
+<!-- III.B — NEW: Mutual Release by Defendant -->
+<div class="sub-article new-text">
+  <strong>B. Release by Defendant.</strong>
+</div>
+
+<div class="numbered new-text">
+  In consideration for the mutual covenants and obligations set forth herein, receipt
+  of which is hereby acknowledged, American Express National Bank, on behalf of itself
+  and its affiliates, parents, subsidiaries, predecessors, successors, assigns, directors,
+  officers, agents, employees, representatives, servants, and attorneys (collectively, the
+  "Defendant Releasing Parties"), hereby specifically releases and forever discharges
+  Plaintiff, and Plaintiff's heirs, executors, administrators, successors, and assigns, from
+  any and all claims, actions, causes of action, demands, liabilities, or obligations of any
+  nature or kind, whether at present known or unknown, whether arising in contract or
+  tort, common law or statute, and/or federal or state law, from the beginning of the
+  world to the Effective Date, arising out of or related to the Account, the Action, or
+  any dispute, transaction, or occurrence underlying the Action (the "Mutual Release").
+  American Express further agrees that it will not file any claims, complaints,
+  arbitrations, and/or proceedings against Plaintiff with respect to the matters released
+  in this Paragraph, and any such proceedings filed prior to the execution of this
+  Agreement shall promptly be dismissed or withdrawn, with prejudice. This Mutual
+  Release is intended to resolve forever the entire disagreement between the Parties
+  related to the Action and the Account.
+</div>
+
+<div class="page-break"></div>
+
+<!-- ===== ARTICLE IV: GENERAL PROVISIONS ===== -->
+<div class="article">IV. General Provisions</div>
+
+<div class="sub-article">A. Warranties By Plaintiff.</div>
+
+<div class="numbered">
+  Plaintiff represents and warrants that Plaintiff has not assigned, transferred, or
+  attempted to transfer, any claim or claims against American Express and that no
+  other person or legal entity has any interest in any such claim or claims.
+</div>
+
+<div class="sub-article">B. Authority.</div>
+
+<div class="numbered">
+  Each Party to this Agreement represents and warrants that it has the full right,
+  legal capacity and authority to enter into this Agreement and carry out the
+  obligations noted herein and that the person executing this Agreement on its
+  behalf has full authority and capacity to execute this Agreement.
+</div>
+
+<div class="sub-article">C. No Admission of Liability.</div>
+
+<div class="numbered">
+  This Agreement affects the settlement of claims/the Action that are denied and
+  contested, and nothing contained in this Agreement will be construed as an
+  admission by <span class="stricken">American Express, or its affiliated companies,</span>
+  <strong>either Party</strong> of any liability or
+  wrongdoing. Plaintiff alleged damages as defined in 26 U.S.C. § 104(a)(2), but the
+  parties have resolved the matter without determining liability.
+</div>
+
+<div class="sub-article">D. Confidentiality.</div>
+
+<div class="numbered">
+  Plaintiff expressly understands and agrees that the terms and provisions of this
+  <span class="stricken">of the Settlement Payment,</span> negotiations leading up to this settlement, and the
+  existence of a settlement Agreement and its content, including but not limited to
+  the fact of the Settlement Payment, amount between the Parties or the Agreement
+  itself are strictly confidential in nature (hereinafter "Confidential Matters") and
+  shall not be disclosed or published by <span class="stricken">Plaintiff</span> <strong>either Party</strong> for any reason, except to
+  <span class="stricken">Plaintiff's</span> <strong>the respective Party's</strong> attorney or tax professional, or if
+  <span class="stricken">Plaintiff</span> <strong>the disclosing Party</strong> shall become legally compelled by
+  operation of law. If <span class="stricken">Plaintiff</span> <strong>a Party</strong> becomes legally compelled to disclose the
+  Confidential Matters, <span class="stricken">Plaintiff</span> <strong>that Party</strong> will promptly provide written notice to
+  <span class="stricken">American Express General Counsel's Organization, Center for Cardmember and Merchant
+  Litigation via email to CCML@aexp.com and mail to 1801 NW 66th Avenue, Suite
+  103, Plantation, Florida 33313, Mailcode FL05-03-58,</span>
+  <strong>the other Party via the notice addresses set forth in this Agreement,</strong>
+  prior to disclosure and will
+  cooperate with <span class="stricken">American Express's</span> <strong>the other Party's</strong> reasonable efforts to obtain a protective order
+  or other confidential treatment of the Confidential Matters or Agreement and its
+  contents. If a protective order or other confidential treatment is not obtained or if
+  <span class="stricken">American Express</span> <strong>the other Party</span> waives any portion of this provision,
+  <span class="stricken">Plaintiff</span> <strong>the disclosing Party</strong> agrees to furnish
+  only so much of the Agreement or its contents as is legally required and, where
+  appropriate, to exercise <span class="stricken">Plaintiff's</span> <strong>its</strong> best efforts to obtain written assurances that
+  confidential treatment will be accorded to the Confidential Matters and this
+  Agreement and its contents.
+</div>
+
+<!-- IV.E — MODIFIED: Non-Disclosure with Reasonable Efforts -->
+<div class="sub-article revised">E. Non-Disclosure.</div>
+
+<div class="numbered revised">
+  <span class="stricken">Plaintiff</span> <strong>Each Party (the "Receiving Party")</strong> agrees, for
+  <span class="stricken">Plaintiff</span> <strong>itself</strong> and
+  <span class="stricken">Plaintiff's</span> <strong>its</strong> affiliates, agents, attorneys, employees,
+  directors, officers, representatives, assigns, executors, insurers, shareholders, and
+  all of <span class="stricken">the</span> <strong>its</strong> predecessors and successors, that
+  <span class="stricken">Plaintiff</span> <strong>the Receiving Party</strong> shall not directly or indirectly
+  disclose, divulge, communicate, display, publish, or reveal the Confidential Matters
+  defined herein through any medium, either orally or in writing, including, but not
+  limited to, electronic mail, television or radio, computer networks or Internet
+  bulletin boards, blogs, travel websites, social media, such as Facebook, LinkedIn,
+  Instagram, Snapchat, or Twitter, or any other form of communication to any third
+  party whatsoever including without limitation, any party to an administrative
+  action, arbitration, mediation, or litigation against
+  <span class="stricken">American Express</span> <strong>the other Party</strong> or its affiliates
+  except: (1) to <span class="stricken">Plaintiff's</span> <strong>the Receiving Party's</strong> attorney or tax professional, or if
+  <span class="stricken">Plaintiff</span> <strong>the Receiving Party</strong> is legally compelled by operation of law; or
+  (2) to enforce the terms or conditions of this Agreement and of the settlement reached
+  between the Parties.
+</div>
+
+<div class="continuation revised">
+  With respect to each of the limited non-disclosure exceptions set forth above in
+  this Section IV(E), <span class="stricken">Plaintiff</span> <strong>the Receiving Party</strong> understands and agrees that
+  <span class="stricken">Plaintiff</span> <strong>it</strong> shall inform the
+  persons to whom <span class="stricken">Plaintiff</span> <strong>it</strong> discloses information regarding the Confidential
+  Matters or this Agreement of the confidential nature of this Agreement and shall
+  use reasonable efforts to ensure that such persons shall agree to maintain the
+  confidentiality of such Confidential Matters in accordance with the terms hereof.
+  <span class="stricken">Plaintiff acknowledges and agrees that Plaintiff shall be liable for any breaches of
+  confidentiality by any persons identified in the limited exceptions set forth above
+  to whom information concerning the Confidential Matters or this Agreement is
+  disclosed.</span>
+  <strong>The Receiving Party shall not be liable for breaches of confidentiality by such
+  persons, provided the Receiving Party (a) informed such persons of the confidential
+  nature of the Confidential Matters, (b) used reasonable efforts to obtain their agreement
+  to maintain confidentiality, and (c) upon learning of any unauthorized disclosure, promptly
+  notified the other Party and took reasonable steps to mitigate further disclosure.</strong>
+</div>
+
+<!-- IV.F — MODIFIED: Mutual Non-Disparagement -->
+<div class="sub-article revised">F. Non-Disparagement.</div>
+
+<div class="numbered revised">
+  <span class="stricken">Plaintiff agrees that it will not, in any manner, directly or indirectly, expressly or by
+  innuendo, disparage, scorn or deprecate American Express, or its affiliated entities,
+  regarding the matters that are the subject of the Action at any time, now or in the
+  future, for any reason whatsoever.</span>
+  <strong>Each Party agrees that it will not, in any manner, directly or indirectly, expressly or by
+  innuendo, disparage, scorn or deprecate the other Party, or its affiliated entities,
+  regarding the matters that are the subject of the Action at any time, now or in the
+  future, for any reason whatsoever. This mutual obligation applies equally to American
+  Express and its agents, collection affiliates, and representatives, and to Plaintiff.</strong>
+</div>
+
+<div class="sub-article">G. Attorney's Fees and Costs.</div>
+
+<div class="numbered">
+  Each of the Parties will bear its own fees, costs and expenses incurred in
+  connection with the Action and the disputes between the Parties which are the
+  subject of, or related to, this Agreement, including, without limitations, the
+  negotiation, drafting and consummation of this Agreement.
+</div>
+
+<div class="sub-article">H. Entire Agreement.</div>
+
+<div class="numbered">
+  This Agreement contains the entire agreement and understanding between the
+  Parties concerning the subject matter. No provision of this Agreement may be
+  waived unless in writing and signed by all Parties. This Agreement may not be
+  altered, amended, or otherwise changed or modified, except in writing and signed
+  by all Parties.
+</div>
+
+<!-- IV.I — MODIFIED: Governing Law — Georgia -->
+<div class="sub-article revised">I. Choice of Law and Jurisdiction.</div>
+
+<div class="numbered revised">
+  <span class="stricken">The Agreement shall be governed by the laws of the State of Utah without regard
+  to choice of law rules.</span>
+  <strong>This Agreement shall be governed by the laws of the State of Georgia without regard
+  to choice of law rules. The Parties agree that any action to enforce or interpret the
+  terms of this Agreement shall be brought exclusively in the state or federal courts
+  located in Gwinnett County, Georgia, and the Parties hereby consent to the personal
+  jurisdiction of such courts.</strong>
+</div>
+
+<div class="sub-article">J. Legal Advice.</div>
+
+<div class="numbered">
+  Each Party has had the opportunity to consult with independent legal counsel with
+  respect to the advisability of making this Agreement. Each Party has read and fully
+  understands all of the provisions of this Agreement and is voluntarily entering into
+  this Agreement.
+</div>
+
+<div class="sub-article">K. Severability.</div>
+
+<div class="numbered">
+  If any part of this Agreement is void or otherwise invalid, such invalid or void
+  portion will be deemed to be separate and severable from the balance of this
+  Agreement, and will be given full force and effect as though the void or invalid
+  provisions had never been a part of the Agreement.
+</div>
+
+<div class="sub-article">L. Construction.</div>
+
+<div class="numbered">
+  Each term and provision of this Agreement shall be construed and interpreted so
+  as to render it enforceable. This Agreement shall be deemed to have been drafted
+  jointly by the Parties; accordingly, any rule pertaining to the construction of
+  contracts to the effect that ambiguities are to be resolved against the drafting party
+  shall not apply to the interpretation of this Agreement or of any modification of
+  or amendment to this Agreement.
+</div>
+
+<div class="sub-article">M. Execution in Counterparts.</div>
+
+<div class="numbered">
+  This Agreement may be executed in counterparts and all counterparts collectively
+  will constitute one agreement binding on all Parties.
+</div>
+
+<div class="sub-article">N. Electronic Signatures.</div>
+
+<div class="numbered">
+  Faxed signatures, emailed electronic scans of original signatures, and DocuSign
+  signatures shall be deemed originals. Each party agrees to sign this agreement by
+  electronic signature and that this method of signature is as conclusive of our
+  intention to be bound by this Agreement as if signed by each party's manuscript
+  signature.
+</div>
+
+<!-- ===== ACKNOWLEDGMENT AND SIGNATURES ===== -->
+<div class="acknowledgment">
+  I HAVE READ THIS CONFIDENTIAL SETTLEMENT AGREEMENT AND
+  RELEASE AND DECLARE UNDER PENALTY OF PERJURY THAT I ACCEPT
+  ALL OF THE TERMS AND CONDITIONS HEREIN.
+</div>
+
+<div class="sig-block">
+  <div class="sig-col">
+    <div class="sig-label">DATED: ____________________</div>
+    <div style="margin-top: 36px; border-bottom: 1px solid #1a1a1a; width: 80%;"></div>
+    <div class="sig-name">Ian Bruce</div>
+    <div style="font-size: 10pt; color: #555;">Plaintiff</div>
+  </div>
+  <div class="sig-col">
+    <div class="sig-label">DATED: ____________________</div>
+    <div style="margin-top: 36px; border-bottom: 1px solid #1a1a1a; width: 80%;"></div>
+    <div style="font-weight: bold;">By: _________________________________</div>
+    <div style="font-size: 10pt; color: #555;">As an authorized representative of<br>American Express National Bank</div>
+  </div>
+</div>
+
+<!-- ===== REVISION LEGEND ===== -->
+<div class="legend">
+  <div class="legend-title">Revision Legend</div>
+  <div class="legend-item">
+    <span class="legend-swatch revised-swatch"></span> <strong>Revised text</strong> — modified from original Amex draft
+  </div>
+  <div class="legend-item">
+    <span class="legend-swatch new-swatch"></span> <strong>New text</strong> — added provision not present in original
+  </div>
+  <div style="margin-top: 4px;">
+    <span style="text-decoration: line-through; color: #999;">Stricken text</span> — deleted from original Amex draft
+  </div>
+  <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #ddd;">
+    <strong>Summary of Modifications (per Gemini legal review, scratch.md):</strong>
+    <ol style="margin: 6px 0 0 18px; line-height: 1.5;">
+      <li><strong>Mutual Release</strong> — Added Section III.B (Release by Defendant), making the release reciprocal.</li>
+      <li><strong>Mutual Non-Disparagement &amp; Confidentiality</strong> — Section IV.F now binds both parties; Section IV.E revised from strict liability to "reasonable efforts" standard for third-party disclosures.</li>
+      <li><strong>Credit Bureau Deletion Protection</strong> — Section II.B.3 revised to require e-OSCAR/AUD confirmation, re-submission obligation, and preservation of post-Effective-Date FCRA rights.</li>
+      <li><strong>Tax Characterization</strong> — Section II.A.3 revised to characterize the $1,000 payment as non-taxable compensatory damages under 26 U.S.C. § 104(a)(2); requires advance notice of any intended 1099-C issuance.</li>
+      <li><strong>Governing Law</strong> — Section IV.I changed from Utah to Georgia, with exclusive jurisdiction in Gwinnett County.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <!-- CONFIDENTIAL — ATTORNEY WORK PRODUCT — SETTLEMENT COMMUNICATION<br> -->
+  Revised Draft for Discussion Purposes Only — Not a Final Offer<br>
+  Prepared: August 7, 2026
+</div>
+
+</body>
+</html>

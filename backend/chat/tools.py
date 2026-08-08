@@ -5136,6 +5136,85 @@ def create_vision_server(case_id: int | None = None):
         except Exception as exc:
             return _error(f"create_solicitation failed: {exc}")
 
+    # -- Layer 17: GA DOAS Opportunities ------------------------------------
+
+    @tool(
+        "query_ga_doas_opportunities",
+        "Query Georgia DOAS state and local procurement opportunities. "
+        "These are bids, RFPs, and RFQs from Georgia cities, counties, "
+        "school boards, and state agencies.\n\n"
+        "FILTERS: q (full-text), government_entity (ILIKE), event_id, status",
+        {
+            "type": "object",
+            "properties": {
+                "q": {"type": "string"},
+                "government_entity": {"type": "string"},
+                "event_id": {"type": "string"},
+                "status": {"type": "string"},
+                "limit": {"type": "integer"},
+                "offset": {"type": "integer"},
+            },
+            "required": [],
+        },
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
+    async def query_ga_doas_opportunities(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn = _conn()
+            try:
+                where_parts = []; params: list[Any] = []
+                q = args.get("q")
+                if q and str(q).strip():
+                    words = str(q).strip().split()
+                    if len(words) == 1:
+                        where_parts.append("search_vector @@ plainto_tsquery('english', %s)"); params.append(words[0])
+                    else:
+                        or_expr = " || ".join(["plainto_tsquery('english', %s)"] * len(words))
+                        where_parts.append(f"search_vector @@ ({or_expr})"); params.extend(words)
+                for col, arg, match in [("government_entity","government_entity","like"),("event_id","event_id","exact"),("status","status","exact")]:
+                    v = args.get(arg)
+                    if v and str(v).strip():
+                        where_parts.append(f"{col} {'ILIKE' if match=='like' else '='} %s")
+                        params.append(f"%{str(v).strip()}%" if match=="like" else str(v).strip())
+                where_clause = "WHERE " + " AND ".join(where_parts) if where_parts else ""
+                limit = min(args.get("limit",100),1000); offset = max(args.get("offset",0),0)
+                with conn.cursor() as cur:
+                    cur.execute(f"SELECT COUNT(*) FROM ga_doas_opportunities {where_clause}", tuple(params))
+                    total = cur.fetchone()[0]
+                    cur.execute(f"SELECT * FROM ga_doas_opportunities {where_clause} ORDER BY end_date ASC LIMIT %s OFFSET %s", tuple(params+[limit,offset]))
+                    rows = cur.fetchall(); cols = [d[0] for d in cur.description]
+                return _result({"total":total,"limit":limit,"offset":offset,"count":len(rows),"results":[dict(zip(cols,r)) for r in rows]})
+            finally: conn.close()
+        except Exception as exc: return _error(f"query_ga_doas_opportunities failed: {exc}")
+
+    # -- Layer 18: DIBBS RFQs ------------------------------------------------
+
+    @tool("query_dibbs_rfqs", "Query DIBBS RFQ opportunities. These are DLA rapid-turnaround RFQs for NSN items. Filter by NSN, FSC code, nomenclature, status.",
+        {"type":"object","properties":{"q":{"type":"string"},"nsn":{"type":"string"},"fsc_code":{"type":"string"},"solicitation":{"type":"string"},"status":{"type":"string"},"limit":{"type":"integer"},"offset":{"type":"integer"}},"required":[]},
+        annotations=ToolAnnotations(readOnlyHint=True))
+    async def query_dibbs_rfqs(args: dict[str, Any]) -> dict[str, Any]:
+        try:
+            conn=_conn()
+            try:
+                where=[]; params=[]
+                q=args.get("q")
+                if q and str(q).strip():
+                    w=str(q).strip().split()
+                    if len(w)==1: where.append("search_vector @@ plainto_tsquery('english',%s)"); params.append(w[0])
+                    else: where.append(f"search_vector @@ ({' || '.join(['plainto_tsquery(%s)']*len(w))})"); params.extend(w)
+                for col,arg,m in [("nsn","nsn","exact"),("fsc_code","fsc_code","exact"),("solicitation","solicitation","exact"),("status","status","exact")]:
+                    v=args.get(arg)
+                    if v and str(v).strip(): where.append(f"{col}={'=' if m=='exact' else 'ILIKE'} %s"); params.append(str(v).strip())
+                wc="WHERE "+" AND ".join(where) if where else ""
+                lim=min(args.get("limit",100),1000); off=max(args.get("offset",0),0)
+                with conn.cursor() as cur:
+                    cur.execute(f"SELECT COUNT(*) FROM dibbs_rfqs {wc}",tuple(params)); total=cur.fetchone()[0]
+                    cur.execute(f"SELECT * FROM dibbs_rfqs {wc} ORDER BY return_by ASC LIMIT %s OFFSET %s",tuple(params+[lim,off]))
+                    rows=cur.fetchall(); cols=[d[0] for d in cur.description]
+                return _result({"total":total,"limit":lim,"offset":off,"count":len(rows),"results":[dict(zip(cols,r)) for r in rows]})
+            finally: conn.close()
+        except Exception as exc: return _error(f"query_dibbs_rfqs failed: {exc}")
+
     # -- Build server --------------------------------------------------------
 
     return create_sdk_mcp_server(
@@ -5215,5 +5294,7 @@ def create_vision_server(case_id: int | None = None):
             create_report,
             execute_report,
             delete_report,
+            query_ga_doas_opportunities,
+            query_dibbs_rfqs,
         ],
     )

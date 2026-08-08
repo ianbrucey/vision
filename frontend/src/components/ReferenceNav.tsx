@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Database, TrendingUp, Building2 } from "lucide-react";
+import { Home, Database, TrendingUp, Building2, Users } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/sam-notices", label: "SAM Notices", icon: Database },
+  { href: "/subcontracting-leads", label: "Sub Leads", icon: Users },
   { href: "/forecasts", label: "Forecasts", icon: TrendingUp },
   { href: "/vendors", label: "Vendors", icon: Building2 },
 ];

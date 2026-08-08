@@ -70,6 +70,7 @@ export interface Solicitation {
   error_message: string | null;
   agency: string | null;
   naics_code: string | null;
+  naics_label?: string | null;
   psc_code: string | null;
   set_aside_type: string | null;
   set_aside_description: string | null;
@@ -256,11 +257,19 @@ export const attachVendorMatch = (
     body: JSON.stringify({ vendor_id: vendorId }),
   });
 
+export const listNaicsCodes = (): Promise<{ code: string; title: string }[]> =>
+  fetchAPI("/api/naics-codes");
+
 export const listSolicitations = (
-  params?: { source_type?: string; ingestion_status?: string },
-): Promise<{ count: number; solicitations: Solicitation[] }> => {
-  const qs = new URLSearchParams(params as Record<string, string>).toString();
-  return fetchAPI(`/api/solicitations${qs ? `?${qs}` : ""}`);
+  params?: { source_type?: string; ingestion_status?: string; naics_code?: string; state?: string; limit?: number; offset?: number },
+): Promise<{ total: number; limit: number; offset: number; count: number; solicitations: Solicitation[] }> => {
+  const qs = new URLSearchParams();
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      if (v !== undefined && v !== null && v !== "") qs.set(k, String(v));
+    }
+  }
+  return fetchAPI(`/api/solicitations${qs.size ? `?${qs}` : ""}`);
 };
 
 export const createSolicitation = (
@@ -312,6 +321,18 @@ export const uploadFile = async (caseId: number, file: File) => {
 
 export const listDocuments = (caseId: number) =>
   fetchAPI(`/api/cases/${caseId}/documents`);
+
+export interface DocumentSummary {
+  id: number;
+  name: string;
+  document_type: string;
+  page_count: number | null;
+  source: string;
+  created_at: string;
+}
+
+export const listDocumentsSummary = (caseId: number): Promise<{ documents: DocumentSummary[] }> =>
+  fetchAPI(`/api/cases/${caseId}/documents-summary`);
 
 export const getDocumentPreviewUrl = (docId: number): Promise<{ url: string | null; name: string; type: string; content?: string }> =>
   fetchAPI(`/api/documents/${docId}/preview`);
@@ -1091,7 +1112,13 @@ export interface SamNoticesResponse {
 export const querySamNotices = (body: SamNoticesQuery): Promise<SamNoticesResponse> =>
   fetchAPI("/api/sam-notices/query", { method: "POST", body: JSON.stringify(body) });
 
-export const uploadSamNoticesCsv = (file: File): Promise<{ batch_id: string; rows_inserted: number; source: string }> => {
+export const uploadSamNoticesCsv = (file: File): Promise<{
+  batch_id: string;
+  rows_in_csv: number;
+  rows_inserted: number;
+  duplicates_skipped: number;
+  source: string;
+}> => {
   const formData = new FormData();
   formData.append("file", file);
   const token = localStorage.getItem("vision_token");
@@ -1141,6 +1168,184 @@ export const deleteSamNotice = (id: number): Promise<{ deleted: number }> =>
 
 export const deleteAllSamNotices = (): Promise<{ deleted: number }> =>
   fetchAPI("/api/sam-notices/all", { method: "DELETE" });
+
+// ---------------------------------------------------------------------------
+// Subcontracting Leads (USASpending.gov)
+// ---------------------------------------------------------------------------
+
+export interface SubcontractingLead {
+  id: number;
+  external_id: string;
+  award_id_piid: string;
+  solicitation_identifier: string | null;
+  idv_type: string | null;
+  multiple_or_single_award: string | null;
+  recipient_uei: string;
+  recipient_name: string;
+  recipient_parent_name: string | null;
+  recipient_city: string | null;
+  recipient_state: string | null;
+  naics_code: string | null;
+  naics_description: string | null;
+  psc_code: string | null;
+  psc_description: string | null;
+  potential_value: number | null;
+  current_value: number | null;
+  base_action_date: string | null;
+  ordering_period_end: string | null;
+  pop_current_end: string | null;
+  pop_potential_end: string | null;
+  subcontracting_plan_code: string | null;
+  subcontracting_plan: string | null;
+  awarding_agency: string | null;
+  awarding_sub_agency: string | null;
+  set_aside_type: string | null;
+  pool_id: string | null;
+  pool_awardee_count: number | null;
+  is_woman_owned: boolean | null;
+  is_sdvosb: boolean | null;
+  is_hubzone: boolean | null;
+  is_8a: boolean | null;
+  is_small_disadvantaged: boolean | null;
+  is_minority_owned: boolean | null;
+  pipeline_status: string;
+  pipeline_category: string | null;
+  pipeline_priority: string | null;
+  pipeline_priority_score: number | null;
+  pipeline_notes: string | null;
+  outreach_status: string;
+  outreach_last_contact: string | null;
+  usaspending_permalink: string | null;
+  upload_batch_id: string | null;
+  source_csv: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SubLeadsQuery {
+  pipeline_status?: string;
+  pipeline_category?: string;
+  pipeline_priority?: string;
+  naics_code?: string;
+  subcontracting_plan_code?: string;
+  recipient_uei?: string;
+  recipient_name?: string;
+  q?: string;
+  limit?: number;
+  offset?: number;
+  order_by?: string;
+  order_dir?: string;
+}
+
+export interface SubLeadsResponse {
+  total: number;
+  limit: number;
+  offset: number;
+  count: number;
+  results: SubcontractingLead[];
+}
+
+export const querySubcontractingLeads = (body: SubLeadsQuery): Promise<SubLeadsResponse> =>
+  fetchAPI("/api/subcontracting-leads/query", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+
+export const uploadSubLeadsCsv = (file: File): Promise<{
+  batch_id: string;
+  source: string;
+  total_rows: number;
+  inserted: number;
+  updated: number;
+  skipped: number;
+  skipped_breakdown: Record<string, number>;
+  errors: Array<{ row: number; piid?: string; error: string }>;
+}> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const token = localStorage.getItem("vision_token");
+  return fetch(`${API_BASE}/api/subcontracting-leads/upload`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  }).then((res) => {
+    if (res.status === 401) {
+      localStorage.removeItem("vision_token");
+      localStorage.removeItem("vision_user");
+      window.location.href = "/login";
+      throw new Error("Session expired");
+    }
+    if (!res.ok) {
+      return res.json().then((err) => { throw new Error(err.detail || `HTTP ${res.status}`); });
+    }
+    return res.json();
+  });
+};
+
+export const processSubLeadsPools = (): Promise<{ pools_updated: number }> =>
+  fetchAPI("/api/subcontracting-leads/process-pools", { method: "POST" });
+
+export const getSubcontractingLead = (id: number): Promise<SubcontractingLead> =>
+  fetchAPI(`/api/subcontracting-leads/${id}`);
+
+export interface UpdateTriageBody {
+  pipeline_priority?: string;
+  pipeline_priority_score?: number;
+  pipeline_notes?: string;
+  pipeline_status?: string;
+}
+
+export const updateLeadTriage = (id: number, body: UpdateTriageBody): Promise<{ id: number; updated: boolean }> =>
+  fetchAPI(`/api/subcontracting-leads/${id}/triage`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+
+export interface SubLeadsBatch {
+  batch_id: string;
+  source: string;
+  rows: number;
+  uploaded_at: string;
+}
+
+export const listSubLeadsBatches = (): Promise<{ batches: SubLeadsBatch[] }> =>
+  fetchAPI("/api/subcontracting-leads/batches");
+
+// ---------------------------------------------------------------------------
+// Pipeline Processing
+// ---------------------------------------------------------------------------
+
+export interface ProcessBatchResult {
+  batch_id: string;
+  dry_run: boolean;
+  total_rows: number;
+  queued: number;
+  skipped: number;
+  duplicate: number;
+  skipped_breakdown: Record<string, number>;
+  errors: Array<{ sam_notice_id: number; notice_id: string; error: string }>;
+}
+
+export const processBatch = (
+  batchId: string,
+  dryRun: boolean = false,
+): Promise<ProcessBatchResult> =>
+  fetchAPI("/api/pipeline/process-batch", {
+    method: "POST",
+    body: JSON.stringify({ batch_id: batchId, dry_run: dryRun }),
+  });
+
+export const getBatchStatus = (
+  batchId: string,
+): Promise<{
+  batch_id: string;
+  pending: number;
+  queued: number;
+  skipped: number;
+  duplicate: number;
+  errors: number;
+  total: number;
+}> => fetchAPI(`/api/pipeline/batch-status/${batchId}`);
 
 // ---------------------------------------------------------------------------
 // Acquisition Gateway Forecasts
