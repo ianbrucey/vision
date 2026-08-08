@@ -1,142 +1,207 @@
-# Inbound Reply Notifications — Spec
+app.openflis.com
+OpenFLIS
+8–10 minutes
 
-> **Status:** Draft  
-> **Date:** 2026-07-22  
+Core Concepts
 
----
+Understand the foundational concepts behind the OpenFLIS API: how requests are structured, how data is organized, and how to work with responses.
 
-## 1. Problem
+Lookup Keys
 
-When a vendor replies to an outreach email, there is no way to know unless you:
+Every API request starts with a lookup key. The key determines which set of data tables you can query.
+Key	Format	Description	Example
+NIIN	9-digit string	National Item Identification Number. The most common key and the one that unlocks the widest range of item-level data.	012345678
+FSC	4-digit string	Federal Supply Classification. Groups items by physical or performance characteristics.	5961
+CAGE_CODE	5-char string	Commercial and Government Entity Code. Identifies manufacturers and suppliers.	1ABC2
+INC	5-digit string	Item Name Code. Standardized classification for item naming.	07283
+DODIC	4-char string	Department of Defense Identification Code. Ammunition-specific identifier.	A059
+CODE	Up to 5 chars	General code lookups for definitions and contextual help.	AAC
 
-- Manually open the Outreach tab for each solicitation
-- Check every vendor match for a green "Received" badge
+Tables & Data Structure
 
-Scale: 20 RFQs × 5 vendors each = 100 potential replies. Missing one could mean
-losing a subcontracting partner.
+Data in the OpenFLIS API is organized into tables. Each table belongs to a lookup key and contains a specific set of fields.
+Key -> Table relationship
 
----
+NIIN -> NSN, IDENTIFICATION, MANAGEMENT, PART, ...
+FSC  -> H2_PICK, H2_FSG, H2_FSC
+CAGE -> CAGE, CAGE_ADDRESS, H5_CORPORATE, H5_DOMESTIC, H5_FOREIGN, ...
+INC  -> H6_PICK, H6_NAME_INC, H6_RELATED, COLLOQUIAL_NAME, ...
+DODIC -> H3_AMMUNITION
+CODE -> HELP
 
-## 2. Requirements
+Table types
 
-### R1 — In-app unread indicator
+    Picklist tables return a summary row for quick lookups, such as NSN, H2_PICK, and H5_PICK.
+    Detail tables return in-depth data for a single record, such as IDENTIFICATION, CHARACTERISTICS, and CAGE_ADDRESS.
+    History tables return historical records that show how data has changed over time, such as HISTORY_PICK and MANAGEMENT_HISTORY.
 
-A persistent badge/count visible from:
+Fields
 
-1. **Dashboard** (`/solicitations`) — each solicitation row shows a reply count
-   badge if it has unread vendor replies
-2. **Case sidebar** — "Outreach" tab shows a count badge (e.g. "Outreach (3)")
-3. **Outreach tab** — individual vendor rows highlight unread replies
+Each table has a defined set of fields. Field definitions returned by the schema endpoint include:
+Attribute	Description
+name	The field identifier used in API responses, such as ITEM_NAME or CAGE_CODE.
+displayName	Human-readable label for the field.
+type	Logical field type exposed by the schema, such as string, number, date, boolean, or price.
+isKey	Whether this field is the primary key for the table.
+isUnique	Whether this field is part of the unique identity for the record.
+foreignKey	If present, this field references another lookup key, such as a CAGE_CODE field linking a NIIN record to CAGE data.
 
-### R2 — Email notification on inbound reply
+Endpoints
 
-When a vendor reply is processed, send a notification email to
-`ian.b@justicequest.pro` (address configurable via env var) containing:
+The API provides four core GET endpoints.
+Data query endpoint - /v1/query
 
-- Vendor name and contact
-- Solicitation title
-- Reply subject and first 300 chars of body
-- Direct link to the thread page
+Look up records by key and table using query parameters:
 
-### R3 — Mark as read
+GET https://app.openflis.com/api/v1/query?table=[TABLE_NAME]&key=[VALUE]&apiKey=[YOUR_API_KEY]
 
-Opening a vendor match thread page marks all inbound messages in that
-thread as read. No manual "mark read" button needed — opening the thread
-is sufficient.
+Or pass the API key as a header instead of a query parameter:
 
----
+curl "https://app.openflis.com/api/v1/query?table=NSN&key=012345678" 
+  -H "API-KEY: $OPENFLIS_API_KEY"
 
-## 3. Data Model
+Parameter	Required	Description
+table	Yes	The data table to query, such as NSN, MANAGEMENT, or CAGE. See the Data Tables Reference for the full list.
+key	Yes	The lookup value for the table's key category, such as a 9-digit NIIN or 5-character CAGE code.
+apiKey	Yes, or use the API-KEY header	Your active OpenFLIS API key.
+NIIN lookup by part endpoint - /v1/query/parts
 
-### New column on `vendor_outreach_messages`
+Look up candidate NIINs from an exact manufacturer part number and CAGE code:
 
-```sql
-ALTER TABLE vendor_outreach_messages
-  ADD COLUMN IF NOT EXISTS read_at TIMESTAMPTZ;
-```
+GET https://app.openflis.com/api/v1/query/parts?partNumber=[PART_NUMBER]&cageCode=[CAGE_CODE]&apiKey=[YOUR_API_KEY]
 
-- `NULL` = unread
-- Non-null = the timestamp when the message thread was opened
-- Set to `now()` when the user visits the thread page
-- Only relevant for `direction = 'inbound'` messages
+Or pass the API key as a header:
 
-### New env var
+curl "https://app.openflis.com/api/v1/query/parts?partNumber=ABC123&cageCode=1ABC2" 
+  -H "API-KEY: $OPENFLIS_API_KEY"
 
-```
-NOTIFICATION_EMAIL=ian.b@justicequest.pro
-```
+Part numbers are not globally unique, so this endpoint requires both partNumber and cageCode. The response uses the same query response shape as other data calls and can return zero, one, or multiple matching PART records.
+Parameter	Required	Description
+partNumber	Yes	The exact manufacturer or reference part number to look up.
+cageCode	Yes	The 5-character CAGE code that identifies the manufacturer or design-control entity.
+apiKey	Yes, or use the API-KEY header	Your active OpenFLIS API key.
+Parts by CAGE endpoint - /v1/query/parts/by-cage
 
----
+List part reference records for a CAGE code in fixed 100-row pages:
 
-## 4. Implementation Plan
+curl "https://app.openflis.com/api/v1/query/parts/by-cage?cageCode=1ABC2" 
+  -H "API-KEY: $OPENFLIS_API_KEY"
 
-### T1 — Database migration (5 min)
+Omit start for the first 100 rows. Use the response's nextStart value to request the next page.
+Schema endpoint - /v1/product
 
-- Schema `023_inbound_read_at.sql` — add `read_at` column to
-  `vendor_outreach_messages`
+Retrieve the complete product schema with all available keys, tables, and fields:
 
-### T2 — Backend: mark-as-read endpoint (15 min)
+GET https://app.openflis.com/api/v1/product?apiKey=[YOUR_API_KEY]
 
-- `PATCH /api/vendor-matches/{matchId}/messages/read` — sets `read_at = now()`
-  on all inbound messages for that match where `read_at IS NULL`
-- Called by the frontend when the thread page loads
+This response describes the full data model and is useful for programmatically discovering available keys, tables, and fields.
 
-### T3 — Backend: unread count endpoint (10 min)
+Response Format
 
-- `GET /api/solicitations/{id}/unread-replies` — returns
-  `{count: N, match_ids: [...]}`
-- Or fold into the existing `getVendorMatches` response as
-  `unread_count` per match
+Query and schema responses are intentionally simple and predictable.
+Query response
 
-### T4 — Backend: email notification (15 min)
+Data query responses follow this structure:
 
-- In `process_inbound_email_job`, after successfully storing the reply,
-  call `send_email()` to `NOTIFICATION_EMAIL`
-- Subject: `[Vision] Reply from {vendor_name} — {solicitation_title}`
-- Body: reply summary + link to thread
-- Non-fatal — if the notification email fails, the inbound reply is still
-  stored successfully
+{
+  "name": "NSN",
+  "value": "012345678",
+  "records": [
+    {
+      "FSC": "5961",
+      "INC": "07283",
+      "ITEM_NAME": "SEMICONDUCTOR DEVICE, DIODE",
+      "SOS": "DEFENSE LOGISTICS AGENCY",
+      "END_ITEM_NAME": "",
+      "CANCELLED_NIIN": ""
+    }
+  ]
+}
 
-### T5 — Frontend: tab badge (20 min)
+Field	Type	Description
+name	string	The table that was queried.
+value	string	The lookup value that was searched.
+records	array	An array of result objects. Each record contains the table's non-key fields.
+Schema response
 
-- `OutreachTab` fetches unread count per match
-- `TabNav` accepts optional badge counts per tab
-- When `unreadCount > 0`, show a red dot/badge on the Outreach tab
+The /v1/product endpoint returns the full data model:
 
-### T6 — Frontend: solicitation list badge (15 min)
+{
+  "name": "PUBLOG",
+  "data": {
+    "schemaDate": "2023-01-01T00:00:00",
+    "keys": [
+      {
+        "name": "NIIN",
+        "tables": [
+          {
+            "name": "NSN",
+            "displayName": "FLIS NSN",
+            "description": "...",
+            "isNormalized": true,
+            "isPicklist": false,
+            "fields": [ ... ]
+          }
+        ]
+      }
+    ]
+  }
+}
 
-- `listSolicitations` response includes `unread_reply_count`
-- Solicitation rows show a badge if count > 0
+Conventions
 
-### T7 — Frontend: mark read on thread open (10 min)
+    All query result values are returned as strings, regardless of their logical type.
+    Empty fields return "".
+    Price fields, such as UNIT_PRICE, are returned as string-encoded numbers.
+    The lookup key value is returned once as the top-level value and omitted from individual records.
+    Tables where isNormalized is false, such as CHARACTERISTICS and REFERENCE_NUMBER_HISTORY, may require combining unique fields to identify a single record.
 
-- Thread page calls `PATCH .../messages/read` on mount
-- Immediately clears the unread indicator for that match
+Rate Limits
 
----
+The API enforces plan-based usage limits per API key to ensure consistent performance.
+Limit	Value	Notes
+Monthly credit cap	100 Free, 2,000 Starter, 10,000 Pro, 25,000+ Enterprise	Check your dashboard for your current shared web app and API balance.
+Over-limit response	429	Returned when the account exceeds its shared monthly credit cap.
 
-## 5. Data Flow
+Usage is enforced at the API key level. The current API does not expose dedicated X-RateLimit-* response headers, so monitor usage in the dashboard and handle 429 responses gracefully.
 
-```
-Vendor replies
-  → Mailgun webhook
-    → process_inbound_email_job
-      → stores document + message (read_at = NULL)
-      → sends notification email to ian.b@justicequest.pro
-      
-User opens Vision
-  → solicitation list shows unread count per case
-  → Outreach tab shows badge with count
-  → Opens thread page → marks messages as read
-```
+Bulk & Batch Queries
 
----
+The API does not have a dedicated bulk endpoint. Each request queries one table and one key value combination.
+Recommended approach
 
-## 6. Open Questions
+    Parallelize within your plan limits. Use a small pool of concurrent HTTP clients instead of sending requests strictly one at a time.
+    Prioritize picklist tables. Start with tables like NSN or H5_PICK to validate identifiers before requesting detail tables.
+    Cache aggressively. Reference data such as HELP, H2_FSC, and many CAGE records changes only with monthly releases.
+    Monitor usage and back off on 429 responses instead of retrying immediately.
 
-1. **Notification email address** — hardcode `ian.b@justicequest.pro` or
-   env var? Recommendation: env var `NOTIFICATION_EMAIL` with that default.
-2. **Badge persistence** — should unread count persist across sessions?
-   Yes (it's stored in the DB via `read_at`).
-3. **Batch notifications** — if 5 replies come in at once, send 5 emails
-   or batch them? Send individually for now (simpler, immediate).
+Example: Batch NIIN validation (Python)
+
+import os
+import requests
+from concurrent.futures import ThreadPoolExecutor
+
+api_key = os.environ["OPENFLIS_API_KEY"]
+headers = {"API-KEY": api_key}
+
+def validate_niin(niin):
+    response = requests.get(
+        "https://app.openflis.com/api/v1/query",
+        params={"table": "NSN", "key": niin},
+        headers=headers,
+    )
+    return {
+        "niin": niin,
+        "status": response.status_code,
+        "data": response.json(),
+    }
+
+niins = ["012345678", "987654321", "555555555"]
+
+# Process a small number concurrently and back off on 429s if needed.
+
+with ThreadPoolExecutor(max_workers=5) as executor:
+    results = list(executor.map(validate_niin, niins))
+
+for result in results:
+    print(result["niin"], result["status"])
