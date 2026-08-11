@@ -543,6 +543,409 @@ async def _run_extractor(case_id: int, solicitation_id: int, spec: dict[str, str
 
 
 # ---------------------------------------------------------------------------
+# Helpers — export + agent invocation
+# ---------------------------------------------------------------------------
+
+
+# Keywords for detecting solicitation type from document text.
+# Ordered — first match wins (e.g. "Combined Synopsis/Solicitation" before
+# the more general "Solicitation").
+_TYPE_DETECTION = [
+    ("combined_synopsis_solicitation", [
+        "Combined Synopsis/Solicitation", "Combined Synopsis / Solicitation",
+    ]),
+    ("sources_sought", ["Sources Sought", "Source Sought"]),
+    ("rfp", ["Request for Proposal", "RFP"]),
+    ("rfq", ["Request for Quote", "Request for Quotation", "RFQ"]),
+    ("rfi", ["Request for Information", "RFI"]),
+    ("presolicitation", ["Presolicitation", "Pre-Solicitation"]),
+]
+
+
+def _detect_notice_type(all_text: str) -> str:
+    """Detect the solicitation notice type from document text.
+
+    Returns one of: combined_synopsis_solicitation, sources_sought, rfp,
+    rfq, rfi, presolicitation, or solicitation (default).
+    """
+    text_lower = all_text.lower()
+    for label, keywords in _TYPE_DETECTION:
+        for kw in keywords:
+            if kw.lower() in text_lower:
+                return label
+    return "solicitation"
+
+
+def _export_documents_to_folder(case_id: int, work_dir: Path) -> dict:
+    """Export all document text for a case to work_dir as markdown.
+
+    Uses blocks (which carry 0-based page numbers from datalab OCR) when
+    available; falls back to sections when a document has no blocks.
+    Page numbers are converted to 1-based in the output and included as
+    `[page N]` markers so agents can cite their sources.
+
+    Returns {'doc_count': int, 'total_chars': int, 'notice_type': str}.
+    """
+    from core.db import connect
+
+    conn = connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, name FROM documents WHERE case_id = %s ORDER BY id",
+                (case_id,),
+            )
+            docs = cur.fetchall()
+
+            total_chars = 0
+            all_text_parts = []
+            for i, (doc_id, doc_name) in enumerate(docs):
+                safe_name = doc_name.replace("/", "_").replace(" ", "_")[:80]
+                out_path = work_dir / f"{i+1:02d}_{safe_name}.md"
+
+                # Prefer blocks — they carry 0-based page numbers.
+                cur.execute(
+                    """SELECT page, text_content
+                       FROM blocks
+                       WHERE document_id = %s
+                       ORDER BY id""",
+                    (doc_id,),
+                )
+                blocks = cur.fetchall()
+
+                if blocks:
+                    lines = []
+                    current_page = None
+                    for page, text in blocks:
+                        if text and text.strip():
+                            # page is 0-based from datalab OCR → 1-based display
+                            page_1 = int(page) + 1 if page is not None else None
+                            if page_1 is not None and page_1 != current_page:
+                                current_page = page_1
+                                lines.append(f"\n[page {current_page}]\n")
+                            lines.append(text.strip() + "\n")
+                            all_text_parts.append(text)
+                else:
+                    # Fallback to sections (may not have page numbers).
+                    cur.execute(
+                        """SELECT heading_level, title, search_text,
+                                  page_start, page_end
+                           FROM sections
+                           WHERE document_id = %s
+                           ORDER BY id""",
+                        (doc_id,),
+                    )
+                    sections = cur.fetchall()
+
+                    lines = []
+                    current_page = None
+                    for level, title, text, page_start, page_end in sections:
+                        # page_start is also 0-based when present
+                        if page_start is not None:
+                            page_1 = int(page_start) + 1
+                            if page_1 != current_page:
+                                current_page = page_1
+                                lines.append(f"\n[page {current_page}]\n")
+                        if title and title.strip():
+                            h = "#" * min(int(level or 0) + 1, 4)
+                            lines.append(f"\n{h} {title.strip()}\n")
+                        if text and text.strip():
+                            lines.append(text.strip() + "\n")
+                            all_text_parts.append(text)
+
+                content = "\n".join(lines)
+                out_path.write_text(content)
+                total_chars += len(content)
+
+            notice_type = _detect_notice_type(" ".join(all_text_parts))
+
+        return {
+            "doc_count": len(docs),
+            "total_chars": total_chars,
+            "notice_type": notice_type,
+        }
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Template-based artifact specs
+# ---------------------------------------------------------------------------
+
+_TEMPLATE_SPECS: list[dict] = [
+    {
+        "key": "sow_technical",
+        "template": "sow_technical.html",
+        "output": "sow_technical_requirements.html",
+        "label": "Scope of Work & Technical Requirements",
+    },
+    {
+        "key": "submission",
+        "template": "submission_requirements.html",
+        "output": "submission_requirements.html",
+        "label": "Submission Requirements & Instructions",
+    },
+    {
+        "key": "sourcing",
+        "template": "sourcing_script.html",
+        "output": "sourcing_script.html",
+        "label": "Sourcing Script",
+    },
+]
+
+_EXTRACTION_RULES = """\
+RULES (follow exactly):
+1. Every placeholder looks like [EXTRACT: description]. Replace each one
+   with the relevant content from the documents.
+2. Do NOT change ANYTHING else — no new CSS, no new HTML elements, no
+   rewording of headings, no changing colors or layout. Only replace the
+   placeholders.
+3. Use exact text from the documents where possible. Quote dates, email
+   addresses, and form numbers verbatim.
+4. CITE PAGE NUMBERS: Source documents have [page N] markers (1-based).
+   After every extracted fact, append the page reference in parentheses:
+   "(p. 3)" or "(pp. 3-4)". Example: "Response deadline is Aug 28, 2026
+   at 10:00 AM JST (p. 1)." If multiple pages discuss the same fact,
+   list them: "(pp. 2, 5, 12)".
+5. When information is genuinely NOT found in the documents, use
+   <span class="not-specified">Not specified</span> or the appropriate
+   "not found" text already indicated in the placeholder description.
+6. Delete unused <li> items only when the placeholder description
+   explicitly says "delete this line if none" or "delete unused lines."
+   Otherwise keep the structure intact.
+7. When you are done, call save_artifact with the complete HTML."""
+
+# Type-specific guidance appended to the system prompt per notice type.
+_TYPE_GUIDANCE: dict[str, str] = {
+    "combined_synopsis_solicitation": """\
+This is a Combined Synopsis/Solicitation — the most common federal
+opportunity type. All sections typically apply. It may use SF-1449.
+Look for CLIN structures in the pricing/B Schedule.""",
+
+    "sources_sought": """\
+This is a Sources Sought / market research notice. There is NO formal
+proposal submission and NO pricing request. The agency is surveying
+the market to see what vendors exist.
+- Submission: capability statements, not full proposals. Forms and
+  certifications are usually NOT required at this stage.
+- SOW: the agency may describe the work in general terms only.
+- Sourcing: focus on finding subs who can strengthen a capability
+  statement — relevant past performance, socio-economic status,
+  technical capabilities that align with the stated need.""",
+
+    "rfp": """\
+This is a formal Request for Proposal (RFP). Evaluation criteria with
+weights are expected (Section M). Proposals are typically voluminous.
+All template sections apply — extract everything available.""",
+
+    "rfq": """\
+This is a Request for Quote (RFQ) — commercial items, price-focused.
+- Look for CLIN/line-item structures with quantities and units.
+- Evaluation is often LPTA (Lowest Price Technically Acceptable).
+- Submission may be simpler — quote form instead of full proposal.
+- Sourcing: focus on authorized resellers, competitive pricing,
+  ability to meet exact specs with no substitutions.""",
+
+    "rfi": """\
+This is a Request for Information (RFI) — market research only.
+No pricing, no formal submission, no contract award from this notice.
+- Submission: industry feedback, white papers, capability summaries.
+  No forms or certifications are typically required.
+- SOW: may be high-level or conceptual — the government is still
+  defining requirements.
+- Sourcing: focus on finding subs with deep domain expertise who
+  can contribute to a compelling RFI response that positions your
+  company for the eventual RFP.""",
+
+    "presolicitation": """\
+This is a Presolicitation — a preview before the formal solicitation
+drops. Not all details may be available yet.
+- The synopsis may reference a future RFP/RFQ number and date.
+- Extract what's available; note gaps clearly.""",
+
+    "solicitation": """\
+This is a federal solicitation. Standard sections (A-M) may apply.
+Extract everything available from the documents.""",
+}
+
+
+def _build_extraction_prompt(notice_type: str, artifact_label: str) -> str:
+    """Build a type-aware system prompt for one extraction agent."""
+    guidance = _TYPE_GUIDANCE.get(notice_type, _TYPE_GUIDANCE["solicitation"])
+    return (
+        f"You are a federal procurement analyst. Your ONLY job is to fill in "
+        f"placeholders in an HTML template with content extracted from "
+        f"solicitation documents.\n\n"
+        f"NOTICE TYPE: {notice_type}\n{guidance}\n\n"
+        f"This is the \"{artifact_label}\" artifact.\n\n"
+        f"{_EXTRACTION_RULES}"
+    )
+
+
+async def _invoke_triage_agent(
+    case_id: int, work_dir: Path, notice_type: str
+) -> str:
+    """Invoke 3 agents in parallel — one per artifact template.
+
+    Each agent gets a pre-built HTML template and fills in [EXTRACT: ...]
+    placeholders with content from the exported solicitation documents.
+    Backend is selected via VISION_TRIAGE_BACKEND env var.
+    """
+    import os as _os
+
+    backend = _os.environ.get("VISION_TRIAGE_BACKEND", "claude_sdk")
+    templates_dir = Path(__file__).resolve().parent.parent / "test_triage" / "templates"
+
+    # Read the exported document text once
+    doc_texts = []
+    for md_file in sorted(work_dir.glob("*.md")):
+        doc_texts.append(f"### {md_file.name}\n\n{md_file.read_text()}")
+    combined_docs = "\n\n---\n\n".join(doc_texts)
+
+    user_message = (
+        f"Solicitation documents for case {case_id} "
+        f"(notice type: {notice_type}):\n\n{combined_docs}"
+    )
+
+    # Run 3 parallel agents, one per template
+    tasks = []
+    for spec in _TEMPLATE_SPECS:
+        template_path = templates_dir / spec["template"]
+        if not template_path.exists():
+            print(
+                f"[solicitation_triage] WARNING: template not found: {template_path}"
+            )
+            continue
+        template_html = template_path.read_text()
+
+        system_prompt = _build_extraction_prompt(notice_type, spec["label"])
+
+        if backend == "claude_sdk":
+            tasks.append(
+                _run_template_extractor(
+                    spec=spec,
+                    system_prompt=system_prompt,
+                    template_html=template_html,
+                    user_message=user_message,
+                    work_dir=work_dir,
+                )
+            )
+        else:
+            raise ValueError(f"Unknown triage backend: {backend}")
+
+    if not tasks:
+        raise RuntimeError("No extraction tasks — templates missing?")
+
+    results = await asyncio.gather(*tasks)
+
+    # Report results
+    ok = [r for r in results if r.get("ok")]
+    failed = [r for r in results if not r.get("ok")]
+    print(
+        f"[solicitation_triage] case_id={case_id} — "
+        f"{len(ok)}/{len(results)} artifacts extracted"
+    )
+    for f in failed:
+        print(f"  FAILED: {f['key']} — {f.get('error')}")
+
+    return f"{len(ok)} artifacts written to {work_dir}"
+
+
+# ---------------------------------------------------------------------------
+# Single-template extractor (Claude Agent SDK)
+# ---------------------------------------------------------------------------
+
+
+async def _run_template_extractor(
+    spec: dict,
+    system_prompt: str,
+    template_html: str,
+    user_message: str,
+    work_dir: Path,
+) -> dict:
+    """Run one Claude Agent SDK agent to fill a single HTML template.
+
+    Returns {'key': str, 'ok': bool, 'error': str|None}.
+    """
+    import json as _json
+    from datetime import datetime
+
+    from claude_agent_sdk import (
+        ClaudeSDKClient, ClaudeAgentOptions, tool,
+        create_sdk_mcp_server,
+    )
+
+    output_path = work_dir / spec["output"]
+
+    @tool(
+        "save_artifact",
+        f"Save the completed {spec['label']} HTML. Call this once with the "
+        f"fully populated HTML — every [EXTRACT: ...] placeholder replaced.",
+        {
+            "type": "object",
+            "properties": {
+                "html": {
+                    "type": "string",
+                    "description": "The complete, self-contained HTML document "
+                    "with all [EXTRACT: ...] placeholders replaced.",
+                },
+            },
+            "required": ["html"],
+        },
+    )
+    async def save_artifact(args: dict) -> dict:
+        # Stamp the generation date
+        today = datetime.now().strftime("%B %d, %Y")
+        html = args["html"].replace("[EXTRACT: date generated]", today)
+        output_path.write_text(html)
+        return {"content": [{"type": "text", "text": f"{spec['label']} saved."}]}
+
+    artifact_server = create_sdk_mcp_server(
+        name=f"extractor_{spec['key']}", version="1.0.0", tools=[save_artifact],
+    )
+
+    # Build the full prompt: template + "fill it in with the docs below"
+    instruction = (
+        f"Below is an HTML template for the \"{spec['label']}\" artifact. "
+        f"Replace every [EXTRACT: ...] placeholder with content from "
+        f"the solicitation documents that follow the template.\n\n"
+        f"=== TEMPLATE ===\n{template_html}\n=== END TEMPLATE ==="
+    )
+
+    workdir = Path(__file__).resolve().parent.parent
+    options = ClaudeAgentOptions(
+        system_prompt=system_prompt,
+        mcp_servers={"artifact": artifact_server},
+        allowed_tools=["mcp__artifact__save_artifact"],
+        cwd=str(workdir),
+        permission_mode="bypassPermissions",
+        setting_sources=[],
+    )
+
+    client = ClaudeSDKClient(options=options)
+    try:
+        await client.connect()
+        await client.query(f"{instruction}\n\n{user_message}")
+        from claude_agent_sdk.types import ResultMessage
+        async for msg in client.receive_response():
+            if isinstance(msg, ResultMessage):
+                pass
+    except Exception as exc:
+        return {"key": spec["key"], "ok": False, "error": str(exc)}
+    finally:
+        await client.disconnect()
+
+    # Verify the agent actually wrote the file
+    if output_path.exists() and len(output_path.read_text()) > 100:
+        return {"key": spec["key"], "ok": True, "error": None}
+    return {
+        "key": spec["key"],
+        "ok": False,
+        "error": "Agent did not save artifact (file missing or too small)",
+    }
+
+
+# ---------------------------------------------------------------------------
 # Orchestrator
 # ---------------------------------------------------------------------------
 
@@ -561,61 +964,119 @@ async def run_solicitation_triage(case_id: int, solicitation_id: int) -> dict:
     mgr = SolicitationManager()
     mgr.update(solicitation_id, triage_status="running", triage_error=None)
 
-    try:
-        triage_result = await _run_triage(case_id, solicitation_id)
-    except Exception as exc:
-        mgr.update(solicitation_id, triage_status="failed", triage_error=str(exc))
-        return {"error": str(exc)}
+    if True:
+        # ---- New triage pipeline (WIP) ----
+        from datetime import datetime
+        from pathlib import Path
+        from core.db import connect
 
-    if triage_result.get("notice_type") is None or triage_result.get("quick_kill") is None:
-        err = "Triage agent did not produce a classification"
-        mgr.update(solicitation_id, triage_status="failed", triage_error=err)
-        return {"error": err}
+        # ---- Step 1: Export document text from DB to case folder ----
+        work_dir = Path(__file__).resolve().parent.parent / "test_triage" / f"case_{case_id}"
+        work_dir.mkdir(parents=True, exist_ok=True)
 
-    # Always run artifact extraction regardless of quick-kill status.
-    # Quick-kill only gates the vendor_matching auto-enqueue below —
-    # we still need the 5 artifacts to understand the solicitation fully.
-    results = await asyncio.gather(
-        *[_run_extractor(case_id, solicitation_id, spec) for spec in ARTIFACT_SPECS]
-    )
-
-    errors = [
-        f"{spec['label']}: {r.get('error')}"
-        for spec, r in zip(ARTIFACT_SPECS, results)
-        if not r.get("ok")
-    ]
-    has_partial = bool(errors)
-
-    mgr.update(
-        solicitation_id,
-        triage_status="complete",
-        has_partial_artifacts=has_partial,
-        triage_error="; ".join(errors) if errors else None,
-    )
-
-    # Auto-trigger vendor matching — always runs after artifact extraction.
-    # quick_kill is informational only; it never blocks the pipeline.
-    try:
-        from ingestion.jobs import enqueue
-
-        enqueue(
-            case_id=case_id,
-            job_type="vendor_matching",
-            metadata={"solicitation_id": solicitation_id},
-        )
-    except Exception as e:
+        exported = _export_documents_to_folder(case_id, work_dir)
+        notice_type = exported["notice_type"]
         print(
-            f"Failed to enqueue vendor_matching for "
-            f"solicitation_id={solicitation_id}: {e}"
+            f"[solicitation_triage] case_id={case_id} solicitation_id={solicitation_id} "
+            f"— exported {exported['doc_count']} docs, {exported['total_chars']:,} chars, "
+            f"type={notice_type}"
         )
 
-    return {
-        "quick_kill": triage_result["quick_kill"],
-        "quick_kill_reason": triage_result.get("quick_kill_reason"),
-        "notice_type": triage_result["notice_type"],
-        "has_partial_artifacts": has_partial,
-        "errors": errors,
-    }
+        # ---- Step 2: Invoke 3 parallel agents to fill templates ----
+        try:
+            result = await _invoke_triage_agent(case_id, work_dir, notice_type)
+            print(
+                f"[solicitation_triage] case_id={case_id} — "
+                f"agent completed: {result}"
+            )
+        except Exception as e:
+            print(
+                f"[solicitation_triage] case_id={case_id} — "
+                f"agent FAILED: {e}"
+            )
+            mgr.update(solicitation_id, triage_status="failed", triage_error=str(e))
+            return {"error": str(e)}
+
+        mgr.update(solicitation_id, triage_status="complete", triage_error=None)
+
+        # ---- Step 3: Enqueue vendor matching ----
+        try:
+            from ingestion.jobs import enqueue
+            # enqueue(
+            #     case_id=case_id,
+            #     job_type="vendor_matching",
+            #     metadata={"solicitation_id": solicitation_id},
+            # )
+        except Exception as e:
+            print(
+                f"Failed to enqueue vendor_matching for "
+                f"solicitation_id={solicitation_id}: {e}"
+            )
+
+        return {
+            "quick_kill": False,
+            "quick_kill_reason": None,
+            "notice_type": "other",
+            "has_partial_artifacts": False,
+            "errors": [],
+        }
+    else:
+        # ---- Current triage + extractors (to be replaced) ----
+        try:
+            triage_result = await _run_triage(case_id, solicitation_id)
+        except Exception as exc:
+            mgr.update(solicitation_id, triage_status="failed", triage_error=str(exc))
+            return {"error": str(exc)}
+
+        if triage_result.get("notice_type") is None or triage_result.get("quick_kill") is None:
+            err = "Triage agent did not produce a classification"
+            mgr.update(solicitation_id, triage_status="failed", triage_error=err)
+            return {"error": err}
+
+        # Always run artifact extraction regardless of quick-kill status.
+        # Quick-kill only gates the vendor_matching auto-enqueue below —
+        # we still need the 5 artifacts to understand the solicitation fully.
+        results = await asyncio.gather(
+            *[_run_extractor(case_id, solicitation_id, spec) for spec in ARTIFACT_SPECS]
+        )
+
+        errors = [
+            f"{spec['label']}: {r.get('error')}"
+            for spec, r in zip(ARTIFACT_SPECS, results)
+            if not r.get("ok")
+        ]
+        has_partial = bool(errors)
+
+        mgr.update(
+            solicitation_id,
+            triage_status="complete",
+            has_partial_artifacts=has_partial,
+            triage_error="; ".join(errors) if errors else None,
+        )
+
+        # Auto-trigger vendor matching — always runs after artifact extraction.
+        # quick_kill is informational only; it never blocks the pipeline.
+        try:
+            from ingestion.jobs import enqueue
+
+            enqueue(
+                case_id=case_id,
+                job_type="vendor_matching",
+                metadata={"solicitation_id": solicitation_id},
+            )
+        except Exception as e:
+            print(
+                f"Failed to enqueue vendor_matching for "
+                f"solicitation_id={solicitation_id}: {e}"
+            )
+
+        return {
+            "quick_kill": triage_result["quick_kill"],
+            "quick_kill_reason": triage_result.get("quick_kill_reason"),
+            "notice_type": triage_result["notice_type"],
+            "has_partial_artifacts": has_partial,
+            "errors": errors,
+        }
 
 
 def run_solicitation_triage_pipeline(case_id: int, solicitation_id: int) -> dict:

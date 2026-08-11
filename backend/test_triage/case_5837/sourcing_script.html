@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sourcing Script</title>
+<style>
+  /* === RESET & BASE === */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @page { size: letter; margin: 0.6in; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.65;
+    color: #1a1a2e;
+    max-width: 7.5in;
+    margin: 0 auto;
+    padding: 0.4in 0;
+    background: #ffffff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .artifact-header {
+    background: #8b3f8b;
+    color: #ffffff;
+    padding: 18px 24px;
+    border-radius: 6px 6px 0 0;
+    margin-bottom: 0;
+  }
+  .artifact-header .label {
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #dfb2df;
+    margin-bottom: 4px;
+  }
+  .artifact-header h1 {
+    font-size: 19pt;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+  }
+
+  .content-card {
+    border: 1px solid #e2e4e9;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  h2 {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #1a1a2e;
+    border-left: 4px solid #8b3f8b;
+    padding-left: 10px;
+    margin: 28px 0 12px 0;
+  }
+  h2:first-of-type { margin-top: 0; }
+
+  h3 {
+    font-size: 11.5pt;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 18px 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #e9ecf2;
+  }
+
+  p { margin: 0 0 10px 0; }
+
+  ul, ol {
+    margin: 0 0 14px 0;
+    padding-left: 1.3em;
+  }
+  li { margin-bottom: 7px; }
+
+  /* === TABLES === */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 16px 0;
+    font-size: 10pt;
+    border: 1px solid #dde0e5;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  th {
+    background: #f0f2f8;
+    font-weight: 600;
+    color: #1a1a2e;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid #c8cde0;
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #eef0f5;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #fafbfc; }
+
+  /* === QUICK STATS === */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid #dde0e5;
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 14px 0;
+  }
+  .stat-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eef0f5;
+    border-right: 1px solid #eef0f5;
+  }
+  .stat-item:nth-child(even) { border-right: none; }
+  .stat-item .stat-label {
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6b7280;
+    display: block;
+    margin-bottom: 3px;
+  }
+  .stat-item .stat-value {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+
+  /* === CALLOUTS === */
+  .callout {
+    border-left: 4px solid #8b3f8b;
+    background: #faf5fa;
+    padding: 12px 16px;
+    margin: 14px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 10.5pt;
+  }
+  .callout.urgent {
+    border-left-color: #d93025;
+    background: #fef5f5;
+  }
+
+  /* === SCRIPT QUESTIONS === */
+  .script-questions {
+    counter-reset: q;
+    list-style: none;
+    padding-left: 0;
+  }
+  .script-questions li {
+    counter-increment: q;
+    padding: 10px 12px 10px 48px;
+    margin-bottom: 8px;
+    background: #f8f9fc;
+    border-radius: 4px;
+    position: relative;
+  }
+  .script-questions li::before {
+    content: 'Q' counter(q);
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    background: #8b3f8b;
+    color: #ffffff;
+    font-size: 9pt;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 3px;
+  }
+
+  strong { font-weight: 600; color: #111827; }
+  em { font-style: italic; }
+
+  .not-specified {
+    color: #9ca3af;
+    font-style: italic;
+  }
+
+  /* === FOOTER === */
+  .artifact-footer {
+    margin-top: 24px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e4e9;
+    font-size: 8.5pt;
+    color: #9ca3af;
+  }
+
+  @media print {
+    body { padding: 0; max-width: none; }
+    .artifact-header { border-radius: 0; }
+    .content-card { border: none; padding: 12px 0; }
+    table, tr { page-break-inside: avoid; }
+    h2, h3 { page-break-after: avoid; }
+    .callout, .stat-grid { page-break-inside: avoid; }
+    .script-questions li {
+      background: #ffffff;
+      border: 1px solid #e2e4e9;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="artifact-header">
+  <div class="label">Artifact 3 of 3 &middot; Internal Use</div>
+  <h1>Sourcing Script</h1>
+</div>
+
+<div class="content-card">
+
+<!-- OPPORTUNITY AT A GLANCE -->
+<div class="stat-grid">
+  <div class="stat-item">
+    <span class="stat-label">Solicitation #</span>
+    <span class="stat-value">140R4026Q0099 (pp. 1, 5; SF-1449 p. 1)</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">Agency</span>
+    <span class="stat-value">Dept. of the Interior, Bureau of Reclamation — Interior Region 7, Upper Colorado Basin, Salt Lake City Regional Office (p. 1)</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">NAICS</span>
+    <span class="stat-value">541511 — Custom Computer Programming Services; size standard $34 million (p. 5)</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">Set-Aside</span>
+    <span class="stat-value">Unrestricted / Full &amp; Open (p. 5) — sole-source justification names the University of Colorado (pp. 28, 30)</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">Contract Type</span>
+    <span class="stat-value">Single-award IDIQ with Firm-Fixed-Price (FFP) CLINs (pp. 7, 20, 23, 30)</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">Response Deadline</span>
+    <span class="stat-value">08/25/2026, 5:00 PM ET (SF-1449, p. 1); combined synopsis lists 08/20/2026, 5:00 PM ET (p. 5) — confirm which applies</span>
+  </div>
+</div>
+
+<!-- IN PLAIN ENGLISH -->
+<h2>What Is This?</h2>
+<p>The Bureau of Reclamation is buying a single-award, 10-year contract for RiverWare software support — the proprietary water-resource modeling program owned by the University of Colorado — covering annual software maintenance, enterprise support, technical support, software engineering services, and training (pp. 1, 7, 28).</p>
+
+<!-- WHO TO CALL -->
+<h2>Who to Contact</h2>
+
+<h3>Business Profile</h3>
+<table>
+  <tr><th style="width:160px">NAICS Category</th><td>541511 (Custom Computer Programming Services) (p. 5). Product/Service Code DA10 — IT and Telecom: Business Application/Application Development Software as a Service; Option Period VII switches to PSC D319 — Annual Software Maintenance Service Plans (pp. 7–11).</td></tr>
+  <tr><th>Size Standard</th><td>$34 million (shown as "$34" in Block 10) (p. 5)</td></tr>
+  <tr><th>Required Expertise</th><td>The contractor must be the owner and exclusive licensor of the proprietary RiverWare software and capable of providing the licenses, maintenance, software updates, software engineering services, technical support, training, and related services required under the contract (p. 28). In practice this is the University of Colorado; subcontractors would supply supporting software engineering / technical support services (p. 30).</td></tr>
+  <tr><th>Certifications Needed</th><td><span class="not-specified">None identified</span> beyond SAM.gov registration with a Unique Entity Identifier (UEI) (pp. 21, 27)</td></tr>
+</table>
+
+<h3>Where to Search</h3>
+<p>Because the award is effectively sole-source to the University of Colorado (pp. 28, 30), look for firms that can team or subcontract with CU Boulder's CADSWES (Center for Advanced Decision Support for Water and Environmental Systems), the developer of RiverWare. Practical sources: (1) DSBS (Dynamic Small Business Search) for NAICS 541511 firms in Colorado; (2) the RiverWare user community and water-resources software engineering firms already familiar with the product; (3) the SBA directory and university-affiliated research/commercialization networks connected to CU Boulder.</p>
+
+<!-- PRICING -->
+<h2>Pricing Guidance</h2>
+<table>
+  <tr><th style="width:180px">Labor Categories</th><td>Technical Support and Software Engineering Services CLINs (firm-fixed labor rates); Annual RiverWare Software Maintenance and Enterprise Support CLINs (firm-fixed prices) (p. 28)</td></tr>
+  <tr><th>Materials / Equipment</th><td>No physical materials specified — the scope is software licenses, annual maintenance, software updates, technical support, software engineering services, and training (pp. 7, 28)</td></tr>
+  <tr><th>Travel / Per Diem</th><td>Travel is authorized only by the Contracting Officer or task order; priced as separate firm-fixed CLINs at the task-order level using the Joint Travel Regulations (JTR) as the basis (pp. 20, 22)</td></tr>
+  <tr><th>Incumbent / Historical</th><td>Not disclosed. The approved sole-source justification identifies the University of Colorado as the only responsible source capable of meeting the Government's requirements (pp. 28, 30).</td></tr>
+</table>
+
+<!-- KEY QUESTIONS -->
+<h2>Questions to Ask Subcontractors</h2>
+<p>Use these when calling or emailing potential subs. Get answers before they quote:</p>
+<ol class="script-questions">
+  <li>Have you supported RiverWare software or worked with the University of Colorado's CADSWES center before? On which projects, and for which agencies?</li>
+  <li>Can you provide technical support and software engineering services for a proprietary water-management modeling application, including on-call/urgent support and software updates?</li>
+  <li>Can you commit to firm-fixed labor rates for Technical Support and Software Engineering Services held firm through the base year and all nine option periods (through 9/30/2036)?</li>
+  <li>Are you currently registered and active in SAM.gov with a Unique Entity Identifier (UEI)? Can you provide your UEI now?</li>
+  <li>Can you submit invoices electronically through the Treasury's Invoice Processing Platform (IPP) and support CPARS performance reporting within 30 days of award (pp. 16–17)?</li>
+  <li>What experience do you have with federal IDIQ/task-order contracts, including proposing firm-fixed Other Direct Cost (ODC) and travel prices at the task-order level (p. 20)?</li>
+  <li>Can you meet the response deadline of 08/25/2026 (or 08/20/2026 per the combined synopsis)? What is your typical lead time for this scope?</li>
+</ol>
+
+<!-- WATCH-OUTS -->
+<h2>Watch-Outs &amp; Deal-Breakers</h2>
+<ul>
+  <li>Award is on price alone — technical capability is NOT an evaluated factor because the University of Colorado is the only responsible source under an approved sole-source justification (pp. 28, 31).</li>
+  <li>Proposals must be submitted as three separately labeled volumes in searchable PDF (Volume I – Compliance, 5-page limit; Volume II – Price; Volume III – Administrative); failure to submit all volumes may make the proposal unacceptable (pp. 27–28).</li>
+  <li>Firm-fixed pricing is required for all pre-priced CLINs for the base and each option period, including all anticipated escalation — prices set at award cannot be adjusted later for inflation or cost growth (p. 20).</li>
+  <li>Invoices must be submitted via IPP AND a hardcopy emailed to the Contracting Officer (johnny_lyon@ios.doi.gov) and COR (Drbaird@usbr.gov), or payment may be significantly delayed or rejected (p. 16).</li>
+</ul>
+
+<!-- URGENCY -->
+<h2>Timeline &amp; Urgency</h2>
+<div class="callout urgent">
+  <strong>&#9888; Response Deadline:</strong> 08/25/2026 at 5:00 PM ET per the SF-1449 (p. 1); the combined synopsis lists 08/20/2026 at 5:00 PM ET (p. 5) — confirm which applies before submitting. This gives you approximately 14 calendar days from today (2026-08-11).
+</div>
+<p><strong>Site Visit / Pre-Proposal Conference:</strong> <span class="not-specified">None scheduled.</span></p>
+<p><strong>Period of Performance:</strong> Base year 10/01/2026 – 09/30/2027, plus nine option years through 09/30/2036 (pp. 7–11). Total contract duration capped at 126 months, with an option to extend services up to 6 additional months (p. 24).</p>
+
+</div><!-- .content-card -->
+
+<div class="artifact-footer">
+  Generated by Vision Triage Pipeline &middot; Internal Use Only &middot; 2026-08-11
+</div>
+
+</body>
+</html>

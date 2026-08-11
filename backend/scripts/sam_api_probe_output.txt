@@ -1,0 +1,77 @@
+SAM.gov API Probe Results
+========================
+Query: setAside=SBA, postedFrom=08/09/2026, postedTo=08/11/2026
+
+Total records available: 1,951
+Est. API calls for full pull (limit=100): 20
+
+Type breakdown:
+  Combined Synopsis/Solicitation: 49
+  Award Notice: 18
+  Solicitation: 14
+  Presolicitation: 8
+  Special Notice: 6
+  Sources Sought: 3
+  Justification: 2
+
+Top 20 NAICS:
+  336611: 10
+  236220: 4
+  None: 4
+  334419: 4
+  541519: 4
+  811210: 3
+  336412: 2
+  332996: 2
+  333998: 2
+  332911: 2
+  332722: 2
+  332510: 2
+  333613: 2
+  238220: 2
+  339113: 2
+  339991: 2
+  238330: 2
+  236118: 1
+  532490: 1
+  333618: 1
+
+typeOfSetAside codes:
+  null: 42
+  SBA: 35
+  NONE: 17
+  WOSB: 2
+  SDVOSBC: 2
+  WOSBSS: 1
+  ISBEE: 1
+
+typeOfSetAsideDescription:
+  null: 42
+  Small Business Set Aside - Total: 35
+  No Set aside used: 17
+  SBA Certified Women-Owned Small Business (WOSB) Program Set-Aside (FAR 19.15): 2
+  Service-Disabled Veteran-Owned Small Business (SDVOSB) Set-Aside (FAR 19.14): 2
+  SBA Certified Women-Owned Small Business (WOSB) Program Sole Source (FAR 19.15): 1
+  Indian Small Business Economic Enterprise: 1
+
+First 5 samples:
+  AFHC Repair Quarters 82 and 86, Camp Zama, Japan
+  type=Solicitation naics=236118 setAside=None asideDesc=None
+  posted=2026-08-11 deadline=2026-11-11T14:00:00+09:00
+
+  Knuckle Boom Crane; repair
+  type=Solicitation naics=336611 setAside=NONE asideDesc=No Set aside used
+  posted=2026-08-11 deadline=2026-09-08T10:00:00+09:00
+
+  LHA-7 Fan Room and Vent Plenum in 02-114-2-Q; refurbish
+  type=Combined Synopsis/Solicitation naics=336611 setAside=NONE asideDesc=No Set aside used
+  posted=2026-08-11 deadline=2026-08-28T10:00:00+09:00
+
+  Material Handling Equipment (MHE) Rental
+  type=Presolicitation naics=532490 setAside=NONE asideDesc=No Set aside used
+  posted=2026-08-11 deadline=2026-08-26T12:00:00+02:00
+
+  29--VALVE AND SCREEN AS
+  type=Combined Synopsis/Solicitation naics=336412 setAside=None asideDesc=None
+  posted=2026-08-11 deadline=2026-08-18
+

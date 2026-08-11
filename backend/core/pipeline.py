@@ -111,6 +111,9 @@ _FACILITIES_KW: list[str] = [
 # NAICS keyword matching — IT services
 _IT_KW: list[str] = [
     "Software",
+    "Software Licensing",
+    "Software License",
+    "Software Licenses",
     "Computer Programming",
     "Computer Systems Design",
     "Electronic Computer",
@@ -126,9 +129,15 @@ _IT_KW: list[str] = [
     "Internet",
 ]
 
-# Set-aside keywords (case-insensitive match against current_set_aside)
+# Set-aside keywords — only Total Small Business (not other socio-economic
+# categories like WOSB, SDVOSB, 8(a), etc.)
 _SB_SET_ASIDE_KW: list[str] = [
     "Total Small Business",
+]
+
+# Set-aside categories that exist but we don't want (too narrow, specific
+# demographic designations rather than broad small-business opportunities)
+_OTHER_SET_ASIDE_KW: list[str] = [
     "Service-Disabled Veteran-Owned Small Business",
     "SDVOSB",
     "Historically Underutilized Business",
@@ -148,7 +157,7 @@ _SB_SET_ASIDE_KW: list[str] = [
     "Local Area Set-Aside",
 ]
 
-# Set-aside keywords that indicate NOT a clean SB opportunity
+# Set-aside keywords that indicate NOT a clean opportunity
 _EXCLUDED_SET_ASIDE_KW: list[str] = [
     "Partial Small Business",
 ]
@@ -193,7 +202,8 @@ def classify_naics(naics_description: str | None) -> str:
 def classify_set_aside(set_aside: str | None) -> str:
     """Classify a set-aside string into a group.
 
-    Returns 'sb_set_aside', 'full_and_open', or 'partial_set_aside'.
+    Returns 'sb_set_aside', 'other_set_aside', 'full_and_open', or
+    'partial_set_aside'.
     """
     if not set_aside or not set_aside.strip():
         return "full_and_open"
@@ -205,6 +215,10 @@ def classify_set_aside(set_aside: str | None) -> str:
     for kw in _SB_SET_ASIDE_KW:
         if kw.lower() in set_aside.lower():
             return "sb_set_aside"
+
+    for kw in _OTHER_SET_ASIDE_KW:
+        if kw.lower() in set_aside.lower():
+            return "other_set_aside"
 
     return "full_and_open"
 
@@ -338,6 +352,7 @@ class PipelineProcessor:
                 set_aside = (row.get("current_set_aside") or "").strip()
                 response_date = (row.get("current_response_date") or "").strip()
                 opp_title = (row.get("opportunity_title") or "").strip()
+                databank_description = (row.get("description") or "").strip()
                 row_id = row["id"]
 
                 # ---- Filter gates ----
@@ -363,13 +378,13 @@ class PipelineProcessor:
                     )
                     continue
 
-                # Gate 3: Set-aside
+                # Gate 3: Set-aside — keep Total Small Business + full & open
                 set_aside_group = classify_set_aside(set_aside)
-                if set_aside_group == "full_and_open":
-                    skipped_by_reason.setdefault("full_and_open", []).append(row_id)
+                if set_aside_group == "other_set_aside":
+                    skipped_by_reason.setdefault("other_set_aside", []).append(row_id)
                     results["skipped"] += 1
-                    results["skipped_breakdown"]["full_and_open"] = (
-                        results["skipped_breakdown"].get("full_and_open", 0) + 1
+                    results["skipped_breakdown"]["other_set_aside"] = (
+                        results["skipped_breakdown"].get("other_set_aside", 0) + 1
                     )
                     continue
                 if set_aside_group == "partial_set_aside":
@@ -395,15 +410,6 @@ class PipelineProcessor:
                         )
                         continue
 
-                # Gate 5: Notice ID validity
-                if not notice_id or len(notice_id) < 8:
-                    skipped_by_reason.setdefault("invalid_notice_id", []).append(row_id)
-                    results["skipped"] += 1
-                    results["skipped_breakdown"]["invalid_notice_id"] = (
-                        results["skipped_breakdown"].get("invalid_notice_id", 0) + 1
-                    )
-                    continue
-
                 # ---- All gates passed — qualify ----
 
                 if dry_run:
@@ -413,9 +419,10 @@ class PipelineProcessor:
                 try:
                     sol = sol_mgr.create(
                         source_type="federal",
-                        url=f"https://sam.gov/opp/{notice_id}/view",
+                        url="",
                         notice_id=notice_id,
                         title=opp_title or "Untitled SAM.gov Opportunity (fetching...)",
+                        description=databank_description or None,
                     )
                 except DuplicateNoticeError:
                     existing_id = _lookup_solicitation_id(notice_id)
@@ -496,7 +503,8 @@ def _get_unprocessed_rows(batch_id: str) -> list[dict]:
                           contract_opportunity_type,
                           naics_code AS naics_description,
                           current_set_aside,
-                          current_response_date::text AS current_response_date
+                          current_response_date::text AS current_response_date,
+                          description
                    FROM sam_notices
                    WHERE upload_batch_id = %s
                      AND pipeline_status IS NULL""",

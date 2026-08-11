@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submission Requirements &amp; Instructions</title>
+<style>
+  /* === RESET & BASE === */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @page { size: letter; margin: 0.6in; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.65;
+    color: #1a1a2e;
+    max-width: 7.5in;
+    margin: 0 auto;
+    padding: 0.4in 0;
+    background: #ffffff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .artifact-header {
+    background: #2d6a4f;
+    color: #ffffff;
+    padding: 18px 24px;
+    border-radius: 6px 6px 0 0;
+    margin-bottom: 0;
+  }
+  .artifact-header .label {
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #95d5b2;
+    margin-bottom: 4px;
+  }
+  .artifact-header h1 {
+    font-size: 19pt;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+  }
+
+  .content-card {
+    border: 1px solid #e2e4e9;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  h2 {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #1a1a2e;
+    border-left: 4px solid #2d6a4f;
+    padding-left: 10px;
+    margin: 28px 0 12px 0;
+  }
+  h2:first-of-type { margin-top: 0; }
+
+  h3 {
+    font-size: 11.5pt;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 18px 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #e9ecf2;
+  }
+
+  p { margin: 0 0 10px 0; }
+
+  ul, ol {
+    margin: 0 0 14px 0;
+    padding-left: 1.3em;
+  }
+  li { margin-bottom: 5px; }
+
+  /* === DEADLINE HIGHLIGHT === */
+  .deadline-box {
+    background: #fef3c7;
+    border: 2px solid #e8920b;
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin: 14px 0;
+    font-size: 12pt;
+    font-weight: 600;
+    color: #92400e;
+  }
+  .deadline-box .label {
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #b45309;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  /* === TABLES === */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 16px 0;
+    font-size: 10pt;
+    border: 1px solid #dde0e5;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  th {
+    background: #f0f2f8;
+    font-weight: 600;
+    color: #1a1a2e;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid #c8cde0;
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #eef0f5;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #fafbfc; }
+
+  /* === CALLOUT === */
+  .callout {
+    border-left: 4px solid #2d6a4f;
+    background: #f2faf5;
+    padding: 12px 16px;
+    margin: 14px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 10.5pt;
+  }
+  .callout.warn {
+    border-left-color: #d93025;
+    background: #fef5f5;
+  }
+
+  strong { font-weight: 600; color: #111827; }
+  em { font-style: italic; }
+
+  .not-specified {
+    color: #9ca3af;
+    font-style: italic;
+  }
+
+  .checklist li {
+    list-style: none;
+    padding-left: 22px;
+    position: relative;
+  }
+  .checklist li::before {
+    content: '\2610';
+    position: absolute;
+    left: 0;
+    color: #6b7280;
+    font-size: 10pt;
+  }
+
+  /* === FOOTER === */
+  .artifact-footer {
+    margin-top: 24px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e4e9;
+    font-size: 8.5pt;
+    color: #9ca3af;
+  }
+
+  @media print {
+    body { padding: 0; max-width: none; }
+    .artifact-header { border-radius: 0; }
+    .content-card { border: none; padding: 12px 0; }
+    table, tr { page-break-inside: avoid; }
+    h2, h3 { page-break-after: avoid; }
+    .deadline-box, .callout { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="artifact-header">
+  <div class="label">Artifact 2 of 3</div>
+  <h1>Submission Requirements &amp; Instructions</h1>
+</div>
+
+<div class="content-card">
+
+<!-- SOLICITATION SUMMARY -->
+<table>
+  <tr><th style="width:140px">Solicitation #</th><td>140R4026Q0099 (Solicitation, p. 1; SF-1449, p. 1)</td></tr>
+  <tr><th>Agency</th><td>Department of the Interior, Bureau of Reclamation — Interior Region 7, Upper Colorado Basin, Salt Lake City Regional Office, Acquisition Management Division (Solicitation, p. 1)</td></tr>
+  <tr><th>Title</th><td>IMT RiverWare Software Support IDIQ (Solicitation, p. 1)</td></tr>
+  <tr><th>Notice Type</th><td>Combined Synopsis/Solicitation (Solicitation, p. 1)</td></tr>
+</table>
+
+<!-- RESPONSE DEADLINE -->
+<h2>Response Deadline</h2>
+<div class="deadline-box">
+  <span class="label">&#9200; Due Date &amp; Time</span>
+  08/20/2026 1700 ES (Solicitation, p. 5) / 08/25/2026 1700 ED (SF-1449, p. 1). &#9888; Discrepancy: the two solicitation documents list different offer due dates. Confirm the correct date and time zone with the Contracting Officer before submitting.
+</div>
+
+<!-- SUBMISSION METHOD -->
+<h2>Submission Method</h2>
+<table>
+  <tr><th style="width:140px">Method</th><td>Combination: submit signed and dated offers (SF-1449) to the issuing office at or before the exact time specified, returning 1 copy of the signed document to the issuing office, and submit the proposal as three separate electronic files (Volumes I–III) in searchable PDF format; pricing schedules may be submitted in Microsoft Excel format (Solicitation, pp. 5, 27; SF-1449, p. 1)</td></tr>
+  <tr><th>Email</th><td><span class="not-specified">Not applicable</span> — no offer-submission email address is stated in the solicitation. (After award, invoice copies are emailed to johnny_lyon@ios.doi.gov and Drbaird@usbr.gov, Solicitation, p. 16.)</td></tr>
+  <tr><th>Portal / URL</th><td><span class="not-specified">Not applicable</span> — no proposal-submission portal is identified in the solicitation. (The Invoice Processing Platform at https://www.ipp.gov applies only to invoicing after award, Solicitation, p. 16.)</td></tr>
+  <tr><th>Physical Address</th><td>Bureau of Reclamation, Upper Colorado Region, Regional Office, 125 South State Street, Room 8100, Salt Lake City UT 84138 (SF-1449, p. 1; Solicitation, p. 5)</td></tr>
+  <tr><th>Subject Line / Label</th><td>Each electronic file shall be clearly labeled using the following naming convention: &ldquo;Volume I &ndash; Compliance Information.pdf&rdquo;; &ldquo;Volume II &ndash; Price Proposal.xlsx&rdquo; (or PDF, if applicable); &ldquo;Volume III &ndash; Administrative Information.pdf&rdquo; (Solicitation, p. 27)</td></tr>
+  <tr><th>Number of Copies</th><td>1 copy of the signed SF-1449 returned to the issuing office (&ldquo;CONTRACTOR IS REQUIRED TO SIGN THIS DOCUMENT AND RETURN 1 COPIES TO ISSUING OFFICE,&rdquo; SF-1449, p. 1; Solicitation, p. 5). Each proposal volume is submitted as a separate electronic file (Solicitation, p. 27).</td></tr>
+</table>
+
+<!-- FORMAT REQUIREMENTS -->
+<h2>Format &amp; Page Requirements</h2>
+<table>
+  <tr><th style="width:180px">Page Limit</th><td>Volume I (Compliance Information): 5 pages; Volume II (Price Proposal): no page limit; Volume III (Administrative Information): no page limit (Solicitation, p. 27). Page limitations exclude: cover pages; tables of contents; section dividers; resumes; licenses; certifications; completed solicitation forms; and signed amendments (Solicitation, pp. 27&ndash;28).</td></tr>
+  <tr><th>Font / Size</th><td>All narrative submissions shall use 12-point Times New Roman, Calibri, or Arial font (Solicitation, p. 28)</td></tr>
+  <tr><th>Margins / Spacing</th><td>Single-spaced, with one-inch margins (Solicitation, p. 28)</td></tr>
+  <tr><th>File Format</th><td>Each volume submitted as a separate electronic file in searchable PDF format; pricing schedules may be submitted in Microsoft Excel format when required (Solicitation, p. 27)</td></tr>
+</table>
+
+<!-- REQUIRED FORMS & SUBMISSION CHECKLIST -->
+<h2>Required Forms &amp; Certifications</h2>
+<p>Every form, certification, and document that must be included in the response:</p>
+<ul class="checklist">
+  <li>SF-1449 Solicitation/Contract/Order for Commercial Products and Commercial Services — signed and dated, with blocks 12, 17, 23, 24, and 30 completed (Solicitation, pp. 5, 7)</li>
+  <li>Volume I &ndash; Compliance Information.pdf — a statement acknowledging understanding of and agreement to perform the Performance Work Statement (PWS); a statement confirming the Offeror is the owner and exclusive licensor of the proprietary RiverWare software; a statement identifying any assumptions or exceptions to the solicitation requirements; and any additional information necessary to demonstrate compliance (Solicitation, p. 28)</li>
+  <li>Volume II &ndash; Price Proposal.xlsx (or PDF) — completed pricing schedule per Section B: firm-fixed prices for Annual RiverWare Software Maintenance and Enterprise Support CLINs; firm-fixed labor rates for Technical Support and Software Engineering Services CLINs; pricing for the base period and all option periods; and supporting documentation (basis of estimate, pricing assumptions, labor category descriptions) (Solicitation, p. 28)</li>
+  <li>Volume III &ndash; Administrative Information.pdf — completed representations and certifications required by the solicitation; signed acknowledgment of all solicitation amendments, if applicable; a description of any exceptions or deviations; required licenses, registrations, or certifications not included elsewhere; and any additional administrative information (Solicitation, p. 29)</li>
+  <li>Representations and certifications maintained in the System for Award Management (SAM) — FAR 52.204-7 SAM Registration and FAR 52.204-19 Incorporation by Reference of Representations and Certifications (Solicitation, pp. 21&ndash;22, 27)</li>
+</ul>
+
+<div class="callout warn">
+  <strong>&#9888; Missing any of these is grounds for rejection.</strong> Verify every item before submission.
+</div>
+
+<!-- POINT OF CONTACT -->
+<h2>Point of Contact</h2>
+<table>
+  <tr><th style="width:120px">Name</th><td>Johnny Lyons, Contracting Officer (SF-1449, p. 1; Solicitation, p. 5)</td></tr>
+  <tr><th>Email</th><td>johnny_lyon@ios.doi.gov (Solicitation, p. 16)</td></tr>
+  <tr><th>Phone</th><td>0000000000 (&ldquo;No collect calls&rdquo;) — as printed in Block 7 of the SF-1449; appears to be a redacted/placeholder value, verify with the Contracting Officer (SF-1449, p. 1; Solicitation, p. 5)</td></tr>
+</table>
+
+<!-- QUESTIONS -->
+<h2>Questions &amp; Clarifications</h2>
+<p><strong>Questions Deadline:</strong> <span class="not-specified">Not specified</span> — the solicitation does not state a separate deadline for questions (Solicitation, p. 5).</p>
+<p><strong>Submit Questions To:</strong> <span class="not-specified">Not specified</span> — no dedicated questions submission method is given. For solicitation information, Block 7 designates Johnny Lyons, Contracting Officer (SF-1449, p. 1; Solicitation, p. 5).</p>
+
+<!-- ADDITIONAL INSTRUCTIONS -->
+<h2>Additional Instructions</h2>
+<p>The Government has approved a sole-source justification determining that the University of Colorado is the only responsible source capable of meeting the requirements; therefore, technical capability is not an evaluated factor and award will be based on price alone, subject to a compliance review and responsibility determination (Solicitation, pp. 28, 31). The Government intends to award a single IDIQ contract without discussions, so the Offeror's initial proposal should contain its best pricing (Solicitation, pp. 29&ndash;30). The Offeror agrees to hold prices firm for 60 calendar days from the date specified for receipt of offers (Solicitation, p. 29). Offerors must be registered in the System for Award Management (SAM) (Solicitation, pp. 21&ndash;22, 27). Late submissions will not be considered unless the conditions in FAR 52.212-1(c) are met (Solicitation, p. 29). Period of Performance: 10/1/2026 &ndash; 9/30/2036 (base year plus option periods I&ndash;IX) (Solicitation, p. 7). After award, payment requests must be submitted electronically through the U.S. Department of the Treasury's Invoice Processing Platform (IPP) at https://www.ipp.gov, with a copy of each invoice emailed to Johnny Lyons at johnny_lyon@ios.doi.gov and to the Contracting Officer's Representative (COR), David Baird, at Drbaird@usbr.gov (Solicitation, p. 16). Contractor performance is reported through the Contractor Performance Assessment Reporting System (CPARS); the Contractor must furnish designated CPARS access personnel to the Contracting Officer no later than 30 days after award (Solicitation, pp. 16&ndash;18).</p>
+
+</div><!-- .content-card -->
+
+<div class="artifact-footer">
+  Generated by Vision Triage Pipeline &middot; August 11, 2026
+</div>
+
+</body>
+</html>

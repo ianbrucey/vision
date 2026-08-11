@@ -251,14 +251,23 @@ def process_sam_fetch_job(job: dict) -> None:
     # Ground the agent immediately: synthesize a narrative from what SAM.gov
     # gave us and write it to cases.narrative, but only if the user hasn't
     # already written their own (narrative is still blank/NULL).
+    #
+    # Databank records already have a description (from the CSV). Only call
+    # fetch_description() if no description exists — saves an API call per
+    # batch-created solicitation.
     try:
-        description = fetch_description(notice_id)
+        case_mgr = CaseManager()
+        current_case = case_mgr.get_case(case_id)
+
+        existing_description = (current_case.get("description") or "").strip() if current_case else ""
+        if existing_description:
+            description = existing_description
+        else:
+            description = fetch_description(notice_id)
+
         narrative = _build_solicitation_narrative(metadata_updates, description)
-        if narrative:
-            case_mgr = CaseManager()
-            current_case = case_mgr.get_case(case_id)
-            if current_case is not None and not (current_case.get("narrative") or "").strip():
-                case_mgr.update_case(case_id, narrative=narrative)
+        if narrative and current_case is not None and not (current_case.get("narrative") or "").strip():
+            case_mgr.update_case(case_id, narrative=narrative)
     except Exception as e:
         # Non-fatal — narrative is a nice-to-have, never block sam_fetch on it.
         print(f"[{WORKER_ID}] Job {job_id}: narrative synthesis failed (non-fatal) — {e}")
