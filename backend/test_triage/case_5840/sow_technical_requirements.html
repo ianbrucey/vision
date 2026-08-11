@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scope of Work &amp; Technical Requirements</title>
+<style>
+  /* === RESET & BASE === */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @page { size: letter; margin: 0.6in; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.65;
+    color: #1a1a2e;
+    max-width: 7.5in;
+    margin: 0 auto;
+    padding: 0.4in 0;
+    background: #ffffff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* === HEADER BAR === */
+  .artifact-header {
+    background: #1a1a2e;
+    color: #ffffff;
+    padding: 18px 24px;
+    border-radius: 6px 6px 0 0;
+    margin-bottom: 0;
+  }
+  .artifact-header .label {
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #7c8aff;
+    margin-bottom: 4px;
+  }
+  .artifact-header h1 {
+    font-size: 19pt;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+  }
+
+  /* === CONTENT CARD === */
+  .content-card {
+    border: 1px solid #e2e4e9;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  /* === SECTION HEADINGS === */
+  h2 {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #1a1a2e;
+    border-left: 4px solid #4f6ef6;
+    padding-left: 10px;
+    margin: 28px 0 12px 0;
+  }
+  h2:first-of-type { margin-top: 0; }
+
+  h3 {
+    font-size: 11.5pt;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 18px 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #e9ecf2;
+  }
+
+  p {
+    margin: 0 0 10px 0;
+  }
+
+  /* === LISTS === */
+  ul, ol {
+    margin: 0 0 14px 0;
+    padding-left: 1.3em;
+  }
+  li { margin-bottom: 5px; }
+
+  ul.mandatory li::marker { color: #d93025; }
+  ul.desirable li::marker { color: #6b7280; }
+
+  /* === TABLES === */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 16px 0;
+    font-size: 10pt;
+    border: 1px solid #dde0e5;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  th {
+    background: #f0f2f8;
+    font-weight: 600;
+    color: #1a1a2e;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid #c8cde0;
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #eef0f5;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #fafbfc; }
+
+  /* === CALLOUT BOXES === */
+  .callout {
+    border-left: 4px solid #4f6ef6;
+    background: #f4f6fd;
+    padding: 12px 16px;
+    margin: 14px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 10.5pt;
+  }
+  .callout.warn {
+    border-left-color: #e8920b;
+    background: #fef9ee;
+  }
+  .callout.info {
+    border-left-color: #2b9f8b;
+    background: #f2faf8;
+  }
+
+  strong { font-weight: 600; color: #111827; }
+  em { font-style: italic; }
+
+  .not-specified {
+    color: #9ca3af;
+    font-style: italic;
+  }
+
+  /* === FOOTER === */
+  .artifact-footer {
+    margin-top: 24px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e4e9;
+    font-size: 8.5pt;
+    color: #9ca3af;
+  }
+
+  /* === PRINT === */
+  @media print {
+    body { padding: 0; max-width: none; }
+    .artifact-header { border-radius: 0; }
+    .content-card { border: none; padding: 12px 0; }
+    table, tr { page-break-inside: avoid; }
+    h2, h3 { page-break-after: avoid; }
+    .callout { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="artifact-header">
+  <div class="label">Artifact 1 of 3</div>
+  <h1>Scope of Work &amp; Technical Requirements</h1>
+</div>
+
+<div class="content-card">
+
+<!-- SOLICITATION HEADER -->
+<table>
+  <tr><th style="width:140px">Solicitation #</th><td>140R4026Q0099 (p. 1)</td></tr>
+  <tr><th>Agency</th><td>Department of the Interior, Bureau of Reclamation — Interior Region 7, Upper Colorado Basin, Salt Lake City Regional Office, Acquisition Management Division (p. 1)</td></tr>
+  <tr><th>Title</th><td>IMT RiverWare Software Support IDIQ — Combined Synopsis/Solicitation (p. 1)</td></tr>
+</table>
+
+<!-- SCOPE OF WORK -->
+<h2>Scope of Work</h2>
+<p>The Department of the Interior, Bureau of Reclamation (Upper Colorado Region) is establishing a single-award Indefinite-Delivery/Indefinite-Quantity (IDIQ) contract for IMT RiverWare Software Support under Solicitation 140R4026Q0099 (p. 1). The contractor will provide the proprietary RiverWare software licenses, annual software maintenance and enterprise support, software updates, technical support, software engineering services, training, and related services required under the Performance Work Statement (PWS), which is incorporated as Section J, Attachment 1 (pp. 7, 12, 25, 28). The contract consists of a base year (10/1/2026 – 9/30/2027) and nine (9) option periods running through 9/30/2036, priced as firm-fixed-price CLINs, with Other Direct Costs (ODCs) and travel priced at the individual task-order level (pp. 7–11, 20, 28). Award is intended on a sole-source basis to the University of Colorado, the owner and exclusive licensor of the proprietary RiverWare software; price is the sole evaluation factor for award (pp. 28, 31).</p>
+
+<!-- LOCATION -->
+<h2>Location &amp; Place of Performance</h2>
+<p>The solicitation is issued by and the contract is administered by the Bureau of Reclamation, Upper Colorado Region, Regional Office, 125 South State Street, Room 8100, Salt Lake City, Utah 84138 (pp. 5, 7). Deliverables are to be delivered to the Bureau of Reclamation – UC-RO, Upper Colorado Regional Office, 125 South State St., Suite 8100, Salt Lake City UT 84138-1147 US (pp. 7, 25). The detailed place of performance is set forth in the Performance Work Statement (Section J, Attachment 1), which is referenced but not reproduced in the provided documents (pp. 12, 25). Travel shall not be incurred until authorized by the Contracting Officer or as otherwise provided in an individual task order or the PWS; travel is priced as a separate Firm-Fixed-Price CLIN within the applicable task order using the Joint Travel Regulations (JTR) as the basis (pp. 20, 22).</p>
+
+<!-- CONTRACT TYPE -->
+<h2>Contract Type</h2>
+<p>Indefinite-Delivery/Indefinite-Quantity (IDIQ) contract with firm-fixed-price (FFP) pricing — the contract incorporates the FAR 52.216-22 Indefinite Quantity clause (pp. 23-24). The Contractor shall propose firm-fixed prices for all pre-priced Contract Line Item Numbers (CLINs) for the base period and each option period; prices established at contract award remain firm for the applicable contract period (Section H, p. 20). Proposed firm-fixed labor rates for Technical Support and Software Engineering Services CLINs establish the contract labor rates for future task orders (p. 32). Other Direct Cost (ODC) and Travel CLINs are established as FFP CLINs at the individual task-order level when required (p. 20). Order limitations apply: minimum order $2,500.00; maximum order $1,000,000.00 per single item or combination of items (52.216-19, p. 23).</p>
+
+<!-- TECHNICAL REQUIREMENTS -->
+<h2>Technical Requirements</h2>
+
+<h3>Mandatory Requirements (shall / must)</h3>
+<ul class="mandatory">
+  <li>The Offeror must be the owner and exclusive licensor of the proprietary RiverWare software and capable of providing the licenses, maintenance, software updates, software engineering services, technical support, training, and related services required under the contract (pp. 28, 31).</li>
+  <li>Volume I (Compliance Information) must include a statement acknowledging the Offeror's understanding of and agreement to perform the Performance Work Statement (PWS), and a statement identifying any assumptions or exceptions to the solicitation requirements (p. 28).</li>
+  <li>The Contractor shall propose firm-fixed prices for all pre-priced CLINs for the base period and each option period; proposed prices shall include all direct labor, indirect costs, overhead, general and administrative expenses, profit, and projected escalation applicable to each contract period (pp. 20, 28).</li>
+  <li>The Contractor shall not incur travel in performance of the contract until authorized by the Contracting Officer or as otherwise provided in an individual task order or the PWS; proposed travel pricing shall be developed using the Joint Travel Regulations (JTR) (p. 22).</li>
+  <li>Payment requests must be submitted electronically through the U.S. Department of the Treasury's Invoice Processing Platform (IPP); the Contractor shall also email a hardcopy of the invoice to the Contracting Officer, Johnny Lyons (johnny_lyon@ios.doi.gov), and the Contracting Officer's Representative, David Baird (Drbaird@usbr.gov) (p. 16).</li>
+  <li>The Offeror must furnish the Contracting Officer the name, position title, phone number, and email address for each person designated to access the firm's past performance evaluation(s) no later than 30 days after award (p. 17).</li>
+  <li>Offers must be organized and submitted in three volumes — Volume I: Compliance Information (not to exceed 5 pages), Volume II: Price Proposal, and Volume III: Administrative Information; narrative submissions shall use 12-point Times New Roman, Calibri, or Arial font, single-spaced, with one-inch margins (pp. 27-28).</li>
+  <li>The Offeror must be registered in the System for Award Management (SAM) (FAR 52.204-7 and 52.204-13) (p. 21).</li>
+</ul>
+
+<h3>Desirable / Preferred (should / may)</h3>
+<ul class="desirable">
+  <li><span class="not-specified">None explicitly stated.</span> The Government has determined through an approved sole-source justification that the University of Colorado is the only responsible source capable of meeting the Government's requirements; therefore technical capability is not an evaluated factor for award (pp. 28, 31).</li>
+</ul>
+
+<!-- PERFORMANCE & SLAs -->
+<h2>Performance Metrics &amp; Deliverables</h2>
+<p>The detailed SLAs, acceptance criteria, and performance standards are set forth in the Performance Work Statement (PWS, Section J, Attachment 1) and the Quality Assurance Surveillance Plan (QASP, Section J, Attachment 2), which are incorporated by reference but not reproduced in the provided documents (pp. 3, 12, 25). Delivery/milestone dates are established by the base-period and option-period CLIN schedule below; the schedule indicates delivery of 10/01/2026 for the base year and 10/01/2027 for the option periods (pp. 7-11). The total duration of the contract, including the exercise of any options, shall not exceed 126 months (p. 24).</p>
+<table>
+  <tr><th>CLIN</th><th>Period</th><th>Period of Performance</th><th>Anticipated Option Exercise Date</th></tr>
+  <tr><td>00001</td><td>Base Year</td><td>10/01/2026 – 09/30/2027</td><td>—</td></tr>
+  <tr><td>00002</td><td>Option Period I</td><td>10/01/2027 – 09/30/2028</td><td>09/30/2027</td></tr>
+  <tr><td>00003</td><td>Option Period II</td><td>10/01/2028 – 09/30/2029</td><td>09/30/2028</td></tr>
+  <tr><td>00004</td><td>Option Period III</td><td>10/01/2029 – 09/30/2030</td><td>09/30/2029</td></tr>
+  <tr><td>00005</td><td>Option Period IV</td><td>10/01/2030 – 09/30/2031</td><td>09/30/2030</td></tr>
+  <tr><td>00006</td><td>Option Period V</td><td>10/01/2031 – 09/30/2032</td><td>09/30/2031</td></tr>
+  <tr><td>00007</td><td>Option Period VI</td><td>10/01/2032 – 09/30/2033</td><td>09/30/2032</td></tr>
+  <tr><td>00008</td><td>Option Period VII</td><td>10/01/2033 – 09/30/2034</td><td>09/30/2033</td></tr>
+  <tr><td>00009</td><td>Option Period VIII</td><td>10/01/2034 – 09/30/2035</td><td>09/30/2034</td></tr>
+  <tr><td>00010</td><td>Option Period IX</td><td>10/01/2035 – 09/30/2036</td><td>09/30/2035</td></tr>
+</table>
+<p>Reporting and oversight: The Contracting Officer's Representative (COR) is responsible for technical administration of the contract, including inspecting and accepting or rejecting work performed under the contract, with all technical direction issued in writing by the COR (pp. 18-19). Past performance evaluations will be completed in CPARS within 60 days after the end of a performance period, and the Contractor's response is due within 60 calendar days after receipt of the evaluation (pp. 16-17). Invoices must be submitted through IPP with a hardcopy emailed to the Contracting Officer and COR (p. 16).</p>
+
+<!-- SECURITY & COMPLIANCE -->
+<h2>Security &amp; Compliance</h2>
+<table>
+  <tr><th style="width:180px">Security Clearance</th><td><span class="not-specified">Not mentioned</span> in the solicitation — no facility or personnel clearance level is specified in the provided documents.</td></tr>
+  <tr><th>IT Security</th><td>FAR 52.240-90 "Security Prohibitions and Exclusions Representations and Certifications" and FAR 52.241-91 "Security Prohibitions and Exclusions" are incorporated by reference (p. 22). No NIST 800-171, CMMC, or FedRAMP requirements are stated in the provided documents.</td></tr>
+  <tr><th>Other Compliance</th><td>System for Award Management (SAM) registration and maintenance (FAR 52.204-7, 52.204-13) (p. 21); Anti-Kickback Procedures (52.203-7) (p. 21); Contractor Employee Whistleblower Rights (52.203-17) (p. 21); Combating Trafficking in Persons (52.222-50) (p. 21); Addressing DEI Discrimination by Federal Contractors (52.222-90) (p. 21); Encouraging Contractor Policies To Ban Text Messaging While Driving (52.226-8) (p. 21); Providing Accelerated Payments to Small Business Subcontractors (52.232-40) (p. 22); Electronic invoicing via IPP (p. 16); travel reimbursement per Joint Travel Regulations (JTR) (p. 22). No Davis-Bacon, Buy American, or ISO requirements identified in the provided documents.</td></tr>
+</table>
+
+<!-- CALL TO ACTION -->
+<div class="callout info">
+  <strong>&#9432; Source Documents:</strong> Solicitation 140R4026Q0099, Combined Synopsis/Solicitation (SF-1449, Sections A–M, 32 pages). Section C refers the SOW to Section J, Attachment 1 — Performance Work Statement (PWS), and the Quality Assurance Surveillance Plan is Section J, Attachment 2 (QASP); both are listed at pp. 3, 12, and 25 but their full text is not reproduced in the provided documents.
+</div>
+
+</div><!-- .content-card -->
+
+<div class="artifact-footer">
+  Generated by Vision Triage Pipeline &middot; August 11, 2026
+</div>
+
+</body>
+</html>

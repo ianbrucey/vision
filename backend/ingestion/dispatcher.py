@@ -799,7 +799,7 @@ def _normalize_docx(conn, docx_path: Path, document_id: int) -> None:
 # Markdown Normalization
 # ---------------------------------------------------------------------------
 
-_MD_EXTENSIONS = {".md", ".markdown"}
+_MD_EXTENSIONS = {".md", ".markdown", ".txt"}
 
 # Regex patterns for markdown parsing
 _RE_HEADING = re.compile(r"^(#{1,6})\s+(.+)$")
@@ -1279,10 +1279,22 @@ def ingest_file(
         return ingest_audio(case_id=case_id, audio_path=file_path,
                             document_name=document_name)
 
-    raise ValueError(
-        f"Unsupported file type: {suffix}. "
-        f"Supported: {sorted(_DATALAB_EXTENSIONS | _DOCX_EXTENSIONS | _CSV_EXTENSIONS | _XLSX_EXTENSIONS | _MD_EXTENSIONS | _AUDIO_EXTENSIONS)}"
-    )
+    # Generic fallback — store as-is without text extraction.
+    # SAM.gov attachments can be any file type (.txt, .zip, .xml, etc.).
+    print(f"Ingest (generic): {document_name} ({suffix})")
+    with tx() as conn:
+        doc_id = insert_document(
+            conn, case_id=case_id, name=document_name,
+            page_count=1, source="sam_gov",
+        )
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE documents SET ocr_status='not_applicable', ocr_provider='passthrough' WHERE id=%s",
+                (doc_id,),
+            )
+    result = {"document_id": doc_id, "document_name": document_name, "page_count": 1, "section_count": 0, "block_count": 0}
+    print(f"  Done: doc_id={doc_id} (stored as-is, no text extraction)")
+    return result
 
 
 # ---------------------------------------------------------------------------

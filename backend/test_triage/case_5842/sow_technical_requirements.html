@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scope of Work &amp; Technical Requirements</title>
+<style>
+  /* === RESET & BASE === */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @page { size: letter; margin: 0.6in; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.65;
+    color: #1a1a2e;
+    max-width: 7.5in;
+    margin: 0 auto;
+    padding: 0.4in 0;
+    background: #ffffff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* === HEADER BAR === */
+  .artifact-header {
+    background: #1a1a2e;
+    color: #ffffff;
+    padding: 18px 24px;
+    border-radius: 6px 6px 0 0;
+    margin-bottom: 0;
+  }
+  .artifact-header .label {
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #7c8aff;
+    margin-bottom: 4px;
+  }
+  .artifact-header h1 {
+    font-size: 19pt;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+  }
+
+  /* === CONTENT CARD === */
+  .content-card {
+    border: 1px solid #e2e4e9;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  /* === SECTION HEADINGS === */
+  h2 {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #1a1a2e;
+    border-left: 4px solid #4f6ef6;
+    padding-left: 10px;
+    margin: 28px 0 12px 0;
+  }
+  h2:first-of-type { margin-top: 0; }
+
+  h3 {
+    font-size: 11.5pt;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 18px 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #e9ecf2;
+  }
+
+  p {
+    margin: 0 0 10px 0;
+  }
+
+  /* === LISTS === */
+  ul, ol {
+    margin: 0 0 14px 0;
+    padding-left: 1.3em;
+  }
+  li { margin-bottom: 5px; }
+
+  ul.mandatory li::marker { color: #d93025; }
+  ul.desirable li::marker { color: #6b7280; }
+
+  /* === TABLES === */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 16px 0;
+    font-size: 10pt;
+    border: 1px solid #dde0e5;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  th {
+    background: #f0f2f8;
+    font-weight: 600;
+    color: #1a1a2e;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid #c8cde0;
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #eef0f5;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #fafbfc; }
+
+  /* === CALLOUT BOXES === */
+  .callout {
+    border-left: 4px solid #4f6ef6;
+    background: #f4f6fd;
+    padding: 12px 16px;
+    margin: 14px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 10.5pt;
+  }
+  .callout.warn {
+    border-left-color: #e8920b;
+    background: #fef9ee;
+  }
+  .callout.info {
+    border-left-color: #2b9f8b;
+    background: #f2faf8;
+  }
+
+  strong { font-weight: 600; color: #111827; }
+  em { font-style: italic; }
+
+  .not-specified {
+    color: #9ca3af;
+    font-style: italic;
+  }
+
+  /* === FOOTER === */
+  .artifact-footer {
+    margin-top: 24px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e4e9;
+    font-size: 8.5pt;
+    color: #9ca3af;
+  }
+
+  /* === PRINT === */
+  @media print {
+    body { padding: 0; max-width: none; }
+    .artifact-header { border-radius: 0; }
+    .content-card { border: none; padding: 12px 0; }
+    table, tr { page-break-inside: avoid; }
+    h2, h3 { page-break-after: avoid; }
+    .callout { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="artifact-header">
+  <div class="label">Artifact 1 of 3</div>
+  <h1>Scope of Work &amp; Technical Requirements</h1>
+</div>
+
+<div class="content-card">
+
+<!-- SOLICITATION HEADER -->
+<table>
+  <tr><th style="width:140px">Solicitation #</th><td>1305M326Q0429</td></tr>
+  <tr><th>Agency</th><td>National Weather Service (NWS) / NOAA, U.S. Department of Commerce</td></tr>
+  <tr><th>Title</th><td>Brick Exterior Restoration at the Pendleton, Weather Forecast Office (WFO)</td></tr>
+</table>
+
+<!-- SCOPE OF WORK -->
+<h2>Scope of Work</h2>
+<p>The Government seeks firm-fixed-price commercial construction services to provide all labor, equipment and materials necessary for Brick Exterior Restoration in Pendleton, OR at the National Weather Service (NWS) Weather Forecast Office (WFO) and the adjacent generator building, in accordance with the Statement of Work (p. 3). The contractor shall recondition approximately 5,363 square feet of brick and mortar — WFO: 4,400 sq. ft. and Gen Bldg.: 963 sq. ft. — and replace the expansion joints to restore the aesthetic and functional integrity of the exterior masonry, which is over 30 years old and in need of reconditioning, repairing and resealing (pp. 4). The contractor shall provide all labor, material, equipment, supervision and transportation for the wall repair and reconditioning in accordance with the SOW, specifications, and accepted trade and industry standards (p. 4).</p>
+
+<!-- LOCATION -->
+<h2>Location &amp; Place of Performance</h2>
+<p>Projects to be completed at the National Weather Service, 2001 NW 56th Dr, Pendleton, OR 97801, a NWS-owned office. All work is performed on-site at the NWS facility (p. 5). The COR will, upon request, designate specific areas adjacent to the building and within the existing parking lot for the delivery and lay-down of materials and equipment; utilities such as electric and water specific to the work will be supplied by the government (p. 8).</p>
+
+<!-- CONTRACT TYPE -->
+<h2>Contract Type</h2>
+<p>Firm-fixed-price. The CLIN states "Award Type: Firm-fixed-price" (p. 3), and the Government intends to award "a trade-off, single firm fixed-price purchase order on an all or none basis with payment terms of Net 30" (p. 34). Period of performance is 1 year after receipt of the notice to proceed (p. 3).</p>
+
+<!-- TECHNICAL REQUIREMENTS -->
+<h2>Technical Requirements</h2>
+
+<h3>Mandatory Requirements (shall / must)</h3>
+<ul class="mandatory">
+  <li>Provide all labor, material, equipment, supervision and transportation necessary for the wall repair and reconditioning in accordance with the Statement of Work, specifications, and accepted trade and industry standards (p. 4).</li>
+  <li>Verify all measurements for WFO specifications (p. 4).</li>
+  <li>Wall cleaning and preparation: remove all hardware, hardware accessories, machined surfaces, plates, lighting fixtures and similar items in places to be finished (where items cannot be removed, provide surface-applied protection); pressure wash all exterior walls and surfaces to remove soiling and surface contaminants to provide a satisfactory surface (tooth) for the finish application, taking care not to damage any existing surfaces (p. 4).</li>
+  <li>Expansion joints: remove old damaged sealant, clean the joint, install new backing rod, and apply new high-quality polyurethane sealant designed specifically for masonry concrete; color shall be aesthetically pleasing and must be approved by the Contracting Officer's Representative (COR) (p. 4).</li>
+  <li>Repairs: make all necessary repairs revealed by inspection, including replacement of damaged or deteriorating shingles and patching and sealing all faults, cracks, chips, spalling and other surface defects with compatible patching materials; all repaired materials shall be treated to match and/or blend with adjacent surfaces prior to sealing, and color must be approved by the COR (pp. 4-5).</li>
+  <li>Sealing: all sealers must be of premium quality grade and designed specifically for masonry concrete; apply two coats of sealer to achieve a uniformed matching finish, following manufacturer's installation instructions, adherence to environmental conditions, and recommended drying time between coats; furnish between one and five gallons of sealer as excess, with all containers identified individually with appropriate labels (p. 5).</li>
+  <li>Work must begin within one (1) business day of award of the purchase order; "Work" includes ordering parts and equipment not already in stock. Period of performance is 365 calendar days after receipt of the notice to proceed (p. 5).</li>
+  <li>Submit all deliverables per the submittal schedule (Work Schedule within 3 days of award; SDS within 10 days of award; supervisor designation at contract award; Manufacturer Warranty Documentation and Biobased Report upon acceptance of work) (p. 5).</li>
+  <li>Only legal US citizens and legal immigrants are allowed to work on federal government construction projects; contractor personnel shall be escorted by an NWS employee at all times while on government property (p. 7).</li>
+  <li>All work shall be conducted in a safe manner and comply with station regulations and Department of Labor Standards; provide and maintain fire extinguishers in construction areas; store, dispense and use flammable/combustible liquids in accordance with 29 CFR 1926, NFPA 241 and NFPA 30; report any accidents to the COR within 24 hours (p. 7).</li>
+  <li>Observe regular working hours of 0700 to 1600, Monday through Friday, except Federal holidays and other days designated by the designated representative; anything outside regular working hours must be done by permission of the COR (p. 6).</li>
+  <li>Use only domestic construction material in performing this contract (Buy American — Construction Materials, FAR 52.225-9) (pp. 16, 19).</li>
+  <li>Complete and return the Asbestos-Containing Materials Certification with the quote, certifying that no asbestos-containing materials, products or supplies will be delivered to the work site or utilized or installed during performance of the contract (p. 1, Attach. 2).</li>
+  <li>Dispose of all material according to all Federal and State laws and regulations; keep the premises free at all times from accumulation of waste/rubbish; upon completion, remove all debris, tools and surplus materials and leave the entire area in a neat and clean condition (p. 8).</li>
+  <li>Upon completion and acceptance of the work, submit the invoice through the Invoice Processing Platform (IPP) at ipp.gov (p. 8).</li>
+  <li>For the quote: Offeror must have knowledge and experience with Building Restoration and provide a detailed description of the company's experience performing similar services (p. 34).</li>
+  <li>For the quote: include at least two references from at least two separate contracts for similar and relevant recent services within the past two years, including the name, phone number, full address, and e-mail address of each reference (p. 34).</li>
+</ul>
+
+<h3>Desirable / Preferred (should / may)</h3>
+<ul class="desirable">
+  <li>A site visit is highly recommended but not required; vendors should inspect the site and satisfy themselves regarding all general and local conditions that may affect the cost of contract performance. Contact Lars Hansen via email at Lars.hansen@noaa.gov to schedule a visit (p. 36).</li>
+  <li>The technical approach write-up should describe how the company plans to perform the tasks in the Statement of Work, e.g., performance checklists, anticipated number of employees, anticipated hours at the facility, and/or confirmation of supplies being provided (p. 33).</li>
+</ul>
+
+<!-- PERFORMANCE & SLAs -->
+<h2>Performance Metrics &amp; Deliverables</h2>
+<p>The Statement of Work establishes the following required submittal schedule (p. 5):</p>
+<table>
+  <tr><th>Deliverable</th><th>Objective</th><th>Due</th><th>Deliver To</th></tr>
+  <tr><td>Work Schedule, with start and completion dates</td><td>Coordinate scheduling with NWS Technical POC</td><td>Within 3 days of awarded contract</td><td>Technical POC</td></tr>
+  <tr><td>Designation of on-site, job-site supervisor and contact information</td><td>Provide a Primary POC to NWS</td><td>Contract Award</td><td>Technical POC</td></tr>
+  <tr><td>Manufacturer Warranty Documentation</td><td>Warranty parts and labor</td><td>Upon acceptance of work</td><td>Contracting Officer's Representative (COR)</td></tr>
+  <tr><td>Safety Data Sheet (SDS)</td><td>List any hazardous material that will be used in performance of this contract (Ref. FAR 52.223-3 and FED-STD-313E)</td><td>Within 10 days of awarded contract</td><td>COR</td></tr>
+  <tr><td>Biobased Report (copy)</td><td>Report purchases of Biobased products in System for Award Management (SAM) (Ref. FAR 52.223-2)</td><td>Upon acceptance of work</td><td>COR</td></tr>
+</table>
+<p>The COR is responsible for the technical aspects of the contract, final inspection and acceptance of all deliverables, and serves as the technical liaison with the contractor (p. 22). Upon completion and acceptance of the work, the invoice shall be submitted through the Invoice Processing Platform at ipp.gov (p. 8).</p>
+
+<!-- SECURITY & COMPLIANCE -->
+<h2>Security &amp; Compliance</h2>
+<table>
+  <tr><th style="width:180px">Security Clearance</th><td><span class="not-specified">Not specified</span> — no facility or personnel clearance level is stated. All personnel performing work under this contract shall be legal citizens or legal immigrants of the United States, and contractor personnel shall be escorted by an NWS employee at all times while on government property (p. 7).</td></tr>
+  <tr><th>IT Security</th><td><span class="not-specified">Not mentioned</span> — the certification and accreditation requirements of Clause 1352.239-72 do not apply (even though that clause is not included in this order), and a Security Accreditation Package is not required (p. 34).</td></tr>
+  <tr><th>Other Compliance</th><td>Davis-Bacon Act construction wage rate requirements apply — General Decision Number OR20260089 (Oregon, Umatilla County, Building) (p. 2, Attach. 1); Buy American — Construction Materials (FAR 52.225-9) (pp. 16-19); EO 13706 Paid Sick Leave for Federal Contractors (p. 2, Attach. 1); EO 14026 Minimum Wages for Contractor Workers (p. 9); Copeland Act requirements (p. 9); Biobased product reporting (FAR 52.223-2) (pp. 5, 9); Sustainable Products (FAR 52.223-23) (p. 10); Pollution Prevention and Right-to-Know (FAR 52.223-5) (pp. 9-10); NOAA Sexual Assault and Sexual Harassment Prevention and Response Policy (p. 23); Asbestos-Containing Materials Certification (Attach. 2, p. 1).</td></tr>
+</table>
+
+<!-- CALL TO ACTION -->
+<div class="callout info">
+  <strong>&#9432; Source Documents:</strong> Section III — Description/Specifications (Statement of Work) of solicitation 1305M326Q0429 (03_Sol_1305M326Q0429); Section II CLIN list (p. 3); Sections IX, X and XII (clauses, attachments list, and instructions/evaluation); Attachment 1 — General Decision Number OR20260089 (Davis-Bacon wage determination); Attachment 2 — Asbestos-Containing Materials Certification.
+</div>
+
+</div><!-- .content-card -->
+
+<div class="artifact-footer">
+  Generated by Vision Triage Pipeline &middot; August 11, 2026
+</div>
+
+</body>
+</html>

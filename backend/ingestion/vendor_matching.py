@@ -6,7 +6,7 @@ via the manual trigger). quick_kill is informational only and does NOT
 block matching. Builds a deterministic SQL candidate
 pool (NAICS exact -> NAICS family -> capabilities FTS, set-aside
 hard-gated, capped ~300 rows) via VendorMatchManager, then runs a single
-LLM agent that ranks/selects the top 25 candidates and drafts one
+LLM agent that ranks/selects the top 4 candidates and drafts one
 reusable outreach email template.
 
 Flow:
@@ -50,14 +50,14 @@ RANK the candidate pool by:
      vendor with strong capability relevance can still outrank a
      nearby one with weak relevance.
 
-SELECT the top candidates, up to 25 (fewer is fine if the pool is small
+SELECT the top candidates, up to 4 (fewer is fine if the pool is small
 or weak). For each selected vendor, assign:
   - match_score: integer 0-100, your overall confidence this vendor is a
     strong subcontracting match.
   - match_rationale: 1-2 sentences citing the SPECIFIC overlap (e.g. exact
     NAICS code, named capability, relevant location) — never generic
     filler like "good fit for this opportunity".
-  - rank: integer 1-25, 1 = strongest match.
+  - rank: integer 1-4, 1 = strongest match.
   - vendor_id and naics_match_type: copy directly from the candidate pool
     entry you selected.
 
@@ -138,7 +138,7 @@ results as chat text — they must go through the tools."""
 # ---------------------------------------------------------------------------
 
 _VALID_NAICS_MATCH_TYPES = ("exact", "family", "capability_only")
-_MAX_MATCHES = 25
+_MAX_MATCHES = 4
 _TEXT_TRUNCATE = 8000
 
 
@@ -154,7 +154,7 @@ def _save_matches_impl(solicitation_id: int, matches: list[dict]) -> dict:
             if key not in m:
                 return {"error": f"match at index {i} is missing required key '{key}'"}
         if not isinstance(m["rank"], int) or not (1 <= m["rank"] <= 25):
-            return {"error": f"match at index {i} has invalid rank {m['rank']!r} (must be int 1-25)"}
+            return {"error": f"match at index {i} has invalid rank {m['rank']!r} (must be int 1-4)"}
         if not isinstance(m["match_score"], int) or not (0 <= m["match_score"] <= 100):
             return {"error": f"match at index {i} has invalid match_score {m['match_score']!r} (must be int 0-100)"}
         if not isinstance(m["match_rationale"], str) or not m["match_rationale"].strip():
@@ -201,7 +201,7 @@ async def _run_matching_agent(
 
     @tool(
         "save_matches",
-        "Save the ranked vendor matches (up to 25). Call this once, after "
+        "Save the ranked vendor matches (up to 4). Call this once, after "
         "ranking the full candidate pool.",
         {
             "type": "object",
@@ -293,7 +293,7 @@ async def _run_matching_agent(
         f"- place_of_performance: {_json.dumps(sol.get('place_of_performance'), default=str)}\n"
         f"- artifact_scope_of_work (HTML, may be truncated):\n{_truncate(sol.get('artifact_scope_of_work'))}\n\n"
         f"- artifact_technical_requirements (HTML, may be truncated):\n{_truncate(sol.get('artifact_technical_requirements'))}\n\n"
-        f"Rank the pool, select up to 25, and call save_matches. Then draft "
+        f"Rank the pool, select up to 4, and call save_matches. Then draft "
         f"and call save_outreach_email."
     )
 

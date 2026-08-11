@@ -693,6 +693,87 @@ _TEMPLATE_SPECS: list[dict] = [
     },
 ]
 
+# Maps template keys → solicitations.artifact_* columns and draft labels.
+_ARTIFACT_PERSIST: dict[str, dict] = {
+    "sow_technical": {
+        "column": "artifact_scope_of_work",
+        "label": "Scope of Work & Technical Requirements",
+    },
+    "submission": {
+        "column": "artifact_submission_checklist",
+        "label": "Submission Requirements & Instructions",
+    },
+    "sourcing": {
+        "column": "artifact_evaluation_criteria",
+        "label": "Sourcing Script",
+    },
+}
+
+
+def _persist_artifacts(
+    solicitation_id: int, case_id: int, work_dir: Path
+) -> dict:
+    """Read produced HTML files and write them to the solicitations row
+    AND the case's workspace (drafts table, folder='artifacts').
+
+    Returns {'count': int, 'errors': list[str]}.
+    """
+    from core.db import tx, insert_draft
+    from core.solicitation import SolicitationManager
+
+    mgr = SolicitationManager()
+    errors: list[str] = []
+    count = 0
+
+    for spec in _TEMPLATE_SPECS:
+        key = spec["key"]
+        persist = _ARTIFACT_PERSIST.get(key)
+        if not persist:
+            continue
+
+        html_path = work_dir / spec["output"]
+        if not html_path.exists():
+            errors.append(f"{key}: file not found")
+            continue
+
+        html = html_path.read_text()
+        if len(html) < 100:
+            errors.append(f"{key}: output too small ({len(html)} chars)")
+            continue
+
+        column = persist["column"]
+        label = persist["label"]
+
+        # 1. Write to solicitations.artifact_* column → Triage tab
+        mgr.update(solicitation_id, **{column: html})
+        # If the solicitation doesn't exist, mgr.update returns None
+        # but that shouldn't happen here — we just created it.
+
+        # 2. Write to drafts table → Workspace (Artifacts folder)
+        draft_name = f"TRIAGE — {label}"
+        with tx() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """DELETE FROM drafts
+                       WHERE case_id = %s AND folder = 'artifacts' AND name = %s""",
+                    (case_id, draft_name),
+                )
+            insert_draft(
+                conn,
+                case_id=case_id,
+                name=draft_name,
+                document_type="other",
+                content=[{"html": html}],
+                created_by="agent",
+                status="final",
+                file_type="html",
+                folder="artifacts",
+            )
+
+        count += 1
+
+    return {"count": count, "errors": errors}
+
 _EXTRACTION_RULES = """\
 RULES (follow exactly):
 1. Every placeholder looks like [EXTRACT: description]. Replace each one
@@ -997,16 +1078,37 @@ async def run_solicitation_triage(case_id: int, solicitation_id: int) -> dict:
             mgr.update(solicitation_id, triage_status="failed", triage_error=str(e))
             return {"error": str(e)}
 
-        mgr.update(solicitation_id, triage_status="complete", triage_error=None)
+        # ---- Step 3: Persist artifacts to DB (solicitations + workspace) ----
+        persisted = _persist_artifacts(solicitation_id, case_id, work_dir)
+        print(
+            f"[solicitation_triage] case_id={case_id} — "
+            f"persisted {persisted['count']} artifacts to DB, "
+            f"errors={persisted['errors']}"
+        )
 
-        # ---- Step 3: Enqueue vendor matching ----
+        # ---- Cleanup: remove work directory after successful upload ----
+        import shutil
+        try:
+            shutil.rmtree(work_dir)
+            print(f"[solicitation_triage] case_id={case_id} — cleaned up {work_dir}")
+        except Exception as e:
+            print(f"[solicitation_triage] case_id={case_id} — cleanup warning: {e}")
+
+        mgr.update(
+            solicitation_id,
+            triage_status="complete",
+            triage_error=None,
+            has_partial_artifacts=bool(persisted["errors"]),
+        )
+
+        # ---- Step 4: Enqueue vendor matching ----
         try:
             from ingestion.jobs import enqueue
-            # enqueue(
-            #     case_id=case_id,
-            #     job_type="vendor_matching",
-            #     metadata={"solicitation_id": solicitation_id},
-            # )
+            enqueue(
+                case_id=case_id,
+                job_type="vendor_matching",
+                metadata={"solicitation_id": solicitation_id},
+            )
         except Exception as e:
             print(
                 f"Failed to enqueue vendor_matching for "

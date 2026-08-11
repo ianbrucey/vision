@@ -22,11 +22,9 @@ interface TriageTabProps {
 /* ------------------------------------------------------------------ */
 
 const ARTIFACTS = [
-  { key: "artifact_scope_of_work", label: "Scope of Work" },
-  { key: "artifact_technical_requirements", label: "Technical Requirements" },
-  { key: "artifact_deliverables_timeline", label: "Deliverables & Timeline" },
-  { key: "artifact_evaluation_criteria", label: "Evaluation Criteria" },
-  { key: "artifact_submission_checklist", label: "Submission Checklist" },
+  { key: "artifact_scope_of_work", label: "Scope of Work & Tech" },
+  { key: "artifact_submission_checklist", label: "Submission Requirements" },
+  { key: "artifact_evaluation_criteria", label: "Sourcing Script" },
 ] as const;
 
 const STATUS_COLORS: Record<string, string> = {

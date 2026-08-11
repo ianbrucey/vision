@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sourcing Script</title>
+<style>
+  /* === RESET & BASE === */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @page { size: letter; margin: 0.6in; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.65;
+    color: #1a1a2e;
+    max-width: 7.5in;
+    margin: 0 auto;
+    padding: 0.4in 0;
+    background: #ffffff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .artifact-header {
+    background: #8b3f8b;
+    color: #ffffff;
+    padding: 18px 24px;
+    border-radius: 6px 6px 0 0;
+    margin-bottom: 0;
+  }
+  .artifact-header .label {
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #dfb2df;
+    margin-bottom: 4px;
+  }
+  .artifact-header h1 {
+    font-size: 19pt;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+  }
+
+  .content-card {
+    border: 1px solid #e2e4e9;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  h2 {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #1a1a2e;
+    border-left: 4px solid #8b3f8b;
+    padding-left: 10px;
+    margin: 28px 0 12px 0;
+  }
+  h2:first-of-type { margin-top: 0; }
+
+  h3 {
+    font-size: 11.5pt;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 18px 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #e9ecf2;
+  }
+
+  p { margin: 0 0 10px 0; }
+
+  ul, ol {
+    margin: 0 0 14px 0;
+    padding-left: 1.3em;
+  }
+  li { margin-bottom: 7px; }
+
+  /* === TABLES === */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 16px 0;
+    font-size: 10pt;
+    border: 1px solid #dde0e5;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  th {
+    background: #f0f2f8;
+    font-weight: 600;
+    color: #1a1a2e;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid #c8cde0;
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #eef0f5;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #fafbfc; }
+
+  /* === QUICK STATS === */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid #dde0e5;
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 14px 0;
+  }
+  .stat-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eef0f5;
+    border-right: 1px solid #eef0f5;
+  }
+  .stat-item:nth-child(even) { border-right: none; }
+  .stat-item .stat-label {
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6b7280;
+    display: block;
+    margin-bottom: 3px;
+  }
+  .stat-item .stat-value {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+
+  /* === CALLOUTS === */
+  .callout {
+    border-left: 4px solid #8b3f8b;
+    background: #faf5fa;
+    padding: 12px 16px;
+    margin: 14px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 10.5pt;
+  }
+  .callout.urgent {
+    border-left-color: #d93025;
+    background: #fef5f5;
+  }
+
+  /* === SCRIPT QUESTIONS === */
+  .script-questions {
+    counter-reset: q;
+    list-style: none;
+    padding-left: 0;
+  }
+  .script-questions li {
+    counter-increment: q;
+    padding: 10px 12px 10px 48px;
+    margin-bottom: 8px;
+    background: #f8f9fc;
+    border-radius: 4px;
+    position: relative;
+  }
+  .script-questions li::before {
+    content: 'Q' counter(q);
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    background: #8b3f8b;
+    color: #ffffff;
+    font-size: 9pt;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 3px;
+  }
+
+  strong { font-weight: 600; color: #111827; }
+  em { font-style: italic; }
+
+  .not-specified {
+    color: #9ca3af;
+    font-style: italic;
+  }
+
+  /* === FOOTER === */
+  .artifact-footer {
+    margin-top: 24px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e4e9;
+    font-size: 8.5pt;
+    color: #9ca3af;
+  }
+
+  @media print {
+    body { padding: 0; max-width: none; }
+    .artifact-header { border-radius: 0; }
+    .content-card { border: none; padding: 12px 0; }
+    table, tr { page-break-inside: avoid; }
+    h2, h3 { page-break-after: avoid; }
+    .callout, .stat-grid { page-break-inside: avoid; }
+    .script-questions li {
+      background: #ffffff;
+      border: 1px solid #e2e4e9;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="artifact-header">
+  <div class="label">Artifact 3 of 3 &middot; Internal Use</div>
+  <h1>Sourcing Script</h1>
+</div>
+
+<div class="content-card">
+
+<!-- OPPORTUNITY AT A GLANCE -->
+<div class="stat-grid">
+  <div class="stat-item">
+    <span class="stat-label">Solicitation #</span>
+    <span class="stat-value">1305M326Q0429 (p. 32)</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">Agency</span>
+    <span class="stat-value">National Weather Service — NOAA / U.S. Department of Commerce (pp. 3, 5)</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">NAICS</span>
+    <span class="stat-value"><span class="not-specified">Not specified</span> in the solicitation documents</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">Set-Aside</span>
+    <span class="stat-value">Total Small Business Set-Aside (FAR 52.219-6) (p. 9)</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">Contract Type</span>
+    <span class="stat-value">Firm-Fixed-Price (FFP) purchase order (pp. 3, 34)</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">Response Deadline</span>
+    <span class="stat-value"><span class="not-specified">Not specified</span> — quotes due "at or before the time specified in the solicitation" (p. 33)</span>
+  </div>
+</div>
+
+<!-- IN PLAIN ENGLISH -->
+<h2>What Is This?</h2>
+<p>The National Weather Service needs a contractor to restore the aging brick and mortar exterior of its Pendleton, Oregon Weather Forecast Office and the adjacent generator building — pressure-washing, repairing, patching, resealing, and replacing expansion joints on roughly 5,363 square feet of brick to bring back the buildings' aesthetic and functional integrity (pp. 3-5).</p>
+
+<!-- WHO TO CALL -->
+<h2>Who to Contact</h2>
+
+<h3>Business Profile</h3>
+<table>
+  <tr><th style="width:160px">NAICS Category</th><td><span class="not-specified">Not specified</span> — the wage determination covers "Building" construction type in Umatilla County, OR (p. 2)</td></tr>
+  <tr><th>Size Standard</th><td><span class="not-specified">Not specified</span></td></tr>
+  <tr><th>Required Expertise</th><td>Offeror must have knowledge and experience with Building Restoration (p. 34). Contractor shall provide all labor, material, equipment, supervision and transportation necessary for wall repair and reconditioning of the brick/mortar exteriors, including cleaning, expansion-joint replacement, patching, and sealing (pp. 3-5).</td></tr>
+  <tr><th>Certifications Needed</th><td>Active SAM.gov registration with UEI/CAGE code required to quote (p. 33); signed Asbestos-Containing Materials Certification must be submitted with the quote (pp. 1, 34); Biobased Product Certification per FAR 52.223-1 (p. 33); Buy American — Construction Materials (FAR 52.225-9) applies (pp. 16-19).</td></tr>
+</table>
+
+<h3>Where to Search</h3>
+<p>Search DSBS (Dynamic Small Business Search) for NAICS 238140 (Masonry Contractors) small businesses in Oregon, especially the Umatilla / northeast OR region. Check the Oregon Construction Contractors Board (CCB) license database for licensed masonry and building-restoration contractors. Contact regional trade associations such as the Masonry Contractors Association of America (MCAA) or local BAC (International Union of Bricklayers and Allied Craftworkers) union halls for qualified restoration crews.</p>
+
+<!-- PRICING -->
+<h2>Pricing Guidance</h2>
+<table>
+  <tr><th style="width:180px">Labor Categories</th><td>Davis-Bacon wage determination OR20260089 (Building, Umatilla County, OR, dated 05/18/2026) applies. Relevant craft rates include: Bricklayer — $49.60/hr + $25.15 fringe; Laborer (Common or General) — $39.11 + $17.30; Cement Mason/Concrete Finisher — $46.13 + $20.31; Ironworker — $48.31 + $34.52; Carpenter — $52.62 + $16.81 (pp. 2, 9).</td></tr>
+  <tr><th>Materials / Equipment</th><td>Contractor provides all materials and equipment, including pressure washing of exterior walls; new backing rod; high-quality polyurethane sealant designed specifically for masonry concrete (color COR-approved); compatible patching materials; and premium-quality masonry-concrete sealer applied in two coats, furnishing 1-5 gallons as excess, each container individually labeled (pp. 4-5). Government supplies electric and water utilities (p. 8).</td></tr>
+  <tr><th>Travel / Per Diem</th><td><span class="not-specified">Not indicated</span> — work is on-site at Pendleton, OR</td></tr>
+  <tr><th>Incumbent / Historical</th><td><span class="not-specified">Not disclosed</span></td></tr>
+</table>
+
+<!-- KEY QUESTIONS -->
+<h2>Questions to Ask Subcontractors</h2>
+<p>Use these when calling or emailing potential subs. Get answers before they quote:</p>
+<ol class="script-questions">
+  <li>Have you performed brick/masonry exterior restoration under a federal construction contract before? Which agency? Offerors must have knowledge and experience with Building Restoration (p. 34).</li>
+  <li>Can you provide at least two references from two separate contracts for similar and relevant building-restoration services within the past two years, including name, phone, full address, and e-mail of each reference? (p. 34)</li>
+  <li>Can you begin work within one (1) business day of award and complete the entire scope within the 365-calendar-day period of performance after the notice to proceed? (pp. 3, 5)</li>
+  <li>Will you sign the Asbestos-Containing Materials Certification (certifying no asbestos-containing materials will be delivered or used) and include it with the quote, and are you registered and active in SAM.gov with a UEI/CAGE code? (pp. 1, 33-34)</li>
+  <li>Can you submit a firm-fixed-price quote covering all labor, equipment, and materials on the SF18 or company letterhead, with payment via the Invoice Processing Platform (ipp.gov) under Net 30 terms? (pp. 3, 26, 34)</li>
+  <li>Are you prepared to pay Davis-Bacon wage determination OR20260089 rates (e.g., Bricklayer $49.60/hr + $25.15 fringe) and comply with construction wage-rate requirements and certified payrolls? (pp. 2, 9)</li>
+  <li>Can your personnel meet NWS security and conduct requirements — legal U.S. citizens or immigrants only, escorted by an NWS employee at all times on government property, and completion of NOAA sexual assault/sexual harassment prevention training? (pp. 7, 24-25)</li>
+</ol>
+
+<!-- WATCH-OUTS -->
+<h2>Watch-Outs &amp; Deal-Breakers</h2>
+<ul>
+  <li>Davis-Bacon construction wage-rate requirements (FAR 52.222-6) apply — wage determination OR20260089 rates (e.g., Bricklayer $49.60/hr + $25.15 fringe) must be paid and certified payrolls maintained (pp. 2, 9).</li>
+  <li>Only legal U.S. citizens and immigrants may work on this federal construction project, and all contractor personnel must be escorted by an NWS employee at all times while on government property (p. 7).</li>
+  <li>Work must begin within one (1) business day of award, and the full period of performance is 365 calendar days after receipt of the notice to proceed (pp. 3, 5).</li>
+  <li>Buy American — Construction Materials (FAR 52.225-9) applies; the Contractor shall use only domestic construction material in performing this contract unless an exception is granted (pp. 16-19).</li>
+  <li>The quote must include the signed Asbestos-Containing Materials Certification and all evaluation criteria (Technical Approach, Experience, Past Performance, Price); failure to provide all information to aid in evaluation may be considered non-responsive and the quote rejected without further notification (pp. 33-34). Note: the Asbestos Certification form header lists order/contract number 1305M326Q0271 while the solicitation is 1305M326Q0429 — confirm the correct number when submitting (p. 1).</li>
+</ul>
+
+<!-- URGENCY -->
+<h2>Timeline &amp; Urgency</h2>
+<div class="callout urgent">
+  <strong>&#9888; Response Deadline:</strong> <span class="not-specified">Not specified</span> in the provided documents — quotes are due "at or before the time specified in the solicitation" (p. 33). Written questions must be received no later than 08/18/2026 (p. 36). Confirm the exact quote due date with the Contracting Officer before preparing your submission.
+</div>
+<p><strong>Site Visit / Pre-Proposal Conference:</strong> Site visit is highly recommended but not required — contact Lars Hansen at Lars.hansen@noaa.gov to schedule a time; questions during the site visit should be submitted electronically to Jamie.Rosales@noaa.gov. Location: National Weather Service, 2001 NW 56th Dr, Pendleton, OR 97801 (pp. 5, 36).</p>
+<p><strong>Period of Performance:</strong> 365 calendar days after receipt of the notice to proceed; work must begin within one (1) business day of award (pp. 3, 5).</p>
+
+</div><!-- .content-card -->
+
+<div class="artifact-footer">
+  Generated by Vision Triage Pipeline &middot; Internal Use Only &middot; 08/11/2026
+</div>
+
+</body>
+</html>
