@@ -153,7 +153,7 @@ def decode_token(token: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# FastAPI dependency — use in protected routes
+# FastAPI dependencies — use in protected routes
 # ---------------------------------------------------------------------------
 
 async def get_current_user(
@@ -173,3 +173,68 @@ async def get_current_user(
     if not user.get("is_active"):
         raise HTTPException(status_code=401, detail="Account disabled")
     return user
+
+
+async def require_admin(
+    user: dict = Depends(get_current_user),
+) -> dict:
+    """FastAPI dependency. Same as get_current_user but also enforces admin role.
+
+    Usage:
+        @app.post("/api/admin/users")
+        def create_user(user: dict = Depends(require_admin)):
+            ...
+    """
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user
+
+
+# ---------------------------------------------------------------------------
+# Admin user management (used by /api/admin/users routes)
+# ---------------------------------------------------------------------------
+
+def list_users() -> list[dict]:
+    """Return all users (without password_hash). Admin only."""
+    conn = connect()
+    try:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                "SELECT id, username, email, role, is_active, "
+                "last_login, created_at, updated_at "
+                "FROM users ORDER BY created_at DESC"
+            )
+            return [dict(row) for row in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def update_user(user_id: str, **kwargs) -> dict | None:
+    """Update user fields. Only provided kwargs are changed.
+
+    Allowed keys: email, role, is_active.
+    Returns the updated user dict without password_hash, or None if not found.
+    """
+    allowed = {"email", "role", "is_active"}
+    updates = {k: v for k, v in kwargs.items() if k in allowed}
+    if not updates:
+        return get_user_by_id(user_id)
+
+    set_parts = []
+    values = []
+    for k, v in updates.items():
+        set_parts.append(f"{k} = %s")
+        values.append(v)
+    values.append(user_id)
+
+    with tx() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                f"UPDATE users SET {', '.join(set_parts)}, updated_at = now() "
+                f"WHERE id = %s "
+                f"RETURNING id, username, email, role, is_active, "
+                f"last_login, created_at, updated_at",
+                tuple(values),
+            )
+            row = cur.fetchone()
+            return dict(row) if row else None

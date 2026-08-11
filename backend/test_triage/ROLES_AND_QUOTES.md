@@ -23,25 +23,25 @@
 ```
 T1 — Admin User Management
 │
-├── T1.1 — Backend: User CRUD endpoints (admin-only)
-├── T1.2 — Frontend: Admin Settings page
+├── T1.1 — Backend: User CRUD endpoints (admin-only)     [ticket](tickets/T1.1-admin-user-crud.md)
+├── T1.2 — Frontend: Admin Settings page                   [ticket](tickets/T1.2-admin-settings-page.md)
 │
 T2 — Solicitation Assignment
 │
-├── T2.1 — DB: solicitations.assignee_id → users.id
-├── T2.2 — Backend: Claim / Release endpoints
-├── T2.3 — Frontend: Assign button on solicitation rows / case header
+├── T2.1 — DB: solicitations.assignee_id → users.id       [ticket](tickets/T2.1-solicitation-assignee-column.md)
+├── T2.2 — Backend: Claim / Release endpoints              [ticket](tickets/T2.2-claim-release-endpoints.md)
+├── T2.3 — Frontend: Assign button on solicitation rows    [ticket](tickets/T2.3-claim-release-ui.md)
 │
 T3 — Quotes
 │
-├── T3.1 — DB: quotes table
-├── T3.2 — Backend: Quotes CRUD endpoints
-├── T3.3 — Frontend: Quotes tab on case detail
+├── T3.1 — DB: quotes table                                [ticket](tickets/T3.1-quotes-table.md)
+├── T3.2 — Backend: Quotes CRUD endpoints                  [ticket](tickets/T3.2-quotes-crud-endpoints.md)
+├── T3.3 — Frontend: Quotes tab on case detail             [ticket](tickets/T3.3-quotes-tab.md)
 │
 T4 — My Work Dashboard (stretch)
 │
-├── T4.1 — Backend: "my solicitations" endpoint
-├── T4.2 — Frontend: "My Queue" page
+├── T4.1 — Backend: "my solicitations" endpoint            [ticket](tickets/T4.1-my-solicitations-endpoint.md)
+├── T4.2 — Frontend: "My Queue" page                       [ticket](tickets/T4.2-my-queue-page.md)
 ```
 
 ---

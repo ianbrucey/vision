@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Database, TrendingUp, Building2, Users } from "lucide-react";
+import { Home, Database, TrendingUp, Building2, Users, Settings } from "lucide-react";
+import { useAuth } from "@/components/AuthProvider";
 
 const NAV_ITEMS = [
   { href: "/sam-notices", label: "SAM Notices", icon: Database },
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
 
 export default function ReferenceNav() {
   const pathname = usePathname();
+  const { user } = useAuth();
 
   return (
     <header className="sticky top-0 shrink-0 bg-surface-1 border-b border-border z-30">
@@ -51,6 +53,25 @@ export default function ReferenceNav() {
             </Link>
           );
         })}
+
+        {/* Admin Settings — only visible to admin */}
+        {user?.role === "admin" && (
+          <>
+            <span className="text-text-disabled/30 mx-1">|</span>
+            <Link
+              href="/settings"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
+                         transition-colors
+                         ${pathname === "/settings"
+                           ? "bg-brand-bg text-brand"
+                           : "text-text-secondary hover:bg-surface-2 hover:text-text-primary"
+                         }`}
+            >
+              <Settings size={16} />
+              <span className="hidden sm:inline">Settings</span>
+            </Link>
+          </>
+        )}
       </div>
     </header>
   );

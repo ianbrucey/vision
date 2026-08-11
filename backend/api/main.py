@@ -662,6 +662,7 @@ from api.routes.dibbs import router as dibbs_router
 from api.routes.dla_batch import router as dla_batch_router
 from api.routes.pipeline import router as pipeline_router
 from api.routes.subcontracting_leads import router as sub_leads_router
+from api.routes.admin import router as admin_router
 app.include_router(chat_router)
 app.include_router(drafts_router)
 app.include_router(workspace_router)
@@ -680,6 +681,7 @@ app.include_router(dibbs_router)
 app.include_router(dla_batch_router)
 app.include_router(pipeline_router)
 app.include_router(sub_leads_router)
+app.include_router(admin_router)
 
 # ---------------------------------------------------------------------------
 # Health check

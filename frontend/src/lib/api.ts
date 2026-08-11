@@ -1606,3 +1606,35 @@ export const uploadDibbsCsv = (file: File): Promise<{ batch_id: string; rows_imp
 
 export const deleteAllDibbs = (): Promise<{ deleted: number }> =>
   fetchAPI("/api/dibbs/all", { method: "DELETE" });
+
+// ---------------------------------------------------------------------------
+// Admin — User Management
+// ---------------------------------------------------------------------------
+
+export interface AdminUser {
+  id: string;
+  username: string;
+  email: string | null;
+  role: string;
+  is_active: boolean;
+  last_login: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export const listUsers = (): Promise<{ users: AdminUser[] }> =>
+  fetchAPI("/api/admin/users");
+
+export const createUser = (data: {
+  username: string;
+  password: string;
+  email?: string;
+  role?: string;
+}): Promise<AdminUser> =>
+  fetchAPI("/api/admin/users", { method: "POST", body: JSON.stringify(data) });
+
+export const updateUser = (
+  userId: string,
+  data: { email?: string; role?: string; is_active?: boolean }
+): Promise<AdminUser> =>
+  fetchAPI(`/api/admin/users/${userId}`, { method: "PATCH", body: JSON.stringify(data) });
