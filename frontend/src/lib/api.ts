@@ -96,6 +96,9 @@ export interface Solicitation {
   matching_error: string | null;
   outreach_email_subject: string | null;
   outreach_email_body: string | null;
+  assignee_id: string | null;
+  assigned_at: string | null;
+  assignee_username: string | null;
   unread_replies?: number;
   has_outreach?: boolean;
 }
@@ -290,6 +293,15 @@ export const triggerTriage = (
   id: number,
 ): Promise<{ job_id: number; triage_status: string }> =>
   fetchAPI(`/api/solicitations/${id}/triage`, { method: "POST" });
+
+export const claimSolicitation = (id: number): Promise<Solicitation> =>
+  fetchAPI(`/api/solicitations/${id}/claim`, { method: "POST" });
+
+export const releaseSolicitation = (id: number): Promise<Solicitation> =>
+  fetchAPI(`/api/solicitations/${id}/release`, { method: "POST" });
+
+export const assignSolicitation = (id: number, userId: string): Promise<Solicitation> =>
+  fetchAPI(`/api/solicitations/${id}/assign`, { method: "POST", body: JSON.stringify({ user_id: userId }) });
 
 export const getSolicitationByCase = (
   caseId: number,

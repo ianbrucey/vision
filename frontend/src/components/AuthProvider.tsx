@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getToken, getUser, clearAuth, type User } from "@/lib/auth";
 
@@ -29,18 +29,26 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Restore session from localStorage (runs once on mount)
-  const restoredRef = useRef(false);
-  useEffect(() => {
-    if (restoredRef.current) return;
-    restoredRef.current = true;
-    /* eslint-disable react-hooks/set-state-in-effect */
+  // Restore session from localStorage (runs once on mount, and when
+  // login/register fires the custom auth-change event).
+  const restoreSession = useCallback(() => {
     const stored = getUser();
     const token = getToken();
-    if (stored && token) setUser(stored);
-    setReady(true);
-    /* eslint-enable react-hooks/set-state-in-effect */
+    if (stored && token) {
+      setUser(stored);
+    } else if (!token) {
+      setUser(null);
+    }
   }, []);
+
+  useEffect(() => {
+    restoreSession();
+    setReady(true);
+
+    const onAuthChange = () => restoreSession();
+    window.addEventListener("vision-auth-change", onAuthChange);
+    return () => window.removeEventListener("vision-auth-change", onAuthChange);
+  }, [restoreSession]);
 
   useEffect(() => {
     if (!ready || !pathname) return;

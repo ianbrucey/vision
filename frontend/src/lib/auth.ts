@@ -24,6 +24,10 @@ export function getUser(): User | null {
 export function setAuth(token: string, user: User) {
   localStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem(USER_KEY, JSON.stringify(user));
+  // Broadcast so AuthProvider re-reads localStorage (same-tab login)
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("vision-auth-change"));
+  }
 }
 
 export function clearAuth() {

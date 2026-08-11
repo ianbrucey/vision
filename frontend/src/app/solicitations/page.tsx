@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { listSolicitations, createSolicitation, deleteSolicitation, rerunSolicitation, triggerTriage, lookupSolicitationUrl, listNaicsCodes, type Solicitation } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
-import { Plus, FolderOpen, Loader2, FileSearch, AlertTriangle, Trash2, RefreshCw, RotateCcw, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Sparkles, Send, Bot, ExternalLink } from "lucide-react";
+import { Plus, FolderOpen, Loader2, FileSearch, AlertTriangle, Trash2, RefreshCw, RotateCcw, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Sparkles, Send, Bot, ExternalLink, Settings } from "lucide-react";
 import { useSystemAgent, type SystemMessage } from "@/hooks/useSystemAgent";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -312,6 +312,15 @@ export default function SolicitationsPage() {
               <FolderOpen size={14} />
               <span className="hidden sm:inline">Cases</span>
             </button>
+
+            {user?.role === "admin" && (
+              <button onClick={() => router.push("/settings")}
+                      className="text-xs text-text-secondary hover:text-brand transition-colors
+                                 flex items-center gap-1"
+                      title="Settings">
+                <Settings size={14} />
+              </button>
+            )}
 
             {/* User */}
             {user && (
@@ -777,6 +786,13 @@ export default function SolicitationsPage() {
                       <RefreshCw size={14} />
                     )}
                   </button>
+                )}
+                {/* Assignee (read-only — manage inside case Overview tab) */}
+                {s.assignee_username && (
+                  <span className="text-[11px] text-text-secondary shrink-0 ml-1">
+                    <span className="text-text-disabled">·</span>{" "}
+                    <span className="font-medium">{s.assignee_username}</span>
+                  </span>
                 )}
                 {s.source_type === "federal" && (
                   <button

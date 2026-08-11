@@ -16,7 +16,8 @@ import {
   X,
   Mail,
 } from "lucide-react";
-import { synthesizeCase, getJob, getCase, listJobs, listCorrespondenceThreads, listTasks, type CorrespondenceThread, type Task } from "@/lib/api";
+import { synthesizeCase, getJob, getCase, listJobs, listCorrespondenceThreads, listTasks, claimSolicitation, releaseSolicitation, assignSolicitation, listUsers, getSolicitationByCase, type CorrespondenceThread, type Task, type AdminUser } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 import type { TabId } from "../TabNav";
 
 /* ------------------------------------------------------------------ */
@@ -41,6 +42,9 @@ interface OverviewTabProps {
   existingAllegations: Allegation[];
   onSave: (narrative: string) => Promise<string>;
   onNavigate: (tab: TabId) => void;
+  assigneeId: string | null;
+  assigneeUsername: string | null;
+  onAssignmentChange: (updated: { assignee_id: string | null; assignee_username?: string | null }) => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -54,7 +58,12 @@ export default function OverviewTab({
   existingAllegations,
   onSave,
   onNavigate,
+  assigneeId,
+  assigneeUsername,
+  onAssignmentChange,
 }: OverviewTabProps) {
+  const { user } = useAuth();
+  const canRelease = user?.id === assigneeId || user?.role === "admin";
   const [draft, setDraft] = useState(savedNarrative);
   const [state, setState] = useState<NarrativeState>(
     savedNarrative ? "clean" : "unsaved",
@@ -70,6 +79,48 @@ export default function OverviewTab({
     parties: Party[];
     allegations: Allegation[];
   } | null>(hasExisting ? { parties: existingParties, allegations: existingAllegations } : null);
+
+  // Assignment state
+  const [assigning, setAssigning] = useState(false);
+  const [assignUsers, setAssignUsers] = useState<AdminUser[]>([]);
+  const [assignLoaded, setAssignLoaded] = useState(false);
+
+  const loadAssignUsers = useCallback(async () => {
+    if (assignLoaded) return;
+    try { const data = await listUsers(); setAssignUsers(data.users); setAssignLoaded(true); } catch {}
+  }, [assignLoaded]);
+
+  const refreshSol = async () => {
+    const sol = await getSolicitationByCase(caseId);
+    onAssignmentChange(sol);
+  };
+
+  const handleClaim = async () => {
+    setAssigning(true);
+    try {
+      const sol = await getSolicitationByCase(caseId);
+      await claimSolicitation(sol.id);
+      await refreshSol();
+    } catch {} finally { setAssigning(false); }
+  };
+
+  const handleRelease = async () => {
+    setAssigning(true);
+    try {
+      const sol = await getSolicitationByCase(caseId);
+      await releaseSolicitation(sol.id);
+      await refreshSol();
+    } catch {} finally { setAssigning(false); }
+  };
+
+  const handleAssign = async (userId: string) => {
+    if (!userId) return;
+    try {
+      const sol = await getSolicitationByCase(caseId);
+      await assignSolicitation(sol.id, userId);
+      await refreshSol();
+    } catch {}
+  };
 
   // Collapse toggles
   const [partiesOpen, setPartiesOpen] = useState(true);
@@ -289,6 +340,57 @@ export default function OverviewTab({
             </div>
           </div>
         )}
+
+        {/* ================================================================ */}
+        {/* Assignment widget                                                 */}
+        {/* ================================================================ */}
+        <div className="bg-surface-1 border border-border rounded-lg p-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm">
+            <User size={14} className="text-text-disabled" />
+            <span className="text-text-secondary">Assigned to:</span>
+            {assigneeUsername ? (
+              <span className="font-medium text-text-primary">{assigneeUsername}</span>
+            ) : (
+              <span className="text-text-disabled italic">Unassigned</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            {assigneeUsername ? (
+              <>
+                {canRelease && (
+                  <button
+                    onClick={handleRelease}
+                    disabled={assigning}
+                    className="px-2 py-1 text-text-secondary hover:text-danger border border-border rounded hover:bg-danger-bg transition-colors"
+                  >
+                    Release
+                  </button>
+                )}
+              </>
+            ) : (
+              <button
+                onClick={handleClaim}
+                disabled={assigning}
+                className="px-2 py-1 text-white bg-brand rounded hover:opacity-90 transition-opacity"
+              >
+                {assigning ? "Claiming..." : "Claim"}
+              </button>
+            )}
+            {user?.role === "admin" && (
+              <select
+                className="px-2 py-1 text-text-secondary bg-surface-2 border border-border rounded text-xs"
+                value=""
+                onChange={(e) => { if (e.target.value) handleAssign(e.target.value); }}
+                onFocus={loadAssignUsers}
+              >
+                <option value="">{assigneeUsername ? "Reassign" : "Assign to..."}</option>
+                {assignUsers.filter(u => u.id !== assigneeId).map(u => (
+                  <option key={u.id} value={u.id}>{u.username}</option>
+                ))}
+              </select>
+            )}
+          </div>
+        </div>
 
         {/* ================================================================ */}
         {/* Narrative section                                                 */}

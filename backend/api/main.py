@@ -21,7 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from core.case import CaseManager
-from core.db import ensure_schema, ensure_strategy_schema, ensure_chat_schema, ensure_correspondence_schema, ensure_solicitations_schema, ensure_solicitation_triage_schema, ensure_vendors_schema, ensure_vendor_matching_schema, ensure_vendor_matches_manual_schema, ensure_vendor_matches_cap_schema, ensure_vendor_outreach_schema, ensure_vendor_outreach_email_schema, ensure_vendor_outreach_messages_schema, ensure_workspace_pdf_filetype_schema, ensure_sam_notices_schema, ensure_sam_notice_import_job_schema, ensure_forecast_opportunities_schema, ensure_saved_reports_schema, ensure_ga_doas_opportunities_schema, ensure_dibbs_rfqs_schema, ensure_dla_batch_search_schema, ensure_pipeline_processing_schema, ensure_subcontracting_leads_schema, ensure_fix_sam_notices_unique_schema, ensure_naics_codes_schema
+from core.db import ensure_schema, ensure_strategy_schema, ensure_chat_schema, ensure_correspondence_schema, ensure_solicitations_schema, ensure_solicitation_triage_schema, ensure_solicitation_assignee_schema, ensure_vendors_schema, ensure_vendor_matching_schema, ensure_vendor_matches_manual_schema, ensure_vendor_matches_cap_schema, ensure_vendor_outreach_schema, ensure_vendor_outreach_email_schema, ensure_vendor_outreach_messages_schema, ensure_workspace_pdf_filetype_schema, ensure_sam_notices_schema, ensure_sam_notice_import_job_schema, ensure_forecast_opportunities_schema, ensure_saved_reports_schema, ensure_ga_doas_opportunities_schema, ensure_dibbs_rfqs_schema, ensure_dla_batch_search_schema, ensure_pipeline_processing_schema, ensure_subcontracting_leads_schema, ensure_fix_sam_notices_unique_schema, ensure_naics_codes_schema
 from core.vendor import VendorManager
 from ingestion.storage import upload_file as _upload_to_minio
 from ingestion.jobs import enqueue as _enqueue_job, get_job, list_jobs
@@ -68,6 +68,7 @@ def _apply_schemas():
     ensure_correspondence_schema()  # 004 — correspondence threads, items, attachments
     ensure_solicitations_schema()   # 007 — solicitations table (Option A)
     ensure_solicitation_triage_schema()  # 008 — triage classification + HTML artifacts
+    ensure_solicitation_assignee_schema()  # 028 — assignee_id on solicitations
     ensure_vendors_schema()           # 009 — unified vendor registry (GSA + SBA)
     ensure_vendor_matching_schema()   # 010 — vendor_matches table + outreach columns
     ensure_vendor_matches_manual_schema()  # 011 — allow naics_match_type='manual'

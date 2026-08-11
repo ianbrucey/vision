@@ -75,6 +75,7 @@ function CaseDashboardInner() {
   const [error, setError] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [hasSolicitation, setHasSolicitation] = useState(false);
+  const [solData, setSolData] = useState<{ assignee_id: string | null; assignee_username: string | null } | null>(null);
 
   /* ---- data ---- */
 
@@ -107,8 +108,11 @@ function CaseDashboardInner() {
   useEffect(() => {
     let cancelled = false;
     getSolicitationByCase(Number(id))
-      .then(() => {
-        if (!cancelled) setHasSolicitation(true);
+      .then((sol) => {
+        if (!cancelled) {
+          setHasSolicitation(true);
+          setSolData({ assignee_id: sol.assignee_id, assignee_username: (sol as any).assignee_username });
+        }
       })
       .catch(() => {
         if (!cancelled) setHasSolicitation(false);
@@ -235,6 +239,12 @@ function CaseDashboardInner() {
             existingAllegations={(case_ as any).allegations || []}
             onSave={handleSaveNarrative}
             onNavigate={setActiveTab}
+            assigneeId={solData?.assignee_id ?? null}
+            assigneeUsername={solData?.assignee_username ?? null}
+            onAssignmentChange={(updated) => setSolData({
+              assignee_id: updated.assignee_id,
+              assignee_username: (updated as any).assignee_username,
+            })}
           />
         )}
         {activeTab === "chat" && (

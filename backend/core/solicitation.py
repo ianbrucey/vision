@@ -112,10 +112,12 @@ class SolicitationManager:
         try:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
-                    """SELECT s.*, nc.title AS naics_label
-                       FROM solicitations s
-                       LEFT JOIN naics_codes nc ON nc.code = s.naics_code
-                       WHERE s.id = %s""",
+                    """SELECT s.*, nc.title AS naics_label,
+                               u.username AS assignee_username
+                        FROM solicitations s
+                        LEFT JOIN naics_codes nc ON nc.code = s.naics_code
+                        LEFT JOIN users u ON u.id = s.assignee_id
+                        WHERE s.id = %s""",
                     (solicitation_id,),
                 )
                 row = cur.fetchone()
@@ -139,10 +141,12 @@ class SolicitationManager:
         try:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
-                    """SELECT s.*, nc.title AS naics_label
-                       FROM solicitations s
-                       LEFT JOIN naics_codes nc ON nc.code = s.naics_code
-                       WHERE s.case_id = %s""",
+                    """SELECT s.*, nc.title AS naics_label,
+                               u.username AS assignee_username
+                        FROM solicitations s
+                        LEFT JOIN naics_codes nc ON nc.code = s.naics_code
+                        LEFT JOIN users u ON u.id = s.assignee_id
+                        WHERE s.case_id = %s""",
                     (case_id,),
                 )
                 row = cur.fetchone()
@@ -206,9 +210,11 @@ class SolicitationManager:
                 # Page
                 params.extend([limit, offset])
                 cur.execute(
-                    f"""SELECT s.*, nc.title AS naics_label
+                    f"""SELECT s.*, nc.title AS naics_label,
+                               u.username AS assignee_username
                         FROM solicitations s
                         LEFT JOIN naics_codes nc ON nc.code = s.naics_code
+                        LEFT JOIN users u ON u.id = s.assignee_id
                         {where}
                         ORDER BY s.created_at DESC
                         LIMIT %s OFFSET %s""",
@@ -233,6 +239,7 @@ class SolicitationManager:
             "artifact_submission_checklist",
             "matching_status", "matching_error",
             "outreach_email_subject", "outreach_email_body",
+            "assignee_id", "assigned_at",
         }
         updates = {k: v for k, v in kwargs.items() if k in allowed}
         if not updates:
@@ -244,6 +251,10 @@ class SolicitationManager:
             if k in ("point_of_contact", "place_of_performance"):
                 set_parts.append(f"{k} = %s::jsonb")
                 values.append(self._j(v))
+            elif k == "assigned_at" and v == "now":
+                set_parts.append("assigned_at = now()")
+            elif k == "assigned_at" and v is None:
+                set_parts.append("assigned_at = NULL")
             else:
                 set_parts.append(f"{k} = %s")
                 values.append(v)

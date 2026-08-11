@@ -248,6 +248,82 @@ def trigger_triage_endpoint(
 
 
 # ---------------------------------------------------------------------------
+# Assignment — claim / release / admin assign
+# ---------------------------------------------------------------------------
+
+class AssignSolicitationRequest(BaseModel):
+    user_id: str
+
+
+@router.post("/solicitations/{solicitation_id}/claim")
+def claim_solicitation(
+    solicitation_id: int,
+    user: dict = Depends(get_current_user),
+):
+    """Claim a solicitation for the current user."""
+    sol = mgr.get(solicitation_id)
+    if sol is None:
+        raise HTTPException(status_code=404, detail="Solicitation not found")
+    if sol.get("assignee_id"):
+        raise HTTPException(
+            status_code=409,
+            detail=f"Already claimed by another user",
+        )
+    updated = mgr.update(
+        solicitation_id,
+        assignee_id=user["id"],
+        assigned_at="now",
+    )
+    return updated
+
+
+@router.post("/solicitations/{solicitation_id}/release")
+def release_solicitation(
+    solicitation_id: int,
+    user: dict = Depends(get_current_user),
+):
+    """Release a solicitation. Only the assignee or admin can release."""
+    sol = mgr.get(solicitation_id)
+    if sol is None:
+        raise HTTPException(status_code=404, detail="Solicitation not found")
+    if not sol.get("assignee_id"):
+        raise HTTPException(status_code=400, detail="Not currently claimed")
+    if sol["assignee_id"] != user["id"] and user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only the assignee or admin can release")
+    updated = mgr.update(
+        solicitation_id,
+        assignee_id=None,
+        assigned_at=None,
+    )
+    return updated
+
+
+@router.post("/solicitations/{solicitation_id}/assign")
+def assign_solicitation(
+    solicitation_id: int,
+    body: AssignSolicitationRequest,
+    admin: dict = Depends(get_current_user),
+):
+    """Admin assigns a solicitation to any user."""
+    if admin["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    sol = mgr.get(solicitation_id)
+    if sol is None:
+        raise HTTPException(status_code=404, detail="Solicitation not found")
+    # Verify user exists
+    from auth import get_user_by_id
+    target = get_user_by_id(body.user_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    updated = mgr.update(
+        solicitation_id,
+        assignee_id=body.user_id,
+        assigned_at="now",
+    )
+    return updated
+
+
+# ---------------------------------------------------------------------------
 # Vendor Matching
 # ---------------------------------------------------------------------------
 

@@ -359,6 +359,17 @@ def ensure_solicitation_triage_schema() -> list[str]:
     return [str(sql_path)]
 
 
+def ensure_solicitation_assignee_schema() -> list[str]:
+    """Apply the solicitation assignee schema (028)."""
+    sql_path = _SCHEMA_DIR / "028_solicitation_assignee.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(f"Schema file not found: {sql_path}")
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
 def ensure_vendors_schema() -> list[str]:
     """Apply the unified vendor registry schema.
 
@@ -1847,6 +1858,7 @@ __all__ = [
     "list_reminders", "delete_reminder",
     "ensure_folders_schema", "insert_folder", "list_folders",
     "ensure_solicitations_schema", "ensure_solicitation_triage_schema",
+    "ensure_solicitation_assignee_schema",
     "ensure_vendors_schema", "ensure_vendor_matching_schema",
     "ensure_vendor_matches_manual_schema", "ensure_vendor_matches_cap_schema",
     "ensure_vendor_outreach_schema",
