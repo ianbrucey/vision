@@ -49,9 +49,15 @@ def verify_password(password: str, password_hash: str) -> bool:
 # User CRUD
 # ---------------------------------------------------------------------------
 
+VALID_ROLES = {"user", "admin", "vendor"}
+
+
 def create_user(username: str, password: str, email: str | None = None,
                 role: str = "user") -> dict:
     """Register a new user. Returns user dict without password_hash."""
+    if role not in VALID_ROLES:
+        raise HTTPException(status_code=400, detail=f"Invalid role: {role!r}")
+
     user_id = str(uuid.uuid4())
     pw_hash = hash_password(password)
 

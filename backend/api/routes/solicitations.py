@@ -102,6 +102,55 @@ def create_solicitation_endpoint(
 # List + Get
 # ---------------------------------------------------------------------------
 
+@router.get("/solicitations/mine")
+def my_solicitations(
+    user: dict = Depends(get_current_user),
+):
+    """Return the current user's assigned solicitations with quote counts."""
+    conn = connect()
+    try:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                """SELECT s.*, nc.title AS naics_label,
+                          u.username AS assignee_username,
+                          COALESCE(qs.quotes_total, 0) AS quotes_total,
+                          COALESCE(qs.quotes_draft, 0) AS quotes_draft,
+                          COALESCE(qs.quotes_submitted, 0) AS quotes_submitted
+                   FROM solicitations s
+                   LEFT JOIN naics_codes nc ON nc.code = s.naics_code
+                   LEFT JOIN users u ON u.id = s.assignee_id
+                   LEFT JOIN (
+                       SELECT solicitation_id,
+                              COUNT(*) AS quotes_total,
+                              COUNT(*) FILTER (WHERE status IN ('draft','pending_site_visit')) AS quotes_draft,
+                              COUNT(*) FILTER (WHERE status IN ('submitted','awarded')) AS quotes_submitted
+                       FROM quotes
+                       GROUP BY solicitation_id
+                   ) qs ON qs.solicitation_id = s.id
+                   WHERE s.assignee_id = %s
+                   ORDER BY s.response_deadline ASC NULLS LAST, s.assigned_at DESC""",
+                (user["id"],),
+            )
+            solicitations = [dict(row) for row in cur.fetchall()]
+
+        # Summary
+        needs_triage = sum(1 for s in solicitations if s.get("triage_status") not in ("complete",))
+        needs_quote = sum(1 for s in solicitations if s.get("triage_status") == "complete" and not s.get("quotes_total"))
+        quotes_in_progress = sum(s.get("quotes_draft", 0) for s in solicitations)
+
+        return {
+            "solicitations": solicitations,
+            "summary": {
+                "total_assigned": len(solicitations),
+                "needs_triage": needs_triage,
+                "needs_quote": needs_quote,
+                "quotes_in_progress": quotes_in_progress,
+            },
+        }
+    finally:
+        conn.close()
+
+
 @router.get("/solicitations")
 def list_solicitations_endpoint(
     source_type: str | None = None,

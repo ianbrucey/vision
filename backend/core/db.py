@@ -370,6 +370,39 @@ def ensure_solicitation_assignee_schema() -> list[str]:
     return [str(sql_path)]
 
 
+def ensure_quotes_schema() -> list[str]:
+    """Apply the quotes schema (029)."""
+    sql_path = _SCHEMA_DIR / "029_quotes.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(f"Schema file not found: {sql_path}")
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_vendor_profiles_schema() -> list[str]:
+    """Apply the vendor profiles schema (030)."""
+    sql_path = _SCHEMA_DIR / "030_vendor_profiles.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(f"Schema file not found: {sql_path}")
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
+def ensure_fix_users_role_vendor_schema() -> list[str]:
+    """Fix users role CHECK to allow 'vendor' (031)."""
+    sql_path = _SCHEMA_DIR / "031_fix_users_role_vendor.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(f"Schema file not found: {sql_path}")
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
 def ensure_vendors_schema() -> list[str]:
     """Apply the unified vendor registry schema.
 
@@ -1859,6 +1892,9 @@ __all__ = [
     "ensure_folders_schema", "insert_folder", "list_folders",
     "ensure_solicitations_schema", "ensure_solicitation_triage_schema",
     "ensure_solicitation_assignee_schema",
+    "ensure_quotes_schema",
+    "ensure_vendor_profiles_schema",
+    "ensure_fix_users_role_vendor_schema",
     "ensure_vendors_schema", "ensure_vendor_matching_schema",
     "ensure_vendor_matches_manual_schema", "ensure_vendor_matches_cap_schema",
     "ensure_vendor_outreach_schema",

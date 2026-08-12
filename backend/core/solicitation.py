@@ -211,10 +211,21 @@ class SolicitationManager:
                 params.extend([limit, offset])
                 cur.execute(
                     f"""SELECT s.*, nc.title AS naics_label,
-                               u.username AS assignee_username
+                               u.username AS assignee_username,
+                               COALESCE(qs.quotes_total, 0) AS quotes_total,
+                               COALESCE(qs.quotes_draft, 0) AS quotes_draft,
+                               COALESCE(qs.quotes_submitted, 0) AS quotes_submitted
                         FROM solicitations s
                         LEFT JOIN naics_codes nc ON nc.code = s.naics_code
                         LEFT JOIN users u ON u.id = s.assignee_id
+                        LEFT JOIN (
+                            SELECT solicitation_id,
+                                   COUNT(*) AS quotes_total,
+                                   COUNT(*) FILTER (WHERE status IN ('draft','pending_site_visit')) AS quotes_draft,
+                                   COUNT(*) FILTER (WHERE status IN ('submitted','awarded')) AS quotes_submitted
+                            FROM quotes
+                            GROUP BY solicitation_id
+                        ) qs ON qs.solicitation_id = s.id
                         {where}
                         ORDER BY s.created_at DESC
                         LIMIT %s OFFSET %s""",

@@ -23,12 +23,20 @@ export default function LandingPage() {
                 Dashboard
               </button>
             ) : (
-              <button
-                onClick={() => router.push("/login")}
-                className="bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              >
-                Sign In
-              </button>
+              <>
+                <button
+                  onClick={() => router.push("/vendor-register")}
+                  className="text-text-secondary hover:text-brand px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Register as Vendor
+                </button>
+                <button
+                  onClick={() => router.push("/login")}
+                  className="bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Sign In
+                </button>
+              </>
             )}
           </div>
         </div>

@@ -99,6 +99,9 @@ export interface Solicitation {
   assignee_id: string | null;
   assigned_at: string | null;
   assignee_username: string | null;
+  quotes_total?: number;
+  quotes_draft?: number;
+  quotes_submitted?: number;
   unread_replies?: number;
   has_outreach?: boolean;
 }
@@ -302,6 +305,11 @@ export const releaseSolicitation = (id: number): Promise<Solicitation> =>
 
 export const assignSolicitation = (id: number, userId: string): Promise<Solicitation> =>
   fetchAPI(`/api/solicitations/${id}/assign`, { method: "POST", body: JSON.stringify({ user_id: userId }) });
+
+export const getMySolicitations = (): Promise<{
+  solicitations: Solicitation[];
+  summary: { total_assigned: number; needs_triage: number; needs_quote: number; quotes_in_progress: number };
+}> => fetchAPI("/api/solicitations/mine");
 
 export const getSolicitationByCase = (
   caseId: number,
@@ -1650,3 +1658,43 @@ export const updateUser = (
   data: { email?: string; role?: string; is_active?: boolean }
 ): Promise<AdminUser> =>
   fetchAPI(`/api/admin/users/${userId}`, { method: "PATCH", body: JSON.stringify(data) });
+
+// ---------------------------------------------------------------------------
+// Quotes
+// ---------------------------------------------------------------------------
+
+export interface Quote {
+  id: number;
+  external_id: string;
+  solicitation_id: number;
+  created_by: string;
+  created_by_username?: string;
+  notes: string | null;
+  amount: number | null;
+  poc_name: string | null;
+  poc_email: string | null;
+  poc_phone: string | null;
+  status: "draft" | "pending_site_visit" | "submitted" | "awarded" | "lost";
+  document_id: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export const createQuote = (
+  solicitationId: number,
+  data: { notes?: string; amount?: number; poc_name?: string; poc_email?: string; poc_phone?: string }
+): Promise<Quote> =>
+  fetchAPI(`/api/solicitations/${solicitationId}/quotes`, { method: "POST", body: JSON.stringify(data) });
+
+export const listQuotes = (solicitationId: number): Promise<{ quotes: Quote[] }> =>
+  fetchAPI(`/api/solicitations/${solicitationId}/quotes`);
+
+export const updateQuote = (
+  solicitationId: number,
+  quoteId: number,
+  data: { notes?: string; amount?: number; poc_name?: string; poc_email?: string; poc_phone?: string; status?: string }
+): Promise<Quote> =>
+  fetchAPI(`/api/solicitations/${solicitationId}/quotes/${quoteId}`, { method: "PATCH", body: JSON.stringify(data) });
+
+export const deleteQuote = (solicitationId: number, quoteId: number): Promise<{ deleted: number }> =>
+  fetchAPI(`/api/solicitations/${solicitationId}/quotes/${quoteId}`, { method: "DELETE" });

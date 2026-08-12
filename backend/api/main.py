@@ -21,7 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from core.case import CaseManager
-from core.db import ensure_schema, ensure_strategy_schema, ensure_chat_schema, ensure_correspondence_schema, ensure_solicitations_schema, ensure_solicitation_triage_schema, ensure_solicitation_assignee_schema, ensure_vendors_schema, ensure_vendor_matching_schema, ensure_vendor_matches_manual_schema, ensure_vendor_matches_cap_schema, ensure_vendor_outreach_schema, ensure_vendor_outreach_email_schema, ensure_vendor_outreach_messages_schema, ensure_workspace_pdf_filetype_schema, ensure_sam_notices_schema, ensure_sam_notice_import_job_schema, ensure_forecast_opportunities_schema, ensure_saved_reports_schema, ensure_ga_doas_opportunities_schema, ensure_dibbs_rfqs_schema, ensure_dla_batch_search_schema, ensure_pipeline_processing_schema, ensure_subcontracting_leads_schema, ensure_fix_sam_notices_unique_schema, ensure_naics_codes_schema
+from core.db import ensure_schema, ensure_strategy_schema, ensure_chat_schema, ensure_correspondence_schema, ensure_solicitations_schema, ensure_solicitation_triage_schema, ensure_solicitation_assignee_schema, ensure_quotes_schema, ensure_vendor_profiles_schema, ensure_fix_users_role_vendor_schema, ensure_vendors_schema, ensure_vendor_matching_schema, ensure_vendor_matches_manual_schema, ensure_vendor_matches_cap_schema, ensure_vendor_outreach_schema, ensure_vendor_outreach_email_schema, ensure_vendor_outreach_messages_schema, ensure_workspace_pdf_filetype_schema, ensure_sam_notices_schema, ensure_sam_notice_import_job_schema, ensure_forecast_opportunities_schema, ensure_saved_reports_schema, ensure_ga_doas_opportunities_schema, ensure_dibbs_rfqs_schema, ensure_dla_batch_search_schema, ensure_pipeline_processing_schema, ensure_subcontracting_leads_schema, ensure_fix_sam_notices_unique_schema, ensure_naics_codes_schema
 from core.vendor import VendorManager
 from ingestion.storage import upload_file as _upload_to_minio
 from ingestion.jobs import enqueue as _enqueue_job, get_job, list_jobs
@@ -69,6 +69,9 @@ def _apply_schemas():
     ensure_solicitations_schema()   # 007 — solicitations table (Option A)
     ensure_solicitation_triage_schema()  # 008 — triage classification + HTML artifacts
     ensure_solicitation_assignee_schema()  # 028 — assignee_id on solicitations
+    ensure_quotes_schema()  # 029 — subcontractor quotes
+    ensure_vendor_profiles_schema()  # 030 — vendor profiles
+    ensure_fix_users_role_vendor_schema()  # 031 — allow vendor role on users
     ensure_vendors_schema()           # 009 — unified vendor registry (GSA + SBA)
     ensure_vendor_matching_schema()   # 010 — vendor_matches table + outreach columns
     ensure_vendor_matches_manual_schema()  # 011 — allow naics_match_type='manual'
@@ -664,6 +667,8 @@ from api.routes.dla_batch import router as dla_batch_router
 from api.routes.pipeline import router as pipeline_router
 from api.routes.subcontracting_leads import router as sub_leads_router
 from api.routes.admin import router as admin_router
+from api.routes.quotes import router as quotes_router
+from api.routes.vendor_profiles import router as vendor_profiles_router
 app.include_router(chat_router)
 app.include_router(drafts_router)
 app.include_router(workspace_router)
@@ -683,6 +688,8 @@ app.include_router(dla_batch_router)
 app.include_router(pipeline_router)
 app.include_router(sub_leads_router)
 app.include_router(admin_router)
+app.include_router(quotes_router)
+app.include_router(vendor_profiles_router)
 
 # ---------------------------------------------------------------------------
 # Health check

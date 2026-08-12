@@ -12,6 +12,7 @@ import ChatTab from "./tabs/ChatTab";
 import DocumentsTab from "./tabs/DocumentsTab";
 import DraftsTab from "./tabs/DraftsTab";
 import TriageTab from "./tabs/TriageTab";
+import QuotesTab from "./tabs/QuotesTab";
 import VendorMatchesTab from "./tabs/VendorMatchesTab";
 import OutreachTab from "./tabs/OutreachTab";
 import WorkspaceTab from "./tabs/WorkspaceTab";
@@ -55,7 +56,7 @@ function CaseDashboardInner() {
   // Tab state lives in the URL — survives refresh
   const tabParam = searchParams.get("tab");
   const activeTab: TabId =
-    tabParam === "chat" || tabParam === "documents" || tabParam === "drafts" || tabParam === "triage" || tabParam === "vendor_matches" || tabParam === "outreach" || tabParam === "workspace" || tabParam === "correspondence" || tabParam === "tasks" || tabParam === "calendar" || tabParam === "vendors" || tabParam === "sam_notices" || tabParam === "forecasts" || tabParam === "ga_doas" || tabParam === "dibbs" || tabParam === "dla_batch"
+    tabParam === "chat" || tabParam === "documents" || tabParam === "drafts" || tabParam === "triage" || tabParam === "quotes" || tabParam === "vendor_matches" || tabParam === "outreach" || tabParam === "workspace" || tabParam === "correspondence" || tabParam === "tasks" || tabParam === "calendar" || tabParam === "vendors" || tabParam === "sam_notices" || tabParam === "forecasts" || tabParam === "ga_doas" || tabParam === "dibbs" || tabParam === "dla_batch"
       ? tabParam
       : "overview";
 
@@ -253,6 +254,7 @@ function CaseDashboardInner() {
         {activeTab === "documents" && <DocumentsTab caseId={Number(id)} />}
         {activeTab === "drafts" && <DraftsTab caseId={Number(id)} />}
         {activeTab === "triage" && <TriageTab caseId={Number(id)} />}
+        {activeTab === "quotes" && <QuotesTab caseId={Number(id)} />}
         {activeTab === "vendor_matches" && <VendorMatchesTab caseId={Number(id)} />}
         {activeTab === "outreach" && <OutreachTab caseId={Number(id)} />}
         {activeTab === "workspace" && <WorkspaceTab caseId={Number(id)} />}

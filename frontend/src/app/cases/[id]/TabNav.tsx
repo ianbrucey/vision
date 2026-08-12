@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Eye, MessageCircle, FolderOpen, FolderTree, PenLine, Mail, CheckSquare, CalendarDays, MoreHorizontal, FileSearch, Users, Send, Building2, Database, TrendingUp, MapPin, Truck } from "lucide-react";
+import { Eye, MessageCircle, FolderOpen, FolderTree, PenLine, Mail, CheckSquare, CalendarDays, MoreHorizontal, FileSearch, Users, Send, Building2, Database, TrendingUp, MapPin, Truck, Receipt } from "lucide-react";
 
-export type TabId = "overview" | "chat" | "documents" | "drafts" | "workspace" | "correspondence" | "tasks" | "calendar" | "triage" | "vendor_matches" | "outreach" | "vendors" | "sam_notices" | "forecasts" | "ga_doas" | "dibbs" | "dla_batch";
+export type TabId = "overview" | "chat" | "documents" | "drafts" | "workspace" | "correspondence" | "tasks" | "calendar" | "triage" | "quotes" | "vendor_matches" | "outreach" | "vendors" | "sam_notices" | "forecasts" | "ga_doas" | "dibbs" | "dla_batch";
 
 interface TabNavProps {
   activeTab: TabId;
@@ -26,6 +26,7 @@ const BASE_TABS: TabDef[] = [
   { id: "chat", label: "Chat", shortLabel: "Chat", icon: MessageCircle },
   { id: "documents", label: "Documents", shortLabel: "Docs", icon: FolderOpen },
   { id: "triage", label: "Triage", shortLabel: "Triage", icon: FileSearch },
+  { id: "quotes", label: "Quotes", shortLabel: "Quotes", icon: Receipt },
   { id: "vendor_matches", label: "Vendor Matches", shortLabel: "Matches", icon: Users },
   { id: "outreach", label: "Outreach", shortLabel: "Outreach", icon: Send },
   { id: "workspace", label: "Workspace", shortLabel: "Work", icon: FolderTree },

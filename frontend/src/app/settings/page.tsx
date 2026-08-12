@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, X, Check, Shield, User } from "lucide-react";
+import { Loader2, Plus, X, Check, Shield, User, Building2 } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { listUsers, createUser, updateUser, type AdminUser } from "@/lib/api";
 
@@ -12,6 +12,7 @@ import { listUsers, createUser, updateUser, type AdminUser } from "@/lib/api";
 
 const ROLE_OPTIONS = [
   { value: "user", label: "User" },
+  { value: "vendor", label: "Vendor" },
   { value: "admin", label: "Admin" },
 ] as const;
 
@@ -287,9 +288,11 @@ export default function SettingsPage() {
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium ${
                           u.role === "admin"
                             ? "bg-danger-bg text-danger"
+                            : u.role === "vendor"
+                            ? "bg-info-bg text-info"
                             : "bg-surface-2 text-text-secondary"
                         }`}>
-                          {u.role === "admin" ? <Shield size={10} /> : <User size={10} />}
+                          {u.role === "admin" ? <Shield size={10} /> : u.role === "vendor" ? <Building2 size={10} /> : <User size={10} />}
                           {u.role}
                         </span>
                       )}

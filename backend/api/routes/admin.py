@@ -44,9 +44,9 @@ def create_user_endpoint(
     user: dict = Depends(require_admin),
 ):
     """Create a new user. Admin only."""
-    if body.role not in ("user", "admin"):
+    if body.role not in ("user", "admin", "vendor"):
         raise HTTPException(
-            status_code=400, detail="role must be 'user' or 'admin'"
+            status_code=400, detail="role must be 'user', 'vendor', or 'admin'"
         )
     if len(body.password) < 6:
         raise HTTPException(
@@ -75,9 +75,9 @@ def update_user_endpoint(
     admin: dict = Depends(require_admin),
 ):
     """Update a user (email, role, is_active). Admin only."""
-    if body.role is not None and body.role not in ("user", "admin"):
+    if body.role is not None and body.role not in ("user", "admin", "vendor"):
         raise HTTPException(
-            status_code=400, detail="role must be 'user' or 'admin'"
+            status_code=400, detail="role must be 'user', 'vendor', or 'admin'"
         )
 
     # Prevent admin from disabling themselves

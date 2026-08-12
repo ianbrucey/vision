@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { listSolicitations, createSolicitation, deleteSolicitation, rerunSolicitation, triggerTriage, lookupSolicitationUrl, listNaicsCodes, type Solicitation } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
-import { Plus, FolderOpen, Loader2, FileSearch, AlertTriangle, Trash2, RefreshCw, RotateCcw, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Sparkles, Send, Bot, ExternalLink, Settings } from "lucide-react";
+import { Plus, FolderOpen, ClipboardList, Loader2, FileSearch, AlertTriangle, Trash2, RefreshCw, RotateCcw, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Sparkles, Send, Bot, ExternalLink, Settings } from "lucide-react";
 import { useSystemAgent, type SystemMessage } from "@/hooks/useSystemAgent";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -306,6 +306,13 @@ export default function SolicitationsPage() {
 
           {/* Right: cases link + user */}
           <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+            <button onClick={() => router.push("/my-work")}
+                    className="text-xs text-text-secondary hover:text-brand transition-colors
+                               flex items-center gap-1">
+              <ClipboardList size={14} />
+              <span className="hidden sm:inline">My Work</span>
+            </button>
+
             <button onClick={() => router.push("/cases")}
                     className="text-xs text-text-secondary hover:text-brand transition-colors
                                flex items-center gap-1">
@@ -695,6 +702,16 @@ export default function SolicitationsPage() {
                       )}
                     </p>
                   </div>
+                  {(s.quotes_submitted ?? 0) > 0 && (
+                    <span className="text-[10px] px-2 py-0.5 rounded font-medium shrink-0 bg-success-bg text-success">
+                      {s.quotes_submitted} quote{s.quotes_submitted !== 1 ? "s" : ""}
+                    </span>
+                  )}
+                  {(s.quotes_draft ?? 0) > 0 && (
+                    <span className="text-[10px] px-2 py-0.5 rounded font-medium shrink-0 bg-warning-bg text-warning">
+                      {s.quotes_draft} draft
+                    </span>
+                  )}
                   {s.unread_replies ? (
                     <span className="text-[11px] px-2 py-0.5 rounded-full font-bold shrink-0 bg-danger text-white">
                       {s.unread_replies}
