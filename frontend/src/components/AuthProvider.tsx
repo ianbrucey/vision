@@ -16,7 +16,7 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-const PUBLIC_PATHS = ["/login", "/register"];
+const PUBLIC_PATHS = ["/login", "/register", "/vendor-register"];
 
 function isPublicPath(pathname: string): boolean {
   if (pathname === "/") return true;
@@ -57,8 +57,13 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!authed && !isPublic) {
       router.replace("/login");
-    } else if (authed && isPublic && pathname !== "/solicitations") {
-      router.replace("/solicitations");
+    } else if (authed && isPublic && pathname !== "/solicitations" && pathname !== "/portal") {
+      const stored = getUser();
+      if (stored?.role === "vendor") {
+        router.replace("/portal");
+      } else {
+        router.replace("/solicitations");
+      }
     }
   }, [pathname, ready, router]);
 

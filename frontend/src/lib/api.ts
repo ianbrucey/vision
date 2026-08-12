@@ -1698,3 +1698,53 @@ export const updateQuote = (
 
 export const deleteQuote = (solicitationId: number, quoteId: number): Promise<{ deleted: number }> =>
   fetchAPI(`/api/solicitations/${solicitationId}/quotes/${quoteId}`, { method: "DELETE" });
+
+// ---------------------------------------------------------------------------
+// Vendors — Registration
+// ---------------------------------------------------------------------------
+
+export interface VendorProfile {
+  id: number;
+  external_id: string;
+  user_id: string;
+  business_name: string;
+  vendor_type: "individual" | "service" | "manufacturer";
+  uei: string | null;
+  cage_code: string | null;
+  capabilities: string | null;
+  website: string | null;
+  phone: string | null;
+  city: string | null;
+  state: string | null;
+  bonding_capacity: number | null;
+  status: string;
+  created_at: string;
+}
+
+export const registerVendor = (data: {
+  username: string;
+  password: string;
+  email?: string;
+  business_name: string;
+  vendor_type: string;
+  phone?: string;
+  website?: string;
+  uei?: string;
+  capabilities?: string;
+}): Promise<{ user: { id: string; username: string; role: string }; profile: Record<string, unknown> }> => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("vision_token") : null;
+  return fetch(`${API_BASE}/api/vendors/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: JSON.stringify(data),
+  }).then((res) => {
+    if (!res.ok) return res.json().then((err) => { throw new Error(err.detail || `HTTP ${res.status}`); });
+    return res.json();
+  });
+};
+
+export const getMyVendorProfile = (): Promise<VendorProfile> =>
+  fetchAPI("/api/vendors/profile");
+
+export const updateMyVendorProfile = (data: Record<string, unknown>): Promise<VendorProfile> =>
+  fetchAPI("/api/vendors/profile", { method: "PATCH", body: JSON.stringify(data) });
