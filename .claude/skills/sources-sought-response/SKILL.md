@@ -71,6 +71,7 @@ Page Limit:       [Extract or "Not stated"]
 Primary NAICS:    [Extract from notice]
 Set-Aside:        [Extract: Small Business / Unrestricted / HUBZone / etc.]
 Submission Method:[Email / Portal — extract or "Not stated"]
+Pricing/Quote Req:[Yes / No — FLAG IMMEDIATELY IF YES]
 POC:              [Contracting officer name and contact if listed]
 ```
 
@@ -372,6 +373,8 @@ Starting Phase 1: Intake...
 > **The DISCOS response is your tone benchmark.** When in doubt about how formal, how direct, or how to handle a gap disclosure, consult `examples/discos-ma-idiq-response.md`.
 
 > **Update resource files when facts change.** If Ian updates a certification, adds a new client, or finalizes an SBA designation, update the resource files — not just the response. The resource files are the source of truth.
+
+> **FLAG PRICING/QUOTE REQUIREMENTS.** Sources Sought Notices and RFIs typically do not require pricing. If the notice asks for a "quote", "pricing", or "cost estimate", FLAG THIS IMMEDIATELY to the user during Phase 1 (Intake). Do not attempt to generate pricing.
 
 ---
 
