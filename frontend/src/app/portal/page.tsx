@@ -2,15 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Building2, FileText, Clock } from "lucide-react";
+import { Loader2, Building2, FileText, Clock, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
-import { getMyVendorProfile, type VendorProfile } from "@/lib/api";
+import { getMyVendorProfile, getMyMtaStatus, type VendorProfile, type MtaStatusResponse, type MtaAgreement } from "@/lib/api";
+import MtaSigningModal from "@/components/MtaSigningModal";
+import DocumentPreviewModal from "@/components/DocumentPreviewModal";
 
 export default function PortalDashboard() {
   const { user, ready, logout } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<VendorProfile | null>(null);
+  const [mtaStatus, setMtaStatus] = useState<MtaStatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [signingOpen, setSigningOpen] = useState(false);
+  const [showSignedDoc, setShowSignedDoc] = useState(false);
 
   useEffect(() => {
     if (ready && !user) {
@@ -27,9 +32,17 @@ export default function PortalDashboard() {
     if (!user) return;
     getMyVendorProfile()
       .then(setProfile)
+      .catch(() => {});
+    getMyMtaStatus()
+      .then(setMtaStatus)
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [user]);
+
+  const handleSigned = (agreement: MtaAgreement) => {
+    setMtaStatus({ signed: true, agreement, document_id: agreement.document_id });
+    setSigningOpen(false);
+  };
 
   if (!ready || !user) {
     return (
@@ -38,6 +51,8 @@ export default function PortalDashboard() {
       </div>
     );
   }
+
+  const mtaSigned = mtaStatus?.signed === true;
 
   return (
     <main className="min-h-dvh bg-surface-0 text-text-primary">
@@ -66,6 +81,47 @@ export default function PortalDashboard() {
             : "Complete your profile to start receiving quote requests."}
         </p>
 
+        {/* MTA status banner */}
+        {!loading && mtaStatus && (
+          mtaSigned ? (
+            <div className="bg-success-bg border border-success/20 rounded-lg p-3 md:p-4 flex gap-2 md:gap-3 mb-6">
+              <CheckCircle2 className="text-success shrink-0 mt-0.5" size={18} />
+              <div className="flex-1 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                <div>
+                  <p className="text-sm font-medium text-success">Master Teaming Agreement active</p>
+                  <p className="text-xs md:text-sm text-text-secondary mt-0.5">
+                    Signed {mtaStatus.agreement?.executed_at ? new Date(mtaStatus.agreement.executed_at).toLocaleDateString() : ""} by {mtaStatus.agreement?.signed_name}, {mtaStatus.agreement?.signed_title}.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowSignedDoc(true)}
+                  className="bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shrink-0"
+                >
+                  View signed agreement
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-warning-bg border border-warning/20 rounded-lg p-3 md:p-4 flex gap-2 md:gap-3 mb-6">
+              <AlertCircle className="text-warning shrink-0 mt-0.5" size={18} />
+              <div className="flex-1 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                <div>
+                  <p className="text-sm font-medium text-warning">Master Teaming Agreement required</p>
+                  <p className="text-xs md:text-sm text-text-secondary mt-0.5">
+                    Please review and sign your Master Teaming Agreement to activate your account and receive quote requests.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSigningOpen(true)}
+                  className="bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shrink-0"
+                >
+                  Review & Sign
+                </button>
+              </div>
+            </div>
+          )
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-surface-1 border border-border rounded-lg p-6">
             <Building2 size={24} className="text-brand mb-3" />
@@ -86,6 +142,28 @@ export default function PortalDashboard() {
           </div>
         </div>
       </div>
+
+      {/* MTA signing modal (unsigned state) */}
+      {mtaStatus?.preview_url && (
+        <MtaSigningModal
+          open={signingOpen}
+          previewUrl={mtaStatus.preview_url}
+          previewName={mtaStatus.preview_name || "Master Teaming Agreement.pdf"}
+          businessName={profile?.business_name || user.username}
+          onClose={() => setSigningOpen(false)}
+          onSigned={handleSigned}
+        />
+      )}
+
+      {/* Signed PDF viewer */}
+      {mtaStatus?.document_id && (
+        <DocumentPreviewModal
+          open={showSignedDoc}
+          docId={mtaStatus.document_id}
+          docName="Master Teaming Agreement"
+          onClose={() => setShowSignedDoc(false)}
+        />
+      )}
     </main>
   );
 }

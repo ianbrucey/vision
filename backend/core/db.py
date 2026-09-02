@@ -403,6 +403,22 @@ def ensure_fix_users_role_vendor_schema() -> list[str]:
     return [str(sql_path)]
 
 
+def ensure_vendor_teaming_agreements_schema() -> list[str]:
+    """Apply the vendor teaming agreements schema (032).
+
+    Creates vendor_teaming_agreements (mta/bsta/subcontract rows with
+    e-signature audit trail) and relaxes documents.case_id to allow
+    case-less documents (signed agreement PDFs). Idempotent.
+    """
+    sql_path = _SCHEMA_DIR / "032_vendor_teaming_agreements.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(f"Schema file not found: {sql_path}")
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
 def ensure_vendors_schema() -> list[str]:
     """Apply the unified vendor registry schema.
 
@@ -809,25 +825,26 @@ def _j(d: dict | None) -> str:
 
 def insert_document(
     conn: connection,
-    case_id: int,
+    case_id: int | None,
     name: str,
     page_count: int | None = None,
     storage_path: str | None = None,
     document_type: str | None = None,
     source: str = "user_upload",
     metadata: dict | None = None,
+    vendor_user_id: str | None = None,
 ) -> int:
     with conn.cursor() as cur:
         cur.execute(
             """INSERT INTO documents (case_id, name, page_count,
-               storage_path, document_type, source, metadata)
-               VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb)
+               storage_path, document_type, source, metadata, vendor_user_id)
+               VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb, %s)
                ON CONFLICT (case_id, name)
                DO UPDATE SET page_count = EXCLUDED.page_count,
                              updated_at = now()
                RETURNING id""",
             (case_id, name, page_count, storage_path, document_type,
-             source, _j(metadata)),
+             source, _j(metadata), vendor_user_id),
         )
         return cur.fetchone()[0]
 
@@ -1895,6 +1912,7 @@ __all__ = [
     "ensure_quotes_schema",
     "ensure_vendor_profiles_schema",
     "ensure_fix_users_role_vendor_schema",
+    "ensure_vendor_teaming_agreements_schema",
     "ensure_vendors_schema", "ensure_vendor_matching_schema",
     "ensure_vendor_matches_manual_schema", "ensure_vendor_matches_cap_schema",
     "ensure_vendor_outreach_schema",

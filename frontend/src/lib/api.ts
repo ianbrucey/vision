@@ -1748,3 +1748,44 @@ export const getMyVendorProfile = (): Promise<VendorProfile> =>
 
 export const updateMyVendorProfile = (data: Record<string, unknown>): Promise<VendorProfile> =>
   fetchAPI("/api/vendors/profile", { method: "PATCH", body: JSON.stringify(data) });
+
+// ---------------------------------------------------------------------------
+// Vendors — Master Teaming Agreement (MTA)
+// ---------------------------------------------------------------------------
+
+export interface MtaAgreement {
+  id: number;
+  agreement_type: string;
+  vendor_user_id: string;
+  solicitation_id: number | null;
+  document_id: number | null;
+  status: string;
+  executed_at: string | null;
+  expires_at: string | null;
+  signed_name: string | null;
+  signed_title: string | null;
+  signed_ip: string | null;
+  signed_user_agent: string | null;
+  content_hash: string | null;
+  template_version: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MtaStatusResponse {
+  signed: boolean;
+  agreement?: MtaAgreement | null;
+  document_id?: number | null;
+  preview_url?: string | null;
+  preview_name?: string | null;
+}
+
+export const getMyMtaStatus = (): Promise<MtaStatusResponse> =>
+  fetchAPI("/api/vendors/mta");
+
+export const signMyMta = (data: {
+  signed_name: string;
+  signed_title: string;
+  consent: boolean;
+}): Promise<{ agreement: MtaAgreement; already_signed: boolean }> =>
+  fetchAPI("/api/vendors/mta/sign", { method: "POST", body: JSON.stringify(data) });

@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vision Vendor MTA API Contract v1",
+  "description": "E-signature flow for the Master Teaming Agreement. New router backend/api/routes/vendor_agreements.py (prefix /api/vendors). Audit trail per E-SIGN Act (15 U.S.C. §7001) / GA UETA (O.C.G.A. §10-12): intent (consent checkbox), attribution (user_id + typed name/title), exact document version (content_hash of signed PDF bytes).",
+  "basePath": "/api",
+  "date": "2026-08-16",
+
+  "schemas": {
+    "MtaAgreement": {
+      "type": "object",
+      "description": "A vendor_teaming_agreements row (agreement_type='mta').",
+      "properties": {
+        "id": { "type": "integer" },
+        "agreement_type": { "type": "string", "const": "mta" },
+        "vendor_user_id": { "type": "string", "format": "uuid" },
+        "solicitation_id": { "type": ["integer", "null"] },
+        "document_id": { "type": ["integer", "null"], "description": "documents row for the signed PDF" },
+        "status": { "type": "string", "enum": ["draft", "pending_signature", "executed", "terminated"] },
+        "executed_at": { "type": ["string", "null"], "format": "date-time" },
+        "expires_at": { "type": ["string", "null"], "format": "date-time", "description": "executed_at + 2 years (MTA Art. 8.1); informational, not gated" },
+        "signed_name": { "type": ["string", "null"] },
+        "signed_title": { "type": ["string", "null"] },
+        "signed_ip": { "type": ["string", "null"], "description": "request.client.host; proxy caveat — X-Forwarded-For NOT trusted (no TRUST_PROXY_HEADERS flag this build)" },
+        "signed_user_agent": { "type": ["string", "null"] },
+        "content_hash": { "type": ["string", "null"], "description": "sha256 hex of render pass-1 bytes with the random trailer /ID stripped (signature block + Exhibit A included; the embedded hash line is appended in pass 2). Reproducible by re-rendering from stored inputs (profile, signer, executed_at->UTC)." },
+        "template_version": { "type": ["string", "null"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "agreement_type", "vendor_user_id", "status"]
+    },
+    "MtaStatusResponse": {
+      "type": "object",
+      "description": "GET /api/vendors/mta response. Unsigned state renders the MTA PDF server-side (party block filled from profile) and returns a 1h presigned preview URL — no documents row exists until signing.",
+      "properties": {
+        "signed": { "type": "boolean" },
+        "agreement": { "anyOf": [{ "$ref": "#/schemas/MtaAgreement" }, { "type": "null" }] },
+        "document_id": { "type": ["integer", "null"] },
+        "preview_url": { "type": ["string", "null"], "description": "present only when signed=false" },
+        "preview_name": { "type": ["string", "null"] }
+      },
+      "required": ["signed"]
+    },
+    "MtaSignRequest": {
+      "type": "object",
+      "required": ["signed_name", "signed_title", "consent"],
+      "properties": {
+        "signed_name": { "type": "string", "minLength": 2, "maxLength": 200, "description": "Typed legal name of the authorized signatory — constitutes the electronic signature" },
+        "signed_title": { "type": "string", "minLength": 2, "maxLength": 200 },
+        "consent": { "type": "boolean", "const": true, "description": "Must be true server-side; false → 400. The checkbox is not just UI — it is the intent record." }
+      }
+    }
+  },
+
+  "endpoints": {
+    "get_my_mta": {
+      "method": "GET",
+      "path": "/vendors/mta",
+      "summary": "Vendor's MTA status. Role must be 'vendor' (403 otherwise). 404 if the vendor user has no vendor_profiles row (e.g. admin-created user without profile).",
+      "authentication": "Bearer token required",
+      "responses": {
+        "200": { "description": "MTA status", "body": { "$ref": "#/schemas/MtaStatusResponse" } },
+        "403": { "description": "Non-vendor role" },
+        "404": { "description": "No vendor profile for this user" }
+      }
+    },
+    "sign_my_mta": {
+      "method": "POST",
+      "path": "/vendors/mta/sign",
+      "summary": "Execute the MTA. Idempotent: repeat POST with an existing executed MTA returns the existing row (200, already_signed=true) — DB-level guard is the partial unique index uq_vta_one_executed_mta. New execution → 201.",
+      "authentication": "Bearer token required",
+      "request": { "$ref": "#/schemas/MtaSignRequest" },
+      "responses": {
+        "201": {
+          "description": "MTA executed",
+          "body": {
+            "type": "object",
+            "properties": {
+              "agreement": { "$ref": "#/schemas/MtaAgreement" },
+              "already_signed": { "type": "boolean", "const": false }
+            }
+          }
+        },
+        "200": {
+          "description": "Already signed (idempotent)",
+          "body": {
+            "type": "object",
+            "properties": {
+              "agreement": { "$ref": "#/schemas/MtaAgreement" },
+              "already_signed": { "type": "boolean", "const": true }
+            }
+          }
+        },
+        "400": { "description": "consent=false, or signed_name/signed_title missing" },
+        "403": { "description": "Non-vendor role" },
+        "404": { "description": "No vendor profile (cannot fill party block)" }
+      }
+    },
+    "list_agreements_admin": {
+      "method": "GET",
+      "path": "/vendors/mta-agreements",
+      "summary": "Admin listing of teaming agreements, joined with users.username and documents.name. Optional agreement_type query filter.",
+      "authentication": "Bearer token required (admin)",
+      "parameters": {
+        "query": { "agreement_type": { "type": ["string", "null"], "enum": ["mta", "bsta", "subcontract"] } }
+      },
+      "responses": {
+        "200": {
+          "description": "Agreement list",
+          "body": {
+            "type": "object",
+            "properties": {
+              "agreements": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "allOf": [{ "$ref": "#/schemas/MtaAgreement" }],
+                  "properties": {
+                    "username": { "type": ["string", "null"] },
+                    "document_name": { "type": ["string", "null"] }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "403": { "description": "Non-admin role" }
+      }
+    }
+  },
+
+  "gate": {
+    "name": "require_mta",
+    "description": "FastAPI dependency in backend/auth/__init__.py. Vendor role without an executed MTA row → 403 'Master Teaming Agreement required...'. Non-vendor roles pass (JQ staff). Future vendor-facing quote endpoints use Depends(require_mta)."
+  }
+}

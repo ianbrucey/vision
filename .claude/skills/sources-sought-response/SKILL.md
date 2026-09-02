@@ -43,7 +43,8 @@ All resources are in the skill's `resources/` directory:
 **Templates:**
 | File | Purpose |
 |---|---|
-| `templates/ssn-response-letter.md` | Full response letter (multi-section, multi-page) |
+| `templates/ssn-response-letter.html` | **CANONICAL HTML template (Variant C)** — the final deliverable format; embed logo, fill placeholders, run page-budget |
+| `templates/ssn-response-letter.md` | Full response letter (multi-section, multi-page) — markdown working draft |
 | `templates/capability-statement.md` | One-page capability statement |
 
 **Reference Example:**
@@ -71,6 +72,8 @@ Page Limit:       [Extract or "Not stated"]
 Primary NAICS:    [Extract from notice]
 Set-Aside:        [Extract: Small Business / Unrestricted / HUBZone / etc.]
 Submission Method:[Email / Portal — extract or "Not stated"]
+Email Body Content:[Extract required email-body fields — e.g., company name, UEI, POCs, vehicles]
+Required Documentation:[Extract — e.g., DD Form 2345/JCP, ISO, CMMC, FCL status]
 Pricing/Quote Req:[Yes / No — FLAG IMMEDIATELY IF YES]
 POC:              [Contracting officer name and contact if listed]
 ```
@@ -94,6 +97,8 @@ REQUIREMENTS IDENTIFIED:
 6. Question: Do you hold CMMC ML1 or ML2 certification?
 7. Question: What is your experience with FISMA moderate systems?
 ```
+
+Then check the solicitation folder for **published Q&A documents and attachments** (many notices publish an unattributed Q&A list, questionnaires, or draft PWS documents). Q&A answers can materially change the response — e.g., RMF artifact responsibility, personnel citizenship and background investigation rules, or site locations. Read them before the Fitness Check.
 
 ---
 
@@ -167,6 +172,8 @@ Once the user approves, map the response structure:
    - Standalone capability statement requested → `templates/capability-statement.md`
    - If both are needed, draft the letter first; derive the cap statement from it
 
+1a. **Mirror the notice's mandated structure when one exists.** Questionnaires (Cover + Exhibits), Y/N requirement tables, white-paper section limits (e.g., "Section 1 admin info limited to one page"), or numbered response items take precedence over the default 8-section letter. Keep the letterhead, typography, and color coding; make the section bands match the notice's required parts verbatim. If the notice is a narrative capability statement, use the default structure.
+
 2. **Select past performance projects** — Choose 2-4 from `past-performance.md` with the highest keyword overlap to this SSN's requirements. Note which Response-Ready Summary to use for each.
 
 3. **Map personnel to requirements** — For each functional area:
@@ -181,6 +188,70 @@ Once the user approves, map the response structure:
    - ⚠️ ADJACENT sections (include, with proposed approach label)
    - ❌ GAP sections (brief disclosure only — don't waste pages on gaps)
    - Acquisition recommendations (only if the SSN specifically asks)
+
+---
+
+## Phase 2.5 — Page Budgeting (Mandatory When a Page Limit Exists)
+
+Run the budget BEFORE drafting so the draft lands in range, and verify AFTER drafting.
+
+```bash
+python scripts/page-budget.py budget <page_limit>    # pre-draft: character allowance
+python scripts/page-budget.py estimate <file.html> --limit <N>   # quick structural check
+python scripts/page-budget.py measure <file.html> --limit <N>    # exact: headless Chrome
+```
+
+**Measured constants** (compact template — Times New Roman 12pt minimum, line-height 1.22, 1in margins; calibrated on the C5ISRT response, N6133126SNQ36):
+
+| Constant | Value |
+|---|---|
+| Chars per line (TNR 12pt, 6.5in) | ~86 |
+| Lines per page (9in text height) | ~44 |
+| Pure-text ceiling | ~3,700 chars/page |
+| **Realized density (bands/boxes/tables)** | **~2,100 chars/page** |
+| Fixed overhead (letterhead, date, TO/FROM/POC/RE, signature) | ~20 lines |
+| Section band | ~4 lines |
+| Sub-section heading / label | ~2 / ~1.5 lines |
+| Bullet / table row | ~1 line each |
+| Caveat / quote box | ~1.5 lines |
+| Paragraph | ~0.5 line |
+
+**Method:**
+1. Budget the structure first: `(limit × 44) − 20 fixed − structure_lines = text budget in lines`.
+2. Text budget × 86 = character allowance. Allocate it across sections before writing a word.
+3. After drafting, confirm with `measure` (exact render). If over, cut text before cutting structure — structure costs more per line.
+4. **Target limit − 1 page of content** — renderer variance (font fallback, browser differences) can add a page at the boundary. If you ship exactly at the limit, re-verify with `measure` in the submission browser.
+
+**Re-calibration:** if the template's CSS changes materially, render one finished response with `measure` and adjust the constants in `scripts/page-budget.py` until `estimate` matches.
+
+---
+
+## Template & Presentation Standards (HTML Deliverable)
+
+The final deliverable is a **self-contained, print-ready HTML file** — not markdown. Start from `templates/ssn-response-letter.html` (the canonical skeleton; verified against the delivered N6133126SNQ36 response). The `.md` template is the working draft; the HTML is what ships.
+
+**Typography (compliance):**
+- Times New Roman, **12pt minimum for EVERY element** — body, labels, letterhead details, table headers, footer included. When the notice says "12pt font minimum," smaller chrome is a violation.
+- Line-height ~1.22 (single-spaced), 1in margins, letter size (`@page { size: letter; margin: 1in; }`).
+- No em dashes in body copy — use commas, colons, or parentheses (per user directive).
+
+**Letterhead (keep as-is from the template):**
+- Logo: `resources/assets/jq-icon.png` — downscale to ~400px first (`sips -Z 400 -s format png`), embed as base64 data URI (self-contained file), rendered at ~72px height, left side.
+- Firm name 20pt bold `#0d2b7a`, right-aligned; details 12pt gray; 2px deep-blue rule below.
+
+**Color coding (derived from the logo's primaries, deepened for print):**
+
+| Color | Hex | Used for |
+|---|---|---|
+| Deep blue | `#0d2b7a` | Structure: section bands (17pt caps, white), sub-title rules, table headers, letterhead rule |
+| Emerald | `#1f7a3d` | Proven capability: "Technical Capabilities" labels + square bullet markers (`cap-list`) |
+| Crimson | `#b03a2e` | Proposed approach / gap disclosures: `caveat` boxes with a tag line, tinted background `#fdf2ef` |
+| Slate | `#3f5f9e` | "Key Personnel" labels |
+| Neutral | `#48647f` | General structure labels |
+
+**Mandatory CSS details:** `print-color-adjust: exact` (and `-webkit-` prefix) on `*` — without it, printed backgrounds vanish. Every-page footer via `@page @bottom-center` with `counter(page)`/`counter(pages)` and the CAGE/UEI/notice line (renders in Chrome/Firefox; Safari lacks margin-box support — print from Chrome).
+
+**Structure conventions (from the delivered response):** Section 1 = Company Profile with the notice's required fields (solicitation NAICS listed first); Section 2 = Executive Summary; Section 3 = one sub-section per PWS task area, verbatim titles; Section 4 = Past Performance led by the no-federal-contracts/CPARs disclosure; Section 5 = Key Personnel with honest credential/clearance statements; Section 6 = Teaming & Partnering (desired partner attributes); Section 7 = NAICS alignment; Section 8 = Closing. Band headings are numbered ("1 Company Profile" ... "8 Closing Statement"). **When the notice mandates its own structure (questionnaire, exhibits, white-paper sections, numbered items), mirror the notice's structure instead** — keep the letterhead, typography, and color coding; make the section bands match the notice's required parts.
 
 ---
 
@@ -217,6 +288,8 @@ Once the user approves, map the response structure:
 
 8. **All bracketed placeholders must be filled** — No `[LIKE THIS]` text in the final output.
 
+9. **Page budget is binding** — When the SSN states a page limit, run `scripts/page-budget.py budget <N>` before drafting and `measure <file> --limit <N>` after drafting. Never ship at exactly the limit without a `measure` confirmation in the submission browser.
+
 ---
 
 ### Handling Specific Questions in the SSN
@@ -232,6 +305,8 @@ A: [Answer drawn from resource files]
 ```
 
 If a question asks about something in the Gap Registry, the answer begins with the gap disclosure, then proposes the mitigation.
+
+**Mandated questionnaires and tables:** When the notice requires completing a questionnaire, exhibit, or Y/N requirement table ("no substitutions, additions, or deletions"), reproduce the required fields verbatim and answer honestly. Mark N where no delivered system exists and explain the proposed approach in the comments column; never mark Y for a capability without a delivered product.
 
 ---
 
@@ -291,13 +366,22 @@ Run the quality gate when the user approves the draft. Check every item below. R
 - [ ] Page limit is respected (if stated)
 - [ ] Submission format follows SSN instructions (email, portal, file format)
 - [ ] Response is addressed to the correct agency/office
-- [ ] Notice number appears in the header
+- [ ] Notice number appears in the RE line AND footer AND email subject
+- [ ] Submission routing block lists every required recipient address
+- [ ] Required documentation status disclosed (DD 2345/JCP, CMMC, FCL, ISO, DCAA, FedRAMP) when the notice asks
+- [ ] SDVOSB/VOSB or similar checkboxes answered (mark N/A when not applicable)
+- [ ] Two-POC requirements satisfied (when the notice asks for two)
+- [ ] Email-body content requirements covered (company name, UEI, POCs, vehicles list)
+- [ ] "No federal contracting vehicles / no CPARs ratings" disclosure present when true
+- [ ] Company profile complete: employees, country of ownership, years in business, SAM status, major products, customer base, limitations of subcontracting
 
 ### Tone & Professionalism
 - [ ] No marketing superlatives ("world-class," "cutting-edge," "best-in-class")
 - [ ] All metrics are concrete and specific
 - [ ] No placeholder text `[LIKE THIS]` remains
 - [ ] Footer appears on every page (if multi-page)
+- [ ] No em dashes in body copy
+- [ ] Product name is "Vision AI" (formerly Command AI) — no "Command AI" in delivered text
 - [ ] Document is professional and submission-ready
 
 ### Quality Gate Output
@@ -344,7 +428,7 @@ SOURCES SOUGHT RESPONSE SKILL — ACTIVATED
 ═══════════════════════════════════════════
 Company: Justice Quest LLC (dba Vision Systems)
 Resource Files: Loaded from resources/
-Templates: ssn-response-letter.md, capability-statement.md
+Templates: ssn-response-letter.html (canonical), ssn-response-letter.md, capability-statement.md
 Reference: examples/discos-ma-idiq-response.md
 
 Phases:
@@ -374,7 +458,9 @@ Starting Phase 1: Intake...
 
 > **Update resource files when facts change.** If Ian updates a certification, adds a new client, or finalizes an SBA designation, update the resource files — not just the response. The resource files are the source of truth.
 
-> **FLAG PRICING/QUOTE REQUIREMENTS.** Sources Sought Notices and RFIs typically do not require pricing. If the notice asks for a "quote", "pricing", or "cost estimate", FLAG THIS IMMEDIATELY to the user during Phase 1 (Intake). Do not attempt to generate pricing.
+> **FLAG PRICING/QUOTE REQUIREMENTS.** Sources Sought Notices and RFIs typically do not require pricing. If the notice asks for a "quote", "pricing", or "cost estimate", FLAG THIS IMMEDIATELY to the user during Phase 1 (Intake). Do not attempt to generate pricing. If the user directs you to provide an estimate (ROM), produce a clearly labeled planning-level estimate with stated assumptions and flag it for user review before submission.
+
+> **Fix dishonesty and compliance violations immediately.** The user has directed: if something is dishonest, out of compliance, or against the rules, fix it without asking. The human checkpoints cover strategy, structure, and pricing decisions — not honesty.
 
 ---
 

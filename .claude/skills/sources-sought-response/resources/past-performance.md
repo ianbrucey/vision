@@ -15,7 +15,7 @@ When a Sources Sought notice asks about relevant experience, search for projects
 
 ---
 
-### PP-001 — Command AI: AI-Powered Legal Platform (Flagship Product)
+### PP-001 — Vision AI: AI-Powered Legal Platform (Flagship Product; formerly Vision AI)
 **Client:** Justice Quest LLC (proprietary product)
 **Dates:** January 2025 – Present
 **Contract Type:** Internal product development
@@ -42,7 +42,7 @@ Full-stack agentic legal drafting application combining document intelligence, s
 AI, automation, document intelligence, OCR, RAG, multi-agent, agentic, NLP, unstructured data, legal, software development, TypeScript, React, Node.js, Python, Docker, containerization, full-stack, workflow automation, federal litigation, context management, MCP
 
 **Response-Ready Summary:**
-> Justice Quest LLC developed and operates Command AI — a production agentic legal platform combining high-volume document intelligence (OCR/RAG ingestion via DataLab and Mistral), a deterministic strategic reasoning engine, and an automated drafting system. The platform uses a Dockerized multi-agent swarm architecture deployed in live federal litigation since January 2025, demonstrating enterprise-grade AI/automation capabilities in a high-stakes, compliance-sensitive environment.
+> Justice Quest LLC developed and operates Vision AI — a production agentic legal platform combining high-volume document intelligence (OCR/RAG ingestion via DataLab and Mistral), a deterministic strategic reasoning engine, and an automated drafting system. The platform uses a Dockerized multi-agent swarm architecture deployed in live federal litigation since January 2025, demonstrating enterprise-grade AI/automation capabilities in a high-stakes, compliance-sensitive environment.
 
 ---
 
