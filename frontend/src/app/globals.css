@@ -81,3 +81,109 @@ body {
   from { transform: translateX(-100%); }
   to { transform: translateX(0); }
 }
+
+/* =============================================
+   Landing Page Animations
+   ============================================= */
+
+/* Hero gradient slow shift */
+@keyframes heroGradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.hero-gradient-bg {
+  background: linear-gradient(
+    135deg,
+    #1a3a7a 0%,
+    #2e4e9a 25%,
+    #1e3b80 50%,
+    #2e4e9a 75%,
+    #1a3a7a 100%
+  );
+  background-size: 400% 400%;
+  animation: heroGradientShift 12s ease-in-out infinite;
+}
+
+/* Scroll-triggered fade-in-up */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scroll-hidden {
+  opacity: 0;
+}
+
+.scroll-animate {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* Staggered delays for child elements */
+.stagger-1 { animation-delay: 0ms; }
+.stagger-2 { animation-delay: 120ms; }
+.stagger-3 { animation-delay: 240ms; }
+.stagger-4 { animation-delay: 360ms; }
+
+/* Step connector line */
+.step-connector {
+  position: relative;
+}
+.step-connector::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -12px;
+  width: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-brand), var(--color-brand-hover));
+}
+.step-connector:last-child::after {
+  display: none;
+}
+
+/* Vertical connector for mobile */
+@media (max-width: 767px) {
+  .step-connector::after {
+    top: auto;
+    bottom: -12px;
+    right: 50%;
+    width: 2px;
+    height: 24px;
+    background: linear-gradient(180deg, var(--color-brand), var(--color-brand-hover));
+  }
+}
+
+/* Button hover lift */
+.btn-lift {
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+}
+.btn-lift:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 20px rgba(184, 134, 11, 0.25);
+}
+.btn-lift:active {
+  transform: translateY(0) scale(1);
+}
+
+/* Stat counter shimmer on brand text */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.stat-shimmer {
+  background: linear-gradient(90deg, #B8860B 30%, #D4A017 50%, #B8860B 70%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s ease-in-out infinite;
+}
