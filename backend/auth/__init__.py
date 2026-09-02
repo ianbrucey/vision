@@ -196,6 +196,42 @@ async def require_admin(
     return user
 
 
+async def require_mta(
+    user: dict = Depends(get_current_user),
+) -> dict:
+    """FastAPI dependency. Vendors must have an executed Master Teaming
+    Agreement (MTA) to access quote-request flows; JQ staff roles pass.
+
+    The gate derives from the vendor_teaming_agreements row — no
+    denormalized profile column.
+
+    Usage:
+        @app.get("/api/vendors/quotes")
+        def list_quotes(user: dict = Depends(require_mta)):
+            ...
+    """
+    if user.get("role") == "vendor":
+        from core.db import connect
+        conn = connect()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT 1 FROM vendor_teaming_agreements "
+                    "WHERE vendor_user_id = %s AND agreement_type = 'mta' "
+                    "AND status = 'executed' LIMIT 1",
+                    (user["id"],),
+                )
+                if cur.fetchone() is None:
+                    raise HTTPException(
+                        status_code=403,
+                        detail="Master Teaming Agreement required. "
+                               "Please sign your MTA in the vendor portal.",
+                    )
+        finally:
+            conn.close()
+    return user
+
+
 # ---------------------------------------------------------------------------
 # Admin user management (used by /api/admin/users routes)
 # ---------------------------------------------------------------------------

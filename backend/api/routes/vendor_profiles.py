@@ -30,6 +30,9 @@ class VendorRegisterRequest(BaseModel):
     phone: str | None = None
     website: str | None = None
     uei: str | None = None
+    cage_code: str | None = None
+    tax_id: str | None = None
+    naics_codes: list[str] | None = None
     capabilities: str | None = None
 
 
@@ -89,6 +92,9 @@ def register_vendor(body: VendorRegisterRequest):
         phone=body.phone,
         website=body.website,
         uei=body.uei,
+        cage_code=body.cage_code,
+        tax_id=body.tax_id,
+        naics_codes=body.naics_codes,
         capabilities=body.capabilities,
     )
 

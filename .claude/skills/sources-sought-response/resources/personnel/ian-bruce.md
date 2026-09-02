@@ -23,7 +23,7 @@ Ian Bruce is a principal engineer and founder with 10+ years of experience deliv
 
 ## Professional Experience (Chronological, Reverse)
 
-### Principal AI Engineer / Founder — Justice Quest LLC / Command AI
+### Principal AI Engineer / Founder — Justice Quest LLC / Vision AI (formerly Vision AI)
 **Jan 2025 – Present**
 
 **Agentic Legal Drafting Platform**
@@ -45,7 +45,7 @@ Ian Bruce is a principal engineer and founder with 10+ years of experience deliv
 - Orchestrated Dockerized multi-agent system: primary agent delegates non-interactive tasks to isolated sub-agents, aggregates results seamlessly
 - Deployed client portal with payment processing and automatic multilingual translations
 
-**Command AI Platform**
+**Vision AI Platform**
 - Full-stack production application combining all above features into one unified single-tenant application
 - In production since January 2025
 
@@ -186,9 +186,9 @@ Ian Bruce is a principal engineer and founder with 10+ years of experience deliv
 | Custom Software Development | 10 years commercial delivery across 5+ employers |
 | Cloud Infrastructure / AWS | Soil Connect 3-year AWS management; emergency CTO role |
 | Data Engineering / ETL | Snowflake/dbt (Highwater); Elasticsearch (Soil Connect); NetSuite sync (Michelson) |
-| AI / Document Intelligence | Command AI platform; medical malpractice pipeline; Highwater AI procurement |
+| AI / Document Intelligence | Vision AI platform; medical malpractice pipeline; Highwater AI procurement |
 | API Architecture | Merchant Connect (Checkout Champ); REST APIs (Soil Connect, Michelson) |
 | Workflow Automation | Dana Blue Law Firm PDF tools; Highwater negotiation engine |
-| Legal Operations | Command AI; EEOC complaint support; Justice Quest core services |
+| Legal Operations | Vision AI; EEOC complaint support; Justice Quest core services |
 | Legacy System Modernization | Heroku→AWS migration (Soil Connect); legacy PHP auth (Checkout Champ) |
-| DevOps / CI/CD | Emergency AWS ownership (Soil Connect); Docker multi-agent (Command AI) |
+| DevOps / CI/CD | Emergency AWS ownership (Soil Connect); Docker multi-agent (Vision AI) |

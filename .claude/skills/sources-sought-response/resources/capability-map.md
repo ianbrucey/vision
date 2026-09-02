@@ -24,7 +24,7 @@
 **NAICS:** 541511 (primary), 541512
 
 **Evidence:**
-- PP-001 (Command AI — full-stack TypeScript/React/Node.js in production)
+- PP-001 (Vision AI — full-stack TypeScript/React/Node.js in production)
 - PP-006 (Soil Connect — Laravel/PHP, 3 years, 99.9% uptime)
 - PP-007 (Checkout Champ — PHP/Laravel payment platform)
 - PP-008 (Michelson — Laravel REST APIs, WordPress, national scale)
@@ -41,7 +41,7 @@ custom software, application development, software engineering, full-stack, web 
 
 **Evidence:**
 - PP-006 (Soil Connect — AWS Elastic Beanstalk, RDS, multi-AZ; 99.9% uptime 3 years; emergency CTO)
-- PP-001 (Command AI — Dockerized multi-agent, cloud deployment)
+- PP-001 (Vision AI — Dockerized multi-agent, cloud deployment)
 - ian-bruce.md (AWS, Docker, CI/CD, DigitalOcean, Ploi.io)
 
 **Match Keywords:**
@@ -54,7 +54,7 @@ cloud, AWS, cloud infrastructure, cloud migration, DevOps, CI/CD, Docker, contai
 **NAICS:** 541511, 541512
 
 **Evidence:**
-- PP-001 (Command AI — multi-agent, RAG, OCR, reasoning engine, production)
+- PP-001 (Vision AI — multi-agent, RAG, OCR, reasoning engine, production)
 - PP-002 (Medical malpractice pipeline — agentic, unstructured data)
 - PP-003 (Highwater AI procurement platform — LLM normalization, 30+ vendors)
 - ian-bruce.md (Context Management, Multi-Agent Orchestration, MCP, ACP)
@@ -113,7 +113,7 @@ legacy modernization, legacy migration, system migration, modernization, tech de
 **NAICS:** 541511, 541519
 
 **Evidence:**
-- PP-001 (Command AI — OCR pipeline, document intelligence, PDF drafting)
+- PP-001 (Vision AI — OCR pipeline, document intelligence, PDF drafting)
 - PP-002 (Medical malpractice — hundreds of pages of unstructured records)
 - PP-009 (Dana Blue Law Firm — PDF form-filling, document synthesis pipelines)
 
@@ -129,7 +129,7 @@ document processing, document management, document automation, OCR, PDF processi
 **Evidence:**
 - PP-003 (Highwater — automated negotiation engine, procurement lifecycle)
 - PP-009 (Dana Blue Law Firm — lead gen workflows, PDF form-filling)
-- PP-001 (Command AI — automated drafting, multi-agent task delegation)
+- PP-001 (Vision AI — automated drafting, multi-agent task delegation)
 
 **Match Keywords:**
 workflow automation, process automation, business process automation, RPA, robotic process automation, automated workflows, task automation, operational automation, process improvement, efficiency, automation platform
@@ -187,7 +187,7 @@ software licensing, hardware procurement, IT procurement, vendor management, COT
 **NAICS:** 541611
 
 **Evidence:**
-- PP-001 (Command AI — live federal litigation support platform)
+- PP-001 (Vision AI — live federal litigation support platform)
 - PP-002 (Medical malpractice analysis)
 - PP-010 (EEOC Title VII complaint — federal administrative proceeding)
 - PP-009 (Dana Blue Law Firm — ongoing legal workflow automation)

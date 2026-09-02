@@ -1,0 +1,93 @@
+{
+  "$description": "Real-data fixtures for the MTA e-signature flow. Profiles shape: vendor_profiles (030) + users (001). Agreement rows shaped exactly per 01-schema.sql (migration 032). Vendor identifiers are realistic federal-contracting shapes (UEI 12 alnum, CAGE 5 chars, EIN nn-nnnnnnn). Signed PDF bytes not embedded — content_hash is a deterministic sha256 of render pass-1 bytes with the trailer /ID stripped; re-renderable from the audit row (profile, signer, executed_at) via VendorAgreementManager.",
+
+  "profiles": {
+    "vendor_executed": {
+      "$note": "A fully populated, signed vendor (fixtures for the happy path).",
+      "user": { "username": "acme.construction", "email": "jane@acmecorp.com", "role": "vendor", "is_active": true },
+      "profile": {
+        "business_name": "Acme Construction & Remodeling LLC",
+        "vendor_type": "service",
+        "uei": "P3X7C9K1L5M2",
+        "cage_code": "8G4H2",
+        "tax_id": "85-1234567",
+        "naics_codes": ["236220", "238110", "238160"],
+        "capabilities": "Commercial and residential general contracting; HVAC and electrical specialty trade services; design-build.",
+        "website": "https://acmecorp.example.com",
+        "phone": "(678) 555-0142",
+        "address_line1": "1400 Peachtree Industrial Blvd",
+        "city": "Buford",
+        "state": "GA",
+        "zip": "30518",
+        "bonding_capacity": 2500000.00,
+        "annual_revenue": 4800000.00,
+        "employee_count": 42,
+        "years_in_business": 11,
+        "status": "active",
+        "verified_at": "2026-08-10T14:22:31Z"
+      },
+      "agreement": {
+        "agreement_type": "mta",
+        "status": "executed",
+        "executed_at": "2026-08-14T18:03:12Z",
+        "expires_at": "2028-08-14T18:03:12Z",
+        "signed_name": "Jane Doe",
+        "signed_title": "Owner",
+        "signed_ip": "72.1.44.210",
+        "signed_user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+        "content_hash": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+        "template_version": "2026-08-16",
+        "document_id": 812,
+        "document_name": "Master Teaming Agreement - Acme Construction & Remodeling LLC.pdf"
+      }
+    },
+    "vendor_unsigned": {
+      "$note": "Registered, pending status, never signed (fixtures for the gate + banner states).",
+      "user": { "username": "peak.contracting", "email": "bob@peakcontracting.com", "role": "vendor", "is_active": true },
+      "profile": {
+        "business_name": "Peak Roofing & Contracting LLC",
+        "vendor_type": "service",
+        "uei": "Q2W4E6R8T1Y3",
+        "cage_code": "4J9K1",
+        "tax_id": "88-7654321",
+        "naics_codes": ["238160"],
+        "capabilities": "Roofing, siding, and exterior restoration.",
+        "phone": "(770) 555-0198",
+        "address_line1": "88 Mountain View Rd",
+        "city": "Cumming",
+        "state": "GA",
+        "zip": "30041",
+        "status": "pending"
+      },
+      "agreement": null
+    },
+    "vendor_admin_created_no_profile": {
+      "$note": "Admin-created user with role vendor but NO vendor_profiles row (fixtures for the 404 path).",
+      "user": { "username": "spectrum.electric", "email": "contact@spectrumelectric.com", "role": "vendor", "is_active": true },
+      "profile": null,
+      "agreement": null
+    }
+  },
+
+  "edge_cases": {
+    "sign_request_consent_false": {
+      "$note": "consent must be exactly true — this request MUST 400.",
+      "request": { "signed_name": "Bob Smith", "signed_title": "President", "consent": false },
+      "expected": 400
+    },
+    "sign_request_empty_name": {
+      "$note": "signed_name minLength 2 — this request MUST 400.",
+      "request": { "signed_name": "X", "signed_title": "President", "consent": true },
+      "expected": 400
+    },
+    "repeat_sign_idempotent": {
+      "$note": "Second POST for vendor_executed MUST return 200 already_signed=true with the SAME agreement id — partial unique index uq_vta_one_executed_mta holds.",
+      "request": { "signed_name": "Jane Doe", "signed_title": "Owner", "consent": true },
+      "expected": 200
+    },
+    "gate_unsigned_vendor": {
+      "$note": "vendor_unsigned calling a require_mta-protected endpoint MUST 403.",
+      "expected": 403
+    }
+  }
+}

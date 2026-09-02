@@ -1,3 +1,4 @@
+
 # MASTER TEAMING AGREEMENT
 
 **This Master Teaming Agreement** ("Agreement") is entered into as of the date last signed below ("Effective Date"), by and between:
@@ -110,6 +111,7 @@ Justice Quest is a Georgia-based professional services firm that pursues federal
 **7.1 Vendor Acknowledgment.** Vendor acknowledges that any subcontract executed under an awarded Government prime contract will incorporate mandatory FAR and agency-specific flow-down clauses required by the prime contract. Vendor agrees to execute a subcontract containing such clauses as a condition of receiving work.
 
 **7.2 Minimum Flow-Downs.** Without limitation, applicable subcontracts may include flow-downs of:
+
 - FAR 52.222-26 (Equal Opportunity)
 - FAR 52.222-21 (Prohibition of Segregated Facilities)
 - FAR 52.203-7 (Anti-Kickback Procedures)

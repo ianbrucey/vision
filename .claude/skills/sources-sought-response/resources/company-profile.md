@@ -13,6 +13,10 @@
 | State of Incorporation | Georgia |
 | Business Type | Small Business (for-profit LLC) |
 | Website | justicequest.pro |
+| Country of Ownership | United States |
+| Years in Business | 1 (founded 2025) |
+| Number of Employees | 2 (supplemented by an established contractor network) |
+| Major Products | Vision AI (agentic legal platform, formerly Command AI); AI-driven workflow automation; custom software and cloud platforms |
 
 ## Federal Registration
 
