@@ -1,0 +1,130 @@
+                                    Statement of Work
+                                Requisition 143041-26-0066
+
+
+The NWFSC Fish Ecology (FE) Division requires the skills of an experienced C++ Programmer
+that has applied ecological knowledge to work on the Comprehensive Passage (COMPASS)
+model. COMPASS produces predictions of the effects of alternative dam and reservoir
+operations on juvenile salmon and steelhead survival and passage through the Columbia River
+hydropower system. It is an essential backbone for salmon life cycle modeling and supports
+decisions about hydropower operations and salmon and steelhead management.
+
+
+
+Technical details
+
+COMPASS is a complex multifaceted ecological model written in C++ for maximum computing
+performance and is expected to remain in use for the foreseeable future. The COMPASS
+codebase is based on object-oriented design and is split into many .cpp files, with each file
+containing functions related to handling a specific task. The total codebase is ~230,000 lines.
+The model is built under the Qt 6 development environment with C++ 17. Boost is also used in
+the compilation process. The codebase resides in a Git repository, with documented processes
+to install and configure the Qt environment to compile and deploy builds. Other tools are
+generally not under consideration to limit dependencies and need for licenses. Windows is the
+primary platform for the graphical user interface (GUI) and the anticipated userbase (a small
+team), but the current codebase and development environment can also compile the GUI for
+Linux and Mac OSX. Individual builds of the model may be in use for ~1 year before being
+superseded by a new build. NOAA will provide all data necessary to run the model, including
+input datafiles, historical model builds, and historical model outputs. The contractor will have
+access to NOAA internal systems, repositories, and servers necessary to accomplish the tasks.
+The contractor is expected to work with NOAA personnel to troubleshoot and debug the
+program and to implement new ecological features. Code and documentation developed under
+this contract will be the property of the U.S. Government.
+
+
+
+Key qualifications
+
+Required: A degree in a computer science field, 10+ years of applied programming experience,
+and proficiency in C++ specifically. Examples of completed projects using C++ can be used to
+demonstrate proficiency.
+
+Strongly preferred: Coursework in ecology, fisheries, oceanography, natural resources, or a
+related field. Experience working with complex ecological models that inform management
+decisions.
+Communication and Documentation
+
+NOAA expects regular (weekly to monthly) reports of changes made and any updates to user
+documentation. NOAA will work closely with the programmer to ensure regular significant
+progress and be flexible about the proportion of time spent across tasks each month. In
+practice, this means scheduled team progress meetings, ad hoc meetings, and consistent email
+or phone communication. The NOAA project leader will coordinate task priority and assess
+progress. The programmer will document progress and propose any needed changes.
+Decisions about best ways to solve particular problems will be decided by the team. Written
+approval by NOAA is required prior to any scope expansion.
+
+
+
+Base Year. The following tasks shall be completed by the last date of the base year (2026-
+2027). Tasks, listed in priority order below, are considered separate billable deliverables.
+Generally, a deliverable will be a summary describing how the task was performed with
+supporting documentation giving evidence that the updates work as expected.
+
+1) Complete development of the graphical user interface, which allows people to use the model
+in a user-friendly framework. The GUI is currently functional, with basic features for reading in
+datafiles, running scenarios, displaying key output statistics, editing certain model parameters,
+and saving modified scenarios to output files. Missing functionality is primarily related to the
+ability for the user to modify more of the model parameters, and to edit environmental data such
+as flow or temperature. The contractor is responsible for creating the Windows installer package
+for the GUI, following a documented process.
+
+2) Complete development of the adult passage module that allows for upstream migration and
+dam passage. This will include delay at dam tailraces, passage timing through adult fishways,
+travel time and survival in reservoirs, fallback over dams, and losses due to harvest. Preliminary
+development of these features is underway. A functionally complete version would include
+defensible ecological models for salmon reservoir survival and travel time, tailrace delay, ladder
+movement, fallback, and harvest. Parameters will be calibrated to data using a combination of
+radio-telemetry data and PIT tag data in collaboration with project scientists.
+
+3) Any future modifications necessary to allow the model to provide products requested by the
+West Coast Region office needed for investigating potential management actions. For example,
+requests may include specific cases evaluating operations such as spill levels that are being
+evaluated in support of litigation. Many other examples are also possible to provide real-time
+answers to support decisions associated with the Magnuson Stevens and Endangered Species
+Acts. New needs may arise as water resource management in the region changes, which may
+necessitate additions or modifications to the COMPASS model.
+
+4) Routine maintenance and minor modifications necessary to keep the model working and
+improve model performance and/or functionality. The current COMPASS model runtime is 5 to
+30 seconds for a typical model scenario- year. A Monte Carlo process running tens of
+thousands of scenario-years (the most intensive type of run we do) can take 24-48 hours.
+Memory footprint is ~200 MB total virtual usage. All current acceptance tests for the COMPASS
+model are based on parity – i.e., evaluating whether the program produces the correct answer
+for various test cases. The current performance statistics of the COMPASS model are
+considered acceptable, but as additional code is added, we need to ensure that it remains
+efficient to operate. This is a lower priority than implementing ecological features and
+addressing requests as outlined above.
+Option Year 1. The following tasks shall be completed by the last date of option year 1 (2027-
+2028). Note that option years are funded annually as funds allow.
+
+1) Continue to support products developed in year 1, including the GUI and adult passage
+module.
+
+2) Continue to implement modifications requested by the West Coast Regional office.
+
+3) Expand the model to include travel time and survival in tributaries. In particular, allow models
+of early migration that include periods of stationarity and incremental movement before the
+initiation of active migration during the juvenile life stage. Early migration behaviors vary across
+populations through space and time. Implement functionality of ecological components
+concurrently developed by project scientists into the codebase. Parameters will be calibrated to
+data using a combination of active tag and PIT tag data in collaboration with project scientists.
+
+4) Expand additional features in the COMPASS model if any needs are identified by NOAA
+scientists. Example feature expansions can include: a) modification of the model to allow for the
+life history of fall Chinook, which can hold in reservoirs over winter; and b) expanding the model
+to the Columbia River estuary to allow movement and survival through that section of the river
+while accounting for changes in water velocity due to tidal influence. The specific features are
+not yet decided and may change given new agency priorities.
+
+5) Continue to improve model efficiency and ease of use if it is deemed necessary and if time
+permits.
+
+
+
+Option Year 2. The following tasks shall be completed by the last date of option year 2 (2028-
+2029). Note that option years are funded annually as funds allow.
+
+1) Tasks identified in Option year 1.
+
+2) Expand features based on tasks completed in the previous year.
+

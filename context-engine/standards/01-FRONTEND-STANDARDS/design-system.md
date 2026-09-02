@@ -775,3 +775,28 @@ check mark: white, 2px stroke
 6. **Change border-radius from the three defined sizes** (`rounded-sm`, `rounded-lg`, `rounded-xl`).
 7. **Use colored shadows or glow effects.** Never.
 8. **Hardcode colors in components.** Every color must reference a CSS custom property or a Tailwind semantic token.
+
+---
+
+## 15. GSC Landing Page — Dark Navy Palette (Rebrand, Sept 2026)
+
+The public landing page (`src/app/page.tsx`) is dark navy so the white
+lettering in the GSC logo renders. These tokens are **the only dark-surface
+exception** in the design system; all in-app pages remain light.
+
+```
+GSC Navy (page bg)   #2e4e9a   --gsc-navy        Root background
+GSC Panel            #0B1430   --gsc-navy-panel  Cards, step panels
+GSC Line             #1E2A4D   --gsc-navy-line   Borders, dividers
+GSC Hover            #131F42   --gsc-navy-hover  Hover surfaces
+GSC Body             #AEB8D4   --gsc-body        Paragraph copy on navy
+GSC Dim              #7C89AB   --gsc-dim         Muted text, captions
+```
+
+**Rules for the dark page:**
+
+- Headings are `#FFFFFF` (use `text-white`), body copy `--gsc-body`, captions `--gsc-dim`.
+- Brand amber (`--brand`) remains the action color — verified contrast on navy.
+- Buttons, spacing, radius, and typography rules from §§2–8 apply unchanged.
+- These tokens live in `globals.css` under `@theme inline` as `--color-gsc-*`.
+- Do NOT use these tokens on light app pages, and do NOT put light surface tokens on the landing page.

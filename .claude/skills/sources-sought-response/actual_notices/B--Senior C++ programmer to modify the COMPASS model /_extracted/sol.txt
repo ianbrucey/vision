@@ -1,0 +1,2526 @@
+          SOLICITATION/CONTRACT/ORDER FOR COMMERCIAL PRODUCTS AND COMMERCIAL SERVICES
+                                                                                        1. REQUISITION NUMBER                      PAGE 1 OF   48
+NOTE: OFFEROR TO COMPLETE BLOCKS 12, 17, 23, 24, AND 30.
+                                                                                         143041-26-0066
+2. CONTRACT NUMBER                          3.AWARD/EFFECTIVE 4. ORDER NUMBER           5. SOLICITATION NUMBER                 6. SOLICITATION ISSUE
+                                              DATE                                      1305M326Q0368                             DATE
+
+                                                                                                                               08/06/2026
+                                  a. NAME                                               b. TELEPHONE NUMBER (No collect        8. OFFER DUE DATE/
+ 7. FOR SOLICITATION                                                                       calls)                                 LOCAL TIME
+ INFORMATION CALL:                GRACE LA PIERRE                                                                             08/20/2026 1500 ED
+                                                                                         206-526-4382
+9. ISSUED BY                   CODE    WAD-SAP-S                       10. THIS ACQUISITION IS     UNRESTRICTED OR         SET ASIDE: 100.00 % FOR:
+WAD-SAP                                                                    SMALL BUSINESS          WOMEN-OWNED SMALL           NORTH AMERICAN
+7600 Sand Point Way NE                                                     HUBZONE SMALL           BUSINESS (WOSB)         INDUSTRY CLASSIFICATION
+SEATTLE WA 98115                                                           BUSINESS                ECONOMICALLY               STANDARD (NAICS):
+                                                                           SERVICE-DISABLED        DISADVANTAGED            541511
+                                                                           VETERAN-OWNED           WOMEN-OWNED SMALL              SIZE STANDARD:
+                                                                           SMALL BUSINESS          BUSINESS (EDWOSB)
+                                                                           (SDVOSB)                8(A)                     $34
+11. DELIVERY FOR FREE ON    12. DISCOUNT TERMS                            13a. THIS CONTRACT IS A         13b. RATING
+    BOARD (FOB) DESTINATION                                                    RATED ORDER UNDER          14. METHOD OF SOLICITATION        REQUEST
+    UNLESS BLOCK IS MARKED                                                     THE DEFENSE PRIORITIES         REQUEST     INVITATION        FOR
+                                                                               AND ALLOCATIONS                FOR QUOTE   FOR BID           PROPOSAL
+       SEE SCHEDULE                                                            SYSTEM - DPAS (15 CFR 700)     (RFQ)       (IFB)             (RFP)
+15. DELIVER TO               CODE    FP730031                          16. ADMINISTERED BY               CODE      WAD-SAP-S
+FISH ECOLOGY DIVISION /F/NWC3                                           WAD-SAP
+NMFS 2725 MONTLAKE BLVD E                                               7600 Sand Point Way NE
+SEATTLE WA 98112                                                        SEATTLE WA 98115
+
+
+
+
+17a. CONTRACTOR/     CODE                       FACILITY               18a. PAYMENT WILL BE MADE BY         CODE
+     OFFEROR                                    CODE
+
+
+
+
+TELEPHONE NUMBER
+    17b. CHECK IF REMITTANCE IS DIFFERENT AND PUT SUCH ADDRESS IN       18b. SUBMIT INVOICES TO ADDRESS SHOWN IN BLOCK 18a UNLESS BLOCK
+         OFFER                                                               BELOW IS CHECKED       SEE ADDENDUM
+
+      19.                                        20.                                      21.         22.         23.                   24.
+   ITEM NO.                         SCHEDULE OF SUPPLIES/SERVICES                       QUANTITY     UNIT     UNIT PRICE              AMOUNT
+
+                 Period of Performance: 10/01/2026 to
+                 09/30/2027
+
+   0001          Base Year: Services of a senior C++ programmer
+                 are needed to complete development of the
+                                   Continued...
+                      (Use Reverse and/or Attach Additional Sheets as Necessary)
+25. ACCOUNTING AND APPROPRIATION DATA                                                              26. TOTAL AWARD AMOUNT (For Government Use Only)
+
+
+   27a. SOLICITATION INCORPORATES BY REFERENCE (FEDERAL ACQUISITION REGULATION) FAR 52.212-1, 52.212-4. ADDENDA        ARE         ARE NOT ATTACHED
+        FAR 52.212-3 AND 52.212-5 ARE ATTACHED.
+   27b. CONTRACT/PURCHASE ORDER INCORPORATES BY REFERENCE FAR 52.212-4. FAR 52.212-5 IS ATTACHED. ADDENDA              ARE         ARE NOT ATTACHED
+
+   28. CONTRACTOR IS REQUIRED TO SIGN THIS DOCUMENT AND RETURN 1                   29. AWARD OF CONTRACT: REFERENCE                             OFFER
+       COPIES TO ISSUING OFFICE. CONTRACTOR AGREES TO FURNISH
+       AND DELIVER ALL ITEMS SET FORTH OR OTHERWISE IDENTIFIED ABOVE AND           DATED.                  . YOUR OFFER ON SOLICITATION
+       ON ANY ADDITIONAL SHEETS SUBJECT TO THE TERMS AND CONDITIONS                (BLOCK 5), INCLUDING ANY ADDITIONS OR CHANGES WHICH ARE
+       SPECIFIED                                                                   SET FORTH HEREIN, IS ACCEPTED AS TO ITEMS:
+
+30a. SIGNATURE OF OFFEROR/CONTRACTOR                                   31a. UNITED STATES OF AMERICA (SIGNATURE OF CONTRACTING OFFICER)
+
+
+
+30b. NAME AND TITLE OF SIGNER (Type or print)       30c. DATE SIGNED   31b. NAME OF CONTRACTING OFFICER (Type or print)             31c. DATE SIGNED
+
+                                                                        CHARLES M. KENDALL
+
+AUTHORIZED FOR LOCAL REPRODUCTION                                                                   STANDARD FORM 1449 (REV. 11/2021)
+PREVIOUS EDITION IS NOT USABLE
+                                                                                                    Prescribed by GSA - FAR (48 CFR) 53.212
+                                                                                                                            PAGE 2 OF 48
+
+    19.                                     20.                                     21.            22.          23.             24.
+ ITEM NO.                      SCHEDULE OF SUPPLIES/SERVICES                      QUANTITY        UNIT      UNIT PRICE        AMOUNT
+              graphical user interface, the adult passage
+              module, expand the model to include travel time
+              and survival in tributaries, modify code to
+              improve speed and efficiency and reduce memory
+              usage, do routine maintenance to improve model
+              functionality and provide products requested by
+              the West Coast Region in accordance with
+              Attachment 01 - Statement of Work.
+              Product/Service Code: B516
+
+              Delivery: 09/30/2027
+
+ 1001         Option Year One: Services of a senior C++
+              programmer are needed to expand features in the
+              COMPASS model such as modifying the model to
+              allow for the life history of fall Chinook that
+              can hold over in reservoirs over winter or by
+              expanding the model to the Columbia River
+              estuary to allow movement and survival through
+              that section of the river while accounting for
+              changes in winter velocity caused by tidal
+              influence in accordance with Attachment 01 -
+              Statement of Work.
+              (Option Line Item)
+              Anticipated Exercise Date: 09/30/2027
+              Product/Service Code: B516
+
+              Delivery: 09/30/2028
+              Period of Performance: 10/01/2027 to
+              09/30/2028
+
+                                        Continued...
+32a. QUANTITY IN COLUMN 21 HAS BEEN
+   RECEIVED               INSPECTED        ACCEPTED, AND CONFORMS TO THE CONTRACT, EXCEPT AS NOTED:
+
+32b. SIGNATURE OF AUTHORIZED GOVERNMENT               32c. DATE           32d. PRINTED NAME AND TITLE OF AUTHORIZED GOVERNMENT
+     REPRESENTATIVE                                                            REPRESENTATIVE
+
+
+
+
+32e. MAILING ADDRESS OF AUTHORIZED GOVERNMENT REPRESENTATIVE              32f. TELEPHONE NUMBER OF AUTHORIZED GOVERNMENT REPRESENTATIVE
+
+
+
+                                                                          32g. EMAIL OF AUTHORIZED GOVERNMENT REPRESENTATIVE
+
+
+33. SHIP NUMBER            34. VOUCHER NUMBER     35. AMOUNT VERIFIED     36. PAYMENT                                     37. CHECK NUMBER
+                                                      CORRECT FOR
+
+   PARTIAL        FINAL                                                        COMPLETE           PARTIAL         FINAL
+
+              STOCK RECORD (S/R)                  40. PAID BY
+38. S/R ACCOUNT NUMBER 39. S/R VOUCHER NUMBER
+                                                                    42a. RECEIVED BY (Print)
+41a. I CERTIFY THIS ACCOUNT IS CORRECT AND PROPER FOR PAYMENT
+41b. SIGNATURE AND TITLE OF CERTIFYING OFFICER    41c. DATE         42b. RECEIVED AT (Location)
+
+
+                                                                    42c. DATE RECEIVED (MM/DD/YYYY) 42d. TOTAL CONTAINERS
+
+
+                                                                                        STANDARD FORM 1449 (REV. 11/2021) BACK
+                           REFERENCE NO. OF DOCUMENT BEING CONTINUED                                      PAGES
+
+CONTINUATION SHEET
+                            1305M326Q0368                                                                 PAGE 3 OF 48
+NAME OF OFFEROR OR CONTRACTOR
+
+
+ ITEM NO.                       SUPPLIES/SERVICES                      QUANTITY   UNIT UNIT PRICE             AMOUNT
+     (A)                                (B)                               (C)      (D)     (E)                    (F)
+  2001         Option Year Two: Services of a senior C++
+               programmer are needed to continue expanding
+               features in the COMPASS model based on tasks
+               completed in the previous year to continue
+               improving model efficiency and ease of use in
+               accordance with Attachment 01 - Statement of
+               Work.
+               (Option Line Item)
+               Anticipated Exercise Date: 09/30/2028
+               Product/Service Code: B516
+
+               Delivery: 09/30/2029
+               Period of Performance: 10/01/2028 to
+               09/30/2029
+
+
+
+
+NSN 7540-01-152-8067                                                                             OPTIONAL FORM 336 (4-86)
+                                                                                             Sponsored by GSA FAR (48 CFR) 53.110
+                                                                                                                1305M326Q0368 BASE
+
+
+Section II - Supplies or Services and Price/Costs ..........................................................................................5
+Section IX - Contract Clauses ........................................................................................................................7
+Section X - List of Attachments...................................................................................................................38
+Section XII - Instructions, Conditions, and Notices .....................................................................................39
+
+
+
+
+                                                                                                                                               Page 4
+                                                                                    1305M326Q0368 BASE
+
+
+                        Section II - Supplies or Services and Price/Costs
+CLIN List
+
+   Item
+                             Description                     Quantity Unit   Unit Price     Amount
+ Number
+0001
+            Base Year: Services of a senior C++
+            programmer are needed to complete
+            development of the graphical user interface,
+            the adult passage module, expand the model
+            to include travel time and survival in
+            tributaries, modify code to improve speed
+            and efficiency and reduce memory usage, do
+            routine maintenance to improve model
+            functionality and provide products requested
+            by the West Coast Region in accordance with
+            Attachment 01 - Statement of Work.
+            Award Type: Firm-fixed-price
+            Product/Service Code: B516
+            Requisition No: 143041-26-0066
+1001
+            Option Year One: Services of a senior C++
+            programmer are needed to expand features
+            in the COMPASS model such as modifying the
+            model to allow for the life history of fall
+            Chinook that can hold over in reservoirs over
+            winter or by expanding the model to the
+            Columbia River estuary to allow movement
+            and survival through that section of the river
+            while accounting for changes in winter
+            velocity caused by tidal influence in
+            accordance with Attachment 01 - Statement
+            of Work.
+            Award Type: Firm-fixed-price
+
+            (Option Line Item)
+
+            Anticipated Exercise Date: 09/30/2027
+            Product/Service Code: B516
+            Requisition No: 143041-26-0066
+            Period of Performance: 10/01/2027 to
+            09/30/2028
+2001
+            Option Year Two: Services of a senior C++
+            programmer are needed to continue
+            expanding features in the COMPASS model
+            based on tasks completed in the previous
+            year to continue improving model efficiency
+            and ease of use in accordance with
+            Attachment 01 - Statement of Work.
+
+
+
+                                                                                                     Page 5
+                                                                        1305M326Q0368 BASE
+
+ Item
+                         Description             Quantity Unit   Unit Price     Amount
+Number
+         Award Type: Firm-fixed-price
+
+         (Option Line Item)
+
+         Anticipated Exercise Date: 09/30/2028
+         Product/Service Code: B516
+         Requisition No: 143041-26-0066
+         Period of Performance: 10/01/2028 to
+         09/30/2029
+
+
+
+
+                                                                                         Page 6
+                                                                                  1305M326Q0368 BASE
+
+
+                                     Section IX - Contract Clauses
+Clauses
+
+RFO 52.203-17 Contractor Employee Whistleblower Rights. (NOV 2023)
+
+RFO 52.204-9 Personal Identity Verification of Contractor Personnel. (JAN 2011)
+
+RFO 52.204-10 Reporting Executive Compensation and First-Tier Subcontract Awards. (JUN 2020)
+(Deviation JAN 2026)
+
+RFO 52.204-13 System for Award Management-Maintenance. (OCT 2018) (Deviation JAN 2026)
+
+RFO 52.204-19 Incorporation by Reference of Representations and Certifications. (DEC 2014)
+
+RFO 52.209-6 Protecting the Government's Interest When Subcontracting With Contractors Debarred,
+Suspended, Proposed for Debarment, or Voluntarily Excluded. (JAN 2025) (Deviation JAN 2026)
+
+RFO 52.209-10 Prohibition on Contracting With Inverted Domestic Corporations. (NOV 2015)
+(Deviation JAN 2026)
+
+RFO 52.212-4 Terms and Conditions-Commercial Products and Commercial Services. (NOV 2023)
+(Deviation JAN 2026)
+
+RFO 52.219-6 Notice of Total Small Business Set-Aside. (NOV 2020) (Deviation JAN 2026)
+
+RFO 52.219-28 Postaward Small Business Program Rerepresentation. (JAN 2025) (Deviation JAN 2026)
+
+          (a) Definitions. As used in this clause-
+
+          Long-term contract means a contract of more than five years in duration, including options.
+          However, the term does not include contracts that exceed five years in duration because the
+          period of performance has been extended for a cumulative period not to exceed six months
+          under the clause at 52.217-8, Option to Extend Services, or other appropriate authority.
+
+          Small business concern-
+
+                  (1) Means a concern, including its affiliates, that is independently owned and operated,
+                  not dominant in its field of operation, and qualified as a small business under the
+                  criteria in 13 CFR part 121 and the size standard in paragraph (c) of this clause.
+
+                  (2) Affiliates, as used in this definition, means business concerns, one of whom directly
+                  or indirectly controls or has the power to control the others, or a third party or parties
+                  control or have the power to control the others. In determining whether affiliation
+                  exists, consideration is given to all appropriate factors including common ownership,
+                  common management, and contractual relationships. SBA determines affiliation based
+                  on the factors set forth at 13 CFR 121.103.
+
+          (b) If the Contractor represented that it was a small business concern, a small disadvantaged
+          business concern, or a joint venture that was any of the small business concerns identified in
+
+
+                                                                                                        Page 7
+                                                                        1305M326Q0368 BASE
+
+
+19.000(a)(3) prior to award of this contract, the Contractor shall rerepresent its size and
+socioeconomic status according to paragraph (e) of this clause or, if applicable, paragraph (g) of
+this clause, upon occurrence of any of the following:
+
+        (1) Within 30 days after execution of a novation agreement or within 30 days after
+        modification of the contract to include this clause, if the novation agreement was
+        executed prior to inclusion of this clause in the contract.
+
+        (2) Within 30 days after a merger or acquisition that does not require a novation or
+        within 30 days after modification of the contract to include this clause, if the merger or
+        acquisition occurred prior to inclusion of this clause in the contract.
+
+        (3) For long-term contracts-
+
+                (i) Within 60 to 120 days prior to the end of the fifth year of the contract; and
+
+                (ii) Within 60 to 120 days prior to the date specified in the contract for
+                exercising any option thereafter.
+
+(c) The Contractor shall rerepresent its size status in accordance with the size standard in effect
+at the time of this rerepresentation that corresponds to the North American Industry
+Classification System (NAICS) code(s) assigned to this contract. The small business size standard
+corresponding to this NAICS code(s) can be found at https://www.sba.gov/document/support--
+table-size-standards.
+
+(d) The small business size standard for a Contractor providing an end item that it does not
+manufacture, process, or produce itself, for a contract other than a construction or service
+contract, is 500 employees, or 150 employees for information technology value-added resellers
+under NAICS code 541519, if the acquisition-
+
+        (1) Was set aside for small business and has a value above the simplified acquisition
+        threshold;
+
+        (2) Used the HUBZone price evaluation preference regardless of dollar value, unless the
+        Contractor waived the price evaluation preference; or
+
+        (3) Was an 8(a), HUBZone, service-disabled veteran-owned, economically disadvantaged
+        women-owned, or women-owned small business set-aside or sole-source award
+        regardless of dollar value.
+
+(e) Except as provided in paragraph (g) of this clause, the Contractor shall make the
+representation(s) required by paragraph (b) of this clause by validating or updating all its
+representations in the Representations and Certifications section of the System for Award
+Management (SAM) and its other data in SAM, as necessary, to ensure that they reflect the
+Contractor's current status. The Contractor shall notify the contracting officer in writing within
+the timeframes specified in paragraph (b) of this clause, that the data have been validated or
+updated, and provide the date of the validation or update.
+
+
+
+
+                                                                                              Page 8
+                                                                                     1305M326Q0368 BASE
+
+
+        (f) If the Contractor represented that it was other than a small business concern prior to award
+        of this contract, the Contractor may, but is not required to, take the actions required by
+        paragraphs (e) or (g) of this clause.
+
+        (g) If the Contractor does not have representations and certifications in SAM, or does not have a
+        representation in SAM for the NAICS code applicable to this contract, the Contractor is required
+        to complete the following rerepresentation and submit it to the contracting office, along with
+        the contract number and the date on which the rerepresentation was completed:
+
+                  (1) The Contractor represents that it [ ] is, [ ] is not a small business concern under
+                  NAICS Code [ ] assigned to contract number [ ].
+
+                  (2) [Complete only if the Contractor represented itself as a small business concern in
+                  paragraph (g)(1) of this clause.] The Contractor represents that it [ ] is, [ ] is not, a small
+                  disadvantaged business concern as defined in 13 CFR 124.1001.
+
+                  (3) Women-owned small business (WOSB) joint venture eligible under the WOSB
+                  Program. The Contractor represents that it [ ] is, [ ] is not a joint venture that complies
+                  with the requirements of 13 CFR 127.506(a) through (c). [The Contractor shall enter the
+                  name and unique entity identifier of each party to the joint venture: __.]
+
+                  (4) Economically disadvantaged women-owned small business (EDWOSB) joint venture.
+                  The Contractor represents that it [ ] is,[ ] is not a joint venture that complies with the
+                  requirements of 13 CFR 127.506(a) through (c). [The Contractor shall enter the name
+                  and unique entity identifier of each party to the joint venture: __ .]
+
+                  (5) Service-disabled veteran-owned small business (SDVOSB) joint venture eligible under
+                  the SDVOSB Program. The Contractor represents that it [ ] is, [ ] is not an SDVOSB joint
+                  venture eligible under the SDVOSB Program that complies with the requirements of 13
+                  CFR 128.402. [The Contractor shall enter the name and unique entity identifier of each
+                  party to the joint venture: __.]
+
+                  (6) HUBZone joint venture eligible under the HUBZone Program.[ Complete only if the
+                  offeror is a HUBZone small business concern. ] The offeror represents, as part of its offer,
+                  that It [ ] is, [ ] is not a HUBZone joint venture that complies with the requirements of 13
+                  CFR 126.616(a) through (c). [The Contractor shall enter the name and unique entity
+                  identifier of each party to the joint venture: _____.] Each HUBZone small business
+                  concern participating in the HUBZone joint venture must be certified as a HUBZone
+                  concern. [Contractor to sign and date and insert authorized signer's name and
+                  title.______________________]
+
+(End of clause)
+
+FAR 52.222-3 Convict Labor. (JUN 2003)
+
+RFO 52.222-19 Child Labor-Cooperation with Authorities and Remedies. (JAN 2025) (Deviation JAN
+2026)
+
+RFO 52.222-36 Equal Opportunity for Workers with Disabilities. (JUN 2020) (Deviation JAN 2026)
+
+
+                                                                                                            Page 9
+                                                                                1305M326Q0368 BASE
+
+
+RFO 52.222-50 Combating Trafficking in Persons. (OCT 2025) (Deviation JAN 2026)
+
+RFO 52.222-55 Minimum Wages for Contractor Workers Under Executive Order 14026. (JAN 2022)
+
+RFO 52.222-62 Paid Sick Leave Under Executive Order 13706. (JAN 2022) (Not for DOC Use)
+
+RFO 52.222-90 Addressing DEI Discrimination by Federal Contractors ((DEVIATION April 2026))
+
+RFO 52.223-23 Sustainable Products. (MAY 2024) ((DEVIATION Jan 2026))
+
+RFO 52.225-3 Buy American - Free Trade Agreements - Israeli Trade Act. (NOV 2023) (Deviation JAN
+2026)
+
+RFO 52.226-8 Encouraging Contractor Policies To Ban Text Messaging While Driving. (MAY 2024)
+
+RFO 52.227-17 Rights in Data--Special Works. (DEC 2007)
+
+RFO 52.232-18 Availability of Funds. (APR 1984)
+
+RFO 52.232-33 Payment by Electronic Funds Transfer - System for Award Management. (OCT 2018)
+
+RFO 52.232-39 Unenforceability of Unauthorized Obligations. (JUN 2013)
+
+RFO 52.232-40 Providing Accelerated Payments to Small Business Subcontractors. (MAR 2023)
+
+RFO 52.233-3 Protest after Award. (AUG 1996) (Deviation JAN 2026)
+
+RFO 52.233-4 Applicable Law for Breach of Contract Claim. (OCT 2004) (Deviation JAN 2026)
+
+RFO 52.240-90 Security Prohibitions and Exclusions Representations and Certifications. (Deviation JAN
+2026)
+
+RFO 52.244-6 Subcontracts for Commercial Products and Commercial Services. (OCT 2025) (DEVIATION
+April 2026)
+
+RFO 52.253-1 Computer Generated Forms. (JAN 1991) (Deviation JAN 2026)
+
+CAR 1352.201-70 Contracting Officer's Authority. (MAR 2010)
+
+CAR 1352.209-73 Compliance with the laws. (APR 2010)
+
+CAR 1352.209-74 Organizational conflict of interest. (APR 2010)
+
+CAR 1352.239-72 Security requirements for information technology resources. (APR 2010)
+
+       (a) Applicability. This clause is applicable to all contracts that require contractor electronic
+       access to Department of Commerce sensitive non-national security or national security
+       information contained in systems, or administrative control of systems by a contractor that
+       process or store information that directly supports the mission of the Agency.
+
+
+
+
+                                                                                                      Page 10
+                                                                        1305M326Q0368 BASE
+
+
+(b) Definitions. For purposes of this clause, the term "Sensitive" is defined by the guidance set
+forth in the Computer Security Act of 1987 (Pub. L. 100-235), including the following definition
+of the term:
+
+        (1) Sensitive information is " * * * any information, the loss, misuse, or unauthorized
+        access to, or modification of which could adversely affect the national interest or the,
+        conduct of Federal programs, or the privacy to which individuals are entitled under
+        section 552a of title 5, United States Code (The Privacy Act), but which has not been
+        specifically authorized under criteria established by an Executive Order or an Act of
+        Congress to be kept secret in the interest of national defense or foreign policy."
+
+        (2) For purposes of this clause, the term "National Security" is defined by the guidance
+        set forth in:
+
+                (i) The DOC IT Security Program Policy and Minimum Implementation Standards,
+                Section 4.3.
+
+                (ii) The DOC Security Manual, Chapter 18.
+
+                (iii) Executive Order 12958, as amended, Classified National Security
+                Information. Classified or national security information is information that has
+                been specifically authorized to be protected from unauthorized disclosure in the
+                interest of national defense or foreign policy under an Executive Order or Act of
+                Congress.
+
+        (3) Information technology resources include, but are not limited to, hardware,
+        application software, system software, and information (data). Information technology
+        services include, but are not limited to, the management, operation (including input,
+        processing, transmission, and output), maintenance, programming, and system
+        administration of computer systems, networks, and telecommunications systems.
+
+(c) The contractor shall be responsible for implementing sufficient Information Technology
+security, to reasonably prevent the compromise of DOC IT resources for all of the contractor's
+systems that are interconnected with a DOC network or DOC systems that are operated by the
+contractor.
+
+(d) All contractor personnel performing under this contract and contractor equipment used to
+process or store DOC data, or to connect to DOC networks, must comply with the requirements
+contained in the DOC Information Technology Management Handbook (see DOC, Office of the
+Chief Information Officer Web site), or equivalent/more specific agency or operating unit
+counsel guidance as specified immediately hereafter [insert agency or operating unit counsel
+specific guidance, if applicable].
+
+(e) Contractor personnel requiring a user account for access to systems operated by the
+contractor for DOC or interconnected to a DOC network to perform contract services shall be
+screened at an appropriate level in accordance with Commerce Acquisition Manual 1337.70,
+Security Processing Requirements for Service Contracts.
+
+
+
+
+                                                                                            Page 11
+                                                                        1305M326Q0368 BASE
+
+
+(f) Within 5 days after contract award, the contractor shall certify in writing to the COR that its
+employees, in performance of the contract, have completed initial IT security orientation
+training in DOC IT Security policies, procedures, computer ethics, and best practices, in
+accordance with DOC IT Security Program Policy, chapter 15, section 15.3. The COR will inform
+the contractor of any other available DOC training resources. Annually thereafter the contractor
+shall certify in writing to the COR that its employees, in performance of the contract, have
+completed annual refresher training as required by section 15.4 of the DOC IT Security Program
+Policy.
+
+(g) Within 5 days of contract award, the contractor shall provide the COR with signed
+acknowledgement of the provisions as contained in Commerce Acquisition Regulation (CAR),
+1352.209-72, Restrictions Against Disclosures.
+
+(h) The contractor shall afford DOC, including the Office of Inspector General, access to the
+contractor's and subcontractor's facilities, installations, operations, documentation, databases,
+and personnel used in performance of the contract. Access shall be provided to the extent
+required to carry out a program of IT inspection, investigation, and audit to safeguard against
+threats and hazards to the integrity, availability, and confidentiality of DOC data or to the
+function of computer systems operated on behalf of DOC, and to preserve evidence of
+computer crime.
+
+(i) For all contractor-owned systems for which performance of the contract requires
+interconnection with a DOC network on which DOC data will be stored or processed, the
+contractor shall provide, implement, and maintain a System Accreditation Package in
+accordance with the DOC IT Security Program Policy. Specifically, the contractor shall:
+
+        (1) Within 14 days after contract award, submit for DOC approval a System Certification
+        Work Plan, including project management information (at a minimum the tasks,
+        resources, and milestones) for the certification effort, in accordance with DOC IT
+        Security Program Policy and [Insert agency or operating unit counsel specific guidance, if
+        applicable]. The Certification Work Plan, approved by the COR, in consultation with the
+        DOC IT Security Officer, or Agency/operating unit counsel IT Security Manager/Officer,
+        shall be incorporated as part of the contract and used by the COR to monitor
+        performance of certification activities by the contractor of the system that will process
+        DOC data or connect to DOC networks. Failure to submit and receive approval of the
+        Certification Work Plan may result in termination of the contract.
+
+        (2) Upon approval, follow the work plan schedule to complete system certification
+        activities in accordance with DOC IT Security Program Policy Section 6.2, and provide the
+        COR with the completed System Security Plan and Certification Documentation Package
+        portions of the System Accreditation Package for approval and system accreditation by
+        an appointed DOC official.
+
+        (3) Upon receipt of the Security Assessment Report and Authorizing Official's written
+        accreditation decision from the COR, maintain the approved level of system security as
+        documented in the Security Accreditation Package, and assist the COR in annual
+        assessments of control effectiveness in accordance with DOC IT Security Program Policy,
+        Section 6.3.1.1.
+
+
+                                                                                             Page 12
+                                                                                1305M326Q0368 BASE
+
+
+        (j) The contractor shall incorporate this clause in all subcontracts that meet the conditions in
+        paragraph (a) of this clause.
+
+(End of clause)
+
+DOC 2026 REAL ID ENFORCEMENT REAL ID Act Enforcement
+
+As of January 1, 2026, all Department of Commerce–owned or leased facilities will only accept a REAL
+ID-compliant form of identification. Visitors with state-issued identification must now present a REAL ID
+or a different form of government-issued photo identification, such as: A passport, an Enhanced Driver's
+License, or a federal employee, military, or veteran identification card (this list is not all-inclusive).
+Additional information about the Department’s implementation plan may be found at
+https://www.commerce.gov/OSY/REAL-ID .
+
+
+Standard Language UTILIZATION OF FEDCONNECT FOR CONTRACT ADMINISTRATION
+
+The Department of Commerce will utilize the FedConnect® web portal in administering this award. The
+contractor must be registered in FedConnect® and have access to the FedConnect® website located at
+https://www.fedconnect.net/Fedconnect/. For assistance in registering or for other FedConnect®
+questions please call the FedConnect® Help Desk at (800) 899-6665 or email at
+support@fedconnect.net. There is no charge for registration in or use of FedConnect®.
+
+RFO 52.217-8 Option To Extend Services. (NOV 1999)
+
+The Government may require continued performance of any services within the limits and at the rates
+specified in the contract. These rates may be adjusted only as a result of revisions to prevailing labor
+rates provided by the Secretary of Labor. The option provision may be exercised more than once, but
+the total extension of performance hereunder shall not exceed 6 months. The Contracting Officer may
+exercise the option by written notice to the Contractor within 15 days.
+
+If the Government fails to extend the term of the contract within the period identified and the
+Government has provided a written notice to the Contractor that the action is undergoing review in
+accordance with Department of Commerce procedures for implementing Executive Order 14222 the
+contractor shall stop all work and incur no costs to be charged to the Government. Once the
+Department of Commerce’s review process has occurred, or no later than 30 days from the initial review
+notification, the Government will notify the contractor if the option may be exercised and, if so, adjust
+start and end dates of the period of performance accordingly. The Government will then extend the
+term of the contract with a bilateral modification.
+
+(End of Clause)
+
+RFO 52.217-9 Option To Extend the Term of the Contract. (MAR 2000)
+
+(a) The Government may extend the term of this contract by written notice to the Contractor within 15
+days; provided that the Government gives the Contractor a preliminary written notice of its intent to
+extend at least 15 days before the contract expires. The preliminary notice does not commit the
+Government to an extension.
+
+
+
+                                                                                                     Page 13
+                                                                                  1305M326Q0368 BASE
+
+
+If the Government fails to extend the term of the contract within the period identified and the
+Government has provided a written notice to the Contractor that the action is undergoing review in
+accordance with Department of Commerce procedures for implementing Executive Order 14222 the
+contractor shall stop all work and incur no costs to be charged to the Government. Once the
+Department of Commerce’s review process has occurred, or no later than 30 days from the initial review
+notification, the Government will notify the contractor if the option may be exercised and, if so, adjust
+start and end dates of the period of performance accordingly. The Government will then extend the
+term of the contract with a bilateral modification.
+
+(b)If the Government exercises this option, the extended contract shall be considered to include this
+option clause.
+
+(c)The total duration of this contract, including the exercise of any options under this clause, shall not
+exceed 3 years 6 months.
+
+
+
+RFO 52.252-2 Clauses Incorporated by Reference. (FEB 1998)
+
+This contract incorporates one or more clauses by reference, with the same force and effect as if they
+were given in full text. Upon request, the Contracting Officer will make their full text available. Also, the
+full text of a clause may be accessed electronically at this/these address(es): www.acquisition.gov/far-
+overhaul/far-part-deviation-guide
+
+(End of clause)
+
+RFO 52.252-6 Authorized Deviations in Clauses. (NOV 2020)
+
+        (a) The use in this solicitation or contract of any Federal Acquisition Regulation (48 CFR Chapter
+        1) clause with an authorized deviation is indicated by the addition of (DEVIATION) after the date
+        of the clause.
+
+        (b) The use in this solicitation or contract of any Commerce Acquisition Regulation (48 CFR 13)
+        clause with an authorized deviation is indicated by the addition of (DEVIATION) after the name
+        of the regulation.
+
+(End of clause)
+
+CAR 1352.237-71 Security processing requirements-low risk contracts (APR 2010)
+
+        (a) Investigative Requirements for Low Risk Contracts. All contractor (and subcontractor)
+        personnel proposed to be employed under a Low Risk contract shall undergo security processing
+        by the Department's Office of Security before being eligible to work on the premises of any
+        Department of Commerce owned, leased, or controlled facility in the United States or overseas,
+        or to obtain access to a Department of Commerce IT system. All Department of Commerce
+        security processing pertinent to this contract will be conducted at no cost to the contractor.
+
+        (b) Investigative requirements for Non-IT Service Contracts are:
+
+
+
+                                                                                                       Page 14
+                                                                       1305M326Q0368 BASE
+
+
+        (1) Contracts more than 180 days-National Agency Check and Inquiries (NACI).
+
+        (2) Contracts less than 180 days-Special Agency Check (SAC).
+
+(c) Investigative requirements for IT Service Contracts are:
+
+        (1) Contracts more than 180 days-National Agency Check and Inquiries (NACI).
+
+        (2) Contracts less than 180 days-National Agency Check and Inquiries (NACI).
+
+(d) In addition to the investigations noted above, non-U.S. citizens must have a background
+check that includes an Immigration and Customs Enforcement agency check.
+
+(e) Additional Requirements for Foreign Nationals (Non-U.S. Citizens). Non-U.S. citizens (lawful
+permanent residents) to be employed under this contract within the United States must have:
+
+        (1) Official legal status in the United States;
+
+        (2) Continuously resided in the United States for the last two years; and
+
+        (3) Obtained advance approval from the servicing Security Officer in consultation with
+        the Office of Security headquarters.
+
+(f) DOC Security Processing Requirements for Low Risk Non-IT Service Contracts. Processing
+requirements for Low Risk non-IT Service Contracts are as follows:
+
+        (1) Processing of a NACI is required for all contract employees employed in Low Risk
+        non-IT service contracts for more than 180 days. The Contracting Officer's
+        Representative (COR) will invite the prospective contractor into e-QIP to complete the
+        SF-85. The contract employee must also complete fingerprinting.
+
+        (2) Contract employees employed in Low Risk non-IT service contracts for less than 180
+        days require processing of Form OFI-86C Special Agreement Check (SAC), to be
+        processed. The Sponsor will forward a completed Form OFI-86C, FD-258, Fingerprint
+        Chart, and Credit Release Authorization to the servicing Security Officer, who will send
+        the investigative packet to the Office of Personnel Management for processing.
+
+        (3) Any contract employee with a favorable SAC who remains on the contract over 180
+        days will be required to have a NACI conducted to continue working on the job site.
+
+        (4) For Low Risk non-IT service contracts, the scope of the SAC will include checks of the
+        Security/Suitability Investigations Index (SII), other agency files (INVA), Defense
+        Clearance Investigations Index (DCII), FBI Fingerprint (FBIF), and the FBI Information
+        Management Division (FBIN).
+
+        (5) In addition, for those individuals who are not U.S. citizens (lawful permanent
+        residents), the Sponsor may request a Customs Enforcement SAC on Form OFI-86C, by
+        checking Block #7, Item I. In Block 13, the Sponsor should enter the employee's Alien
+        Registration Receipt Card number to aid in verification.
+
+
+
+                                                                                            Page 15
+                                                                          1305M326Q0368 BASE
+
+
+        (6) Copies of the appropriate forms can be obtained from the Sponsor or the Office of
+        Security. Upon receipt of the required forms, the Sponsor will forward the forms to the
+        servicing Security Officer. The Security Officer will process the forms and advise the
+        Sponsor and the Contracting Officer whether the contract employee can commence
+        work prior to completion of the suitability determination based on the type of work and
+        risk to the facility (i.e., adequate controls and restrictions are in place). The Sponsor will
+        notify the contractor of favorable or unfavorable findings of the suitability
+        determinations. The Contracting Officer will notify the contractor of an approved
+        contract start date.
+
+(g) Security Processing Requirements for Low Risk IT Service Contracts. Processing of a NACI is
+required for all contract employees employed under Low Risk IT service contracts.
+
+        (1) Contract employees employed in all Low Risk IT service contracts will require a
+        National Agency Check and Inquiries (NACI) to be processed. The Contracting Officer's
+        Representative (COR) will invite the prospective contractor into e-QIP to complete the
+        SF-85. Fingerprints and a Credit Release Authorization must be completed within three
+        working days from start of work, and provided to the Servicing Security Officer, who will
+        forward the investigative package to OPM.
+
+        (2) For Low Risk IT service contracts, individuals who are not U.S. citizens (lawful
+        permanent residents) must undergo a NACI that includes an agency check conducted by
+        the Immigration and Customs Enforcement Service. The Sponsor must request the ICE
+        check as a part of the NAC.
+
+(h) Notification of Disqualifying Information. If the Office of Security receives disqualifying
+information on a contract employee, the Sponsor and Contracting Officer will be notified. The
+Sponsor shall coordinate with the Contracting Officer for the immediate removal of the
+employee from duty requiring access to Departmental facilities or IT systems. Contract
+employees may be barred from working on the premises of a facility for any of the following
+reasons:
+
+        (1) Conviction of a felony crime of violence or of a misdemeanor involving moral
+        turpitude.
+
+        (2) Falsification of information entered on security screening forms or of other
+        documents submitted to the Department.
+
+        (3) Improper conduct once performing on the contract, including criminal, infamous,
+        dishonest, immoral, or notoriously disgraceful conduct or other conduct prejudicial to
+        the Government regardless of whether the conduct was directly related to the contract.
+
+        (4) Any behavior judged to pose a potential threat to Departmental information
+        systems, personnel, property, or other assets.
+
+(i) Failure to comply with security processing requirements may result in termination of the
+contract or removal of contract employees from Department of Commerce facilities or denial of
+access to IT systems.
+
+
+
+                                                                                               Page 16
+                                                                                 1305M326Q0368 BASE
+
+
+        (j) Access to National Security Information. Compliance with these requirements shall not be
+        construed as providing a contract employee clearance to have access to national security
+        information.
+
+        (k) The contractor shall include the substance of this clause, including this paragraph, in all
+        subcontracts.
+
+(End of clause)
+
+CAR 1352.246-70 Place of acceptance. (APR 2010)
+
+        (a) The Contracting Officer or the duly authorized representative will accept supplies and
+        services to be provided under this contract.
+
+        (b) The place of acceptance will be:
+
+        FISH ECOLOGY DIVISION /F/NWC3
+        NMFS 2725 MONTLAKE BLVD E
+        SEATTLE WA 98112
+
+(End of clause)
+
+CAR 1352.270-70 Period of performance. (APR 2010)
+
+        (a) The base period of performance of this contract is from 10/01/2026 through 09/30/2027. If
+        an option is exercised, the period of performance shall be extended through the end of that
+        option period.
+
+        (b) The option periods that may be exercised are as follows:
+
+        Option Year One: 10/01/2027 to 09/30/2028
+        Option Year Two: 10/01/2028 to 09/30/2029
+
+        (c) The notice requirements for unilateral exercise of option periods are set out in FAR 52.217-9.
+
+(End of clause)
+
+NOAA Acquisition Manual 1330-52.222-70 NOAA SEXUAL ASSAULT AND SEXUAL HARASSMENT
+PREVENTION AND RESPONSE POLICY (MAY 2018)
+
+In accordance with NOAA Administrative Order (NAO) 202-1106, NOAA Sexual Assault and Sexual
+Harassment Prevention and Response Policy, it is the policy of NOAA to maintain a work environment
+free from sexual assault and sexual harassment. NOAA prohibits sexual assault and sexual harassment
+by or of any employee, supervisor, manager, contractor, vendor, affiliate, or other individual with whom
+NOAA employees come into contact by the virtue of their work for NOAA.
+
+(a) Definitions.
+
+
+
+
+                                                                                                      Page 17
+                                                                                  1305M326Q0368 BASE
+
+
+Contractor Employees - The term “contractor employees,” as used in this solicitation and contract
+language, refers to employees of the prime contractor or its subcontractors, affiliates, consultants, or
+team members.
+
+Sexual Assault - The term sexual assault, as used in this solicitation and contract language, means any
+conduct proscribed by state or federal sexual abuse laws, including, but not limited to, those defined in
+chapter 109A of title 18 of the U.S. Code (sexual abuse), and assaults committed both by offenders who
+are strangers to the victim and by offenders who are known or related by blood or marriage to the
+victim.
+
+Sexual Harassment - As defined by the Equal Employment Opportunity Commission, sexual harassment
+is a form of sex discrimination that violates Title VII of the Civil Rights Act of 1964. It includes unwelcome
+sexual advances, requests for sexual favors, and other verbal, non-verbal, or physical conduct of a sexual
+nature when any of the following are true:
+
+● Submission to such conduct is made either explicitly or implicitly as a term or condition of an
+individual's employment;
+
+● Submission to or rejection of such conduct by an individual is used as the basis for employment
+decisions affecting such individual;
+
+● The conduct unreasonably interferes with an individual's work performance or creates an intimidating,
+hostile, or offensive working environment.
+
+The main characteristics of sexual harassment are that the harasser's conduct is targeted against the
+recipient’s sex, gender identity, or sexual orientation, and is unwelcome to the recipient. It may include,
+but is not limited to: offensive jokes, slurs, epithets or name calling, undue attention, physical assaults
+or threats, unwelcome touching or contact, intimidation, ridicule or mockery, insults or put-downs,
+constant or unwelcome questions about an individual's identity, and offensive objects or pictures.
+
+(b) Requirements.
+
+1. It is the responsibility of the contractor to ensure that contractor employees maintain the highest
+degree of conduct and standards in performance of the contract. In support of this, NOAA urges its
+contractors to develop and enforce comprehensive company policy addressing sexual assault and sexual
+harassment.
+
+2. The contractor shall include wording substantially the same as this solicitation and contract language
+in every subcontract so that it is binding upon each subcontractor.
+
+3. If a contractor employee observes or is the object of sexual assault or sexual harassment, he or she is
+highly encouraged to report the matter, as soon as possible, to their immediate supervisor, the COR,
+subset of the COR (e.g. Task Manager or Assistant COR), or contracting officer (CO) if a COR is not
+assigned to the contract. The contract employee may also contact the NOAA Civil Rights Office to obtain
+guidance on reporting instances of sexual assault or sexual harassment. If deemed necessary, the
+contractor employee may also report such instances to local law enforcement. In the case where the
+incident occurs while performing at a remote location, such as at sea or in the field (at a field camp or
+other isolated location) where the above referenced individuals are unavailable, the contractor
+
+
+
+                                                                                                       Page 18
+                                                                              1305M326Q0368 BASE
+
+
+employee should follow the reporting procedure set forth in NAO 202-1106, Section 6.07, Reporting
+from Remote Locations.
+
+4. Swift reporting allows NOAA and the contractor to take the appropriate measures to ensure that
+offensive behavior stops and the complainants’ needs are addressed.
+
+5. The COR (if assigned), CO, and contractor, where applicable, will work together to ensure appropriate
+action is taken in accordance with applicable laws and regulations, contract terms and conditions, and
+the contractor’s written policy (where applicable).
+
+6. The contractor shall provide all contractor employees assigned to perform under this contract with
+mandatory sexual assault and sexual harassment prevention and response training in compliance with
+the requirements of NAO 202-1106, Section 5, Prevention Training and Awareness, as part of their initial
+in-processing and on an annual basis thereafter. The initial training shall be completed within [ ]
+business days (30 unless a different number is inserted) of contract award or the date a contractor
+employee is assigned to perform under the contract, as applicable.
+
+Evidence of initial training by name and date completed for each contractor employee, shall be
+submitted to the COR or contracting officer (if no COR assigned) within 10 business days of completion.
+
+Evidence of annual training by name and date completed for each contractor employee shall be
+submitted to the COR or contracting officer (if no COR assigned) no later than March 1st of each
+calendar year of contract performance.
+
+7. The mandatory sexual assault and sexual harassment training provided by the contractor shall include
+the required elements set forth by NOAA’s Workplace Violence Program Manager. A link to the website
+including the required elements of the training is provided at
+https://www.noaa.gov/organization/acquisition-grants/noaa-workplace-harassment-training-for-
+contractors-and-financial. The website will also provide training materials and resources to assist the
+contractor in conducting the training. The contractor may provide training that solely addresses the
+NOAA required elements or may supplement existing company sexual assault and sexual harassment
+training in a manner that ensures all of the elements are adequately addressed.
+
+8. The required elements of the training and resources available to the contractor for the training may
+be updated by NOAA periodically. The contractor is responsible for monitoring the website and
+incorporating any changes to the NOAA required elements into the contractor provided training.
+
+9. NOAA’s Workplace Violence Program Manager, COR, or CO may periodically review the contractor’s
+training outline to ensure all required elements are included and, if necessary, any appropriate
+adjustments are made to the training by the contractor.
+
+10. Contractor employees performing on assignments in a remote location, such as at a field camp or
+other isolated locations, are subject to receiving the same briefing on the parameters of the order
+provided to NOAA employees as set forth in Section 6 of NAO 202-1106.
+
+11. The contractor shall provide a copy of this solicitation and contract language and NAO 202-1106 to
+contractor employees.
+
+(c) Sexual Assault/Sexual Harassment (SASH) Helpline.
+
+
+                                                                                                   Page 19
+                                                                                1305M326Q0368 BASE
+
+
+For NOAA employees, affiliates, and contractors who have experienced sexual assault or sexual
+harassment, NOAA has established the NOAA Sexual Assault/Sexual Harassment (SASH) helpline. This
+helpline is designed to provide crisis intervention, referrals, and emotional support to those who are
+victims and/or survivors of sexual harassment or sexual assault within the workplace. Contractor
+employees may use the helpline to receive live, confidential, one-on-one support in an occurrence of
+sexual harassment or assault by a Federal Government employee.
+
+All services are anonymous, secure, and available worldwide, 24 hours a day, seven days a week. The
+NOAA SASH helpline is accessible through a variety of channels, including:
+
+● Phone: 1-866-288-6558
+
+● Website & Online Chat: https://www.noaasashhelpline.org/
+
+● Mobile App: NOAA SASH Helpline (available via iOS and Android App Stores)
+
+● Text: (202) 335-0265
+
+(d) Confidentiality.
+
+Any party receiving information from the filing of a complaint alleging sexual assault or sexual
+harassment, or while performing an investigation into such a complaint, shall keep the information
+confidential. “Confidentiality” means that the information shall only be shared with others who have a
+need to know the information to conduct their official duties.
+
+(e) Remedies.
+
+In addition to other remedies available to the Government, contractor employee violations of Federal
+requirements (e.g., law, statutes, executive orders, code, rules, regulations) applicable to sexual assault
+and sexual harassment and/or failure to complete the mandatory training set forth in this solicitation
+and contract language, may result in:
+
+1. Requiring the contractor to remove a contractor employee or employees from the performance of the
+contract;
+
+2. Requiring the contractor to terminate a subcontract;
+
+3. Suspension of contract payments until the Contractor has taken appropriate remedial action;
+
+4. Termination of the contract for default or cause, in accordance with the termination clause of this
+contract;
+
+5. Suspension or debarment; or
+
+6. Other appropriate action.
+
+(End of solicitation and contract language)
+
+NOAA Acquisition Manual 1330-52.232-71 ELECTRONIC SUBMISSION OF PAYMENT REQUESTS (FEB
+2023)
+
+
+                                                                                                     Page 20
+                                                                               1305M326Q0368 BASE
+
+
+The Contractor must submit payment requests electronically through the U.S. Department of the
+Treasury's Invoice Processing Platform System (IPP). The Contractor must use the IPP website to
+register, access, and submit payment requests. The IPP website address is https://www.ipp.gov.
+
+"Payment request" means any request for contract financing payment or invoice payment to the
+Contractor. To be considered proper, invoices must be prepared in accordance with, and contain all
+elements specified in, the contract payment clause (e.g., FAR 52.212-4(g), FAR 52.232-25(a)(3), FAR
+52.232-26(a)(2), FAR 52.232-27(a)(2)).
+
+The Contractor must include the following documents as attachments to payment requests submitted
+through the IPP: Vendor Invoice.
+
+If the Contractor is unable to comply with the requirement to submit payment requests through the IPP
+due to a threat to national security; a matter of unusual or compelling urgency; or because the political,
+financial, or communications infrastructure of a foreign country does not support access to the IPP, the
+Contractor must request an exception in writing. Contact the Contracting Officer for more information
+about requesting an exception.
+
+(End of solicitation and contract language)
+
+NOAA Acquisition Manual 1330-52.237-70 CONTRACTOR COMMUNICATIONS
+
+(a) A contractor employee shall be identified both by the individual’s name and the contractor’s name
+when:
+
+● Included in NOAA’s locator, and
+
+● When submitting any type of electronic correspondence to any NOAA employee or stakeholder.
+
+(b) Any written correspondence from a contractor or any contractor employee shall be printed on
+company/organization letterhead or otherwise clearly identify the sender as an employee of the
+company or organization and shall identify the contract number.
+
+(c) Contractors and/or contractor employees shall clearly identify themselves as such in any verbal
+communications, whether in informal discussion or a formal meeting.
+
+(End of solicitation and contract language)
+
+NOAA Acquisition Manual 1330-52.237-71 NOAA GOVERNMENT-CONTRACTOR RELATIONS - NON-
+PERSONAL SERVICES CONTRACT (SEPT 2017)
+
+(a) The Government and the contractor understand and agree that the services to be delivered under
+this contract by the contractor to the Government are non-personal services as defined in FAR Part 37,
+Service Contracting, and the parties recognize and agree that no employer-employee relationship exists
+or will exist under the contract between the Government and the contractor’s personnel. It is, therefore,
+in the best interest of the Government to afford both parties an understanding of their respective
+obligations.
+
+(b) Contractor personnel under this contract shall not:
+
+
+
+                                                                                                    Page 21
+                                                                               1305M326Q0368 BASE
+
+
+1. Be placed in a position where they are under relatively continuous supervision and control of a
+Government employee.
+
+2. Be placed in a position of command, supervision, administration, or control over Government
+personnel or over personnel of other contractors performing under other NOAA contracts.
+
+(c) The services to be performed under this contract do not require the contractor or the contractor’s
+personnel to exercise personal judgment and discretion on behalf of the Government. Rather, the
+contractor’s personnel will act and exercise personal judgment and discretion on behalf of the
+contractor.
+
+(d) Rules, regulations, directives, and requirements that are issued by the Department of Commerce and
+NOAA under its responsibility for good order, administration, and security are applicable to all personnel
+who enter the Government installation and facilities, who are provided access to Government systems,
+or who travel on Government transportation. This is not to be construed or interpreted to establish any
+degree of Government control that is inconsistent with a non-personal services contract.
+
+(e) Both parties are responsible for monitoring contract activities for indications of improper employee-
+employer relationships during performance. In the event a situation or occurrence takes place
+inconsistent with this contract language, the following applies:
+
+1. The contractor shall notify the contracting officer in writing within 5 business days from the date of
+any situation or occurrence where the contractor considers specific contract activity to be inconsistent
+with the intent of this contract language. The notice must include the date, nature and circumstance of
+the situation or occurrence, the name, function and activity of each Government employee or
+contractor employee involved or knowledgeable about the situation or occurrence, provide any
+documents or the substance of any oral communications related to the activity, and an estimated date
+by which the Government is recommended to respond to the notice in order to minimize cost, delay, or
+disruption of performance.
+
+2. The contracting officer will review the information provided by the contractor, obtain additional
+information (if needed), and respond in writing as soon as practicable after receipt of the notification
+from the contractor. The contracting officer’s response will provide a decision on whether the
+contracting officer determines the situation or occurrence to be inconsistent with the intent of this
+contract language and, if deemed necessary, will specify any corrective action(s) to be taken in order to
+resolve the issue.
+
+(End of solicitation and contract language)
+
+NOAA Acquisition Manual 1330-52.237-72 CONTRACTOR ACCESS TO NOAA FACILITIES (SEPT 2017)
+
+(a)
+
+1. The performance of this contract requires employees of the prime contractor or its subcontractors,
+affiliates, consultants, or team members (“contractor employees”) to have access to and to the extent
+authorized, mobility within, a NOAA facility.
+
+2. NOAA may close and or otherwise deny contractor employees access to a NOAA facility for a portion
+of a business day or longer for various reasons including, but not limited, to the following events:
+
+
+                                                                                                     Page 22
+                                                                                 1305M326Q0368 BASE
+
+
+i. Federal public holidays for Federal employees in accordance with 5 U.S.C. 6103;
+
+ii. Fires, floods, earthquakes, and unusually severe weather, including but not limited to snow storms,
+tornadoes, and hurricanes;
+
+iii. Occupational safety or health hazards;
+
+iv. Lapse in Appropriations; or
+
+v. Federal Statute, Executive Order, Presidential Proclamation, or any other unforeseen reason.
+
+3. In such events, the contractor employees may be denied access to a NOAA facility that is ordinarily
+available for the contractor to perform work or make delivery, as required by the contract.
+
+(b) In all instances where contractors are denied access or required to vacate a NOAA facility, in part or
+in whole, the contractor shall be responsible to ensure contractor personnel working under the contract
+comply. If the circumstances permit, the contracting officer will provide direction to the contractor,
+either directly or through the COR, which could include continuing on-site performance during the
+NOAA facility closure period; however, if Government oversight is required and is not available, on-site
+performance shall not be allowed. In the absence of such direction, the contractor shall exercise sound
+judgment to minimize unnecessary contract costs and performance impacts, for example, performing
+required work off- site if possible or reassigning personnel to other activities if appropriate.
+
+(c) The contractor shall be responsible for monitoring the Office of Personnel Management at opm.gov,
+the local radio, television stations, NOAA web sites, and other communication channels. Once the
+facility is accessible, the contractor shall resume contract performance as required by the contract.
+
+(d) For the period that NOAA facilities were not accessible to contractors who required access in order
+to perform the services, the contracting officer may—
+
+1. Adjust the contract performance or delivery schedule for a period equivalent to the period the NOAA
+facility was not accessible;
+
+2. Forego the work; or
+
+3. Reschedule the work by mutual agreement of the parties.
+
+(e) Notification procedures of a NOAA facility closure, including contractor denial of access, are as
+follows:
+
+1. The contractor shall be responsible for notification of its employees of the NOAA facility closure to
+include denial of access to the NOAA facility. The dismissal of NOAA employees in accordance with
+statute and regulations providing for such dismissals shall not, in itself, equate to a NOAA facility closure
+in which contractors are denied access. Moreover, the leave status of NOAA employees shall not be
+conveyed or imputed to contractor personnel. Accordingly, unless a NOAA facility is closed and the
+contractor is denied access to the facility, the contractor shall continue performance in accordance with
+the contract.
+
+
+
+
+                                                                                                        Page 23
+                                                                                1305M326Q0368 BASE
+
+
+2. Access to Government facilities and resources, including equipment and systems, will be limited and
+personnel necessary to administer contract performance may not be available. Generally, supply and
+service contracts that are funded beyond the date of the lapse in appropriation and do not require
+access to Government facilities, active administration by Government personnel or the use of
+Government resources in a manner that would cause the Government to incur additional obligations
+during the lapse in appropriation may continue. If a delivery date for a contract falls during the period of
+a lapse in appropriations, Government personnel may not be available to receive delivery. Contractors
+are directed to consult with a contracting officer before attempting to make a delivery. Contracting
+officers will be available throughout the lapse in appropriation period to provide guidance.
+
+Once OMB guidance is given, CORs, in consultation with the contracting officer, will notify those
+contractors that are deemed by the Program Office to be performing excepted work and identify the
+contractor personnel requiring access to NOAA facilities. CORs will also coordinate directly with facility
+management or physical security personnel at respective locations to ensure that the names of
+contractor personnel requiring access to Government facilities during the lapse in appropriations are
+provided to physical security personnel.
+
+Contractors who are not designated as performing excepted work are not allowed access to
+Government facilities or to utilize Government resources in a manner that would incur any additional
+obligation of funding on behalf of the Government during the lapse in appropriation.
+
+3. Unless otherwise specified within the contract award, contractors requiring access to NOAA facilities
+outside normal business hours or outside the normal workweek shall submit a written request in writing
+through the COR to the contracting officer. The written request shall provide justification supporting the
+required access and be submitted [ ] hours/days (contracting officer insert number of days. If blank, 72
+hours applies) before access to the NOAA facility is needed.
+
+(End of solicitation and contract language)
+
+Clauses Incorporated by Reference
+
+   Clause Number                             Clause Title
+52.203-17            Contractor Employee Whistleblower Rights. (NOV 2023)
+                     Personal Identity Verification of Contractor Personnel.
+52.204-9
+                     (JAN 2011)
+                     Reporting Executive Compensation and First-Tier
+52.204-10
+                     Subcontract Awards. (JUN 2020) (Deviation JAN 2026)
+                     System for Award Management-Maintenance. (OCT
+52.204-13
+                     2018) (Deviation JAN 2026)
+                     Incorporation by Reference of Representations and
+52.204-19
+                     Certifications. (DEC 2014)
+                     Protecting the Government's Interest When
+                     Subcontracting With Contractors Debarred, Suspended,
+52.209-6
+                     Proposed for Debarment, or Voluntarily Excluded. (JAN
+                     2025) (Deviation JAN 2026)
+                     Prohibition on Contracting With Inverted Domestic
+52.209-10
+                     Corporations. (NOV 2015) (Deviation JAN 2026)
+                     Terms and Conditions-Commercial Products and
+52.212-4
+                     Commercial Services. (NOV 2023) (Deviation JAN 2026)
+
+
+
+                                                                                                     Page 24
+                                                                              1305M326Q0368 BASE
+
+   Clause Number                            Clause Title
+                   Notice of Total Small Business Set-Aside. (NOV 2020)
+52.219-6
+                   (Deviation JAN 2026)
+                   Postaward Small Business Program Rerepresentation.
+52.219-28
+                   (JAN 2025) (Deviation JAN 2026)
+52.222-3           Convict Labor. (JUN 2003)
+                   Child Labor-Cooperation with Authorities and Remedies.
+52.222-19
+                   (JAN 2025) (Deviation JAN 2026)
+                   Equal Opportunity for Workers with Disabilities. (JUN
+52.222-36
+                   2020) (Deviation JAN 2026)
+                   Combating Trafficking in Persons. (OCT 2025) (Deviation
+52.222-50
+                   JAN 2026)
+                   Minimum Wages for Contractor Workers Under
+52.222-55
+                   Executive Order 14026. (JAN 2022)
+                   Paid Sick Leave Under Executive Order 13706. (JAN 2022)
+52.222-62
+                   (Not for DOC Use)
+                   Addressing DEI Discrimination by Federal Contractors
+52.222-90
+                   ((DEVIATION April 2026))
+                   Sustainable Products. (MAY 2024) ((DEVIATION Jan
+52.223-23
+                   2026))
+                   Buy American - Free Trade Agreements - Israeli Trade
+52.225-3
+                   Act. (NOV 2023) (Deviation JAN 2026)
+                   Encouraging Contractor Policies To Ban Text Messaging
+52.226-8
+                   While Driving. (MAY 2024)
+52.227-17          Rights in Data--Special Works. (DEC 2007)
+52.232-18          Availability of Funds. (APR 1984)
+                   Payment by Electronic Funds Transfer - System for Award
+52.232-33
+                   Management. (OCT 2018)
+                   Unenforceability of Unauthorized Obligations. (JUN
+52.232-39
+                   2013)
+                   Providing Accelerated Payments to Small Business
+52.232-40
+                   Subcontractors. (MAR 2023)
+52.233-3           Protest after Award. (AUG 1996) (Deviation JAN 2026)
+                   Applicable Law for Breach of Contract Claim. (OCT 2004)
+52.233-4
+                   (Deviation JAN 2026)
+                   Security Prohibitions and Exclusions Representations and
+52.240-90
+                   Certifications. (Deviation JAN 2026)
+                   Subcontracts for Commercial Products and Commercial
+52.244-6
+                   Services. (OCT 2025) (DEVIATION April 2026)
+                   Computer Generated Forms. (JAN 1991) (Deviation JAN
+52.253-1
+                   2026)
+1352.201-70        Contracting Officer's Authority. (MAR 2010)
+1352.209-73        Compliance with the laws. (APR 2010)
+1352.209-74        Organizational conflict of interest. (APR 2010)
+                   Security requirements for information technology
+1352.239-72
+                   resources. (APR 2010)
+
+
+DOC 2026 REAL ID ENFORCEMENT REAL ID Act Enforcement
+
+
+
+                                                                                           Page 25
+                                                                               1305M326Q0368 BASE
+
+
+As of January 1, 2026, all Department of Commerce–owned or leased facilities will only accept a REAL
+ID-compliant form of identification. Visitors with state-issued identification must now present a REAL ID
+or a different form of government-issued photo identification, such as: A passport, an Enhanced Driver's
+License, or a federal employee, military, or veteran identification card (this list is not all-inclusive).
+Additional information about the Department’s implementation plan may be found at
+https://www.commerce.gov/OSY/REAL-ID .
+
+
+Standard Language UTILIZATION OF FEDCONNECT FOR CONTRACT ADMINISTRATION
+
+The Department of Commerce will utilize the FedConnect® web portal in administering this award. The
+contractor must be registered in FedConnect® and have access to the FedConnect® website located at
+https://www.fedconnect.net/Fedconnect/. For assistance in registering or for other FedConnect®
+questions please call the FedConnect® Help Desk at (800) 899-6665 or email at
+support@fedconnect.net. There is no charge for registration in or use of FedConnect®.
+
+RFO 52.217-8 Option To Extend Services. (NOV 1999)
+
+The Government may require continued performance of any services within the limits and at the rates
+specified in the contract. These rates may be adjusted only as a result of revisions to prevailing labor
+rates provided by the Secretary of Labor. The option provision may be exercised more than once, but
+the total extension of performance hereunder shall not exceed 6 months. The Contracting Officer may
+exercise the option by written notice to the Contractor within 15 days.
+
+If the Government fails to extend the term of the contract within the period identified and the
+Government has provided a written notice to the Contractor that the action is undergoing review in
+accordance with Department of Commerce procedures for implementing Executive Order 14222 the
+contractor shall stop all work and incur no costs to be charged to the Government. Once the
+Department of Commerce’s review process has occurred, or no later than 30 days from the initial review
+notification, the Government will notify the contractor if the option may be exercised and, if so, adjust
+start and end dates of the period of performance accordingly. The Government will then extend the
+term of the contract with a bilateral modification.
+
+(End of Clause)
+
+RFO 52.217-9 Option To Extend the Term of the Contract. (MAR 2000)
+
+(a) The Government may extend the term of this contract by written notice to the Contractor within 15
+days; provided that the Government gives the Contractor a preliminary written notice of its intent to
+extend at least 15 days before the contract expires. The preliminary notice does not commit the
+Government to an extension.
+
+If the Government fails to extend the term of the contract within the period identified and the
+Government has provided a written notice to the Contractor that the action is undergoing review in
+accordance with Department of Commerce procedures for implementing Executive Order 14222 the
+contractor shall stop all work and incur no costs to be charged to the Government. Once the
+Department of Commerce’s review process has occurred, or no later than 30 days from the initial review
+notification, the Government will notify the contractor if the option may be exercised and, if so, adjust
+
+
+
+                                                                                                    Page 26
+                                                                                  1305M326Q0368 BASE
+
+
+start and end dates of the period of performance accordingly. The Government will then extend the
+term of the contract with a bilateral modification.
+
+(b)If the Government exercises this option, the extended contract shall be considered to include this
+option clause.
+
+(c)The total duration of this contract, including the exercise of any options under this clause, shall not
+exceed 3 years 6 months.
+
+
+
+RFO 52.252-2 Clauses Incorporated by Reference. (FEB 1998)
+
+This contract incorporates one or more clauses by reference, with the same force and effect as if they
+were given in full text. Upon request, the Contracting Officer will make their full text available. Also, the
+full text of a clause may be accessed electronically at this/these address(es): www.acquisition.gov/far-
+overhaul/far-part-deviation-guide
+
+(End of clause)
+
+RFO 52.252-6 Authorized Deviations in Clauses. (NOV 2020)
+
+        (a) The use in this solicitation or contract of any Federal Acquisition Regulation (48 CFR Chapter
+        1) clause with an authorized deviation is indicated by the addition of (DEVIATION) after the date
+        of the clause.
+
+        (b) The use in this solicitation or contract of any Commerce Acquisition Regulation (48 CFR 13)
+        clause with an authorized deviation is indicated by the addition of (DEVIATION) after the name
+        of the regulation.
+
+(End of clause)
+
+CAR 1352.237-71 Security processing requirements-low risk contracts (APR 2010)
+
+        (a) Investigative Requirements for Low Risk Contracts. All contractor (and subcontractor)
+        personnel proposed to be employed under a Low Risk contract shall undergo security processing
+        by the Department's Office of Security before being eligible to work on the premises of any
+        Department of Commerce owned, leased, or controlled facility in the United States or overseas,
+        or to obtain access to a Department of Commerce IT system. All Department of Commerce
+        security processing pertinent to this contract will be conducted at no cost to the contractor.
+
+        (b) Investigative requirements for Non-IT Service Contracts are:
+
+                  (1) Contracts more than 180 days-National Agency Check and Inquiries (NACI).
+
+                  (2) Contracts less than 180 days-Special Agency Check (SAC).
+
+        (c) Investigative requirements for IT Service Contracts are:
+
+                  (1) Contracts more than 180 days-National Agency Check and Inquiries (NACI).
+
+
+                                                                                                       Page 27
+                                                                          1305M326Q0368 BASE
+
+
+        (2) Contracts less than 180 days-National Agency Check and Inquiries (NACI).
+
+(d) In addition to the investigations noted above, non-U.S. citizens must have a background
+check that includes an Immigration and Customs Enforcement agency check.
+
+(e) Additional Requirements for Foreign Nationals (Non-U.S. Citizens). Non-U.S. citizens (lawful
+permanent residents) to be employed under this contract within the United States must have:
+
+        (1) Official legal status in the United States;
+
+        (2) Continuously resided in the United States for the last two years; and
+
+        (3) Obtained advance approval from the servicing Security Officer in consultation with
+        the Office of Security headquarters.
+
+(f) DOC Security Processing Requirements for Low Risk Non-IT Service Contracts. Processing
+requirements for Low Risk non-IT Service Contracts are as follows:
+
+        (1) Processing of a NACI is required for all contract employees employed in Low Risk
+        non-IT service contracts for more than 180 days. The Contracting Officer's
+        Representative (COR) will invite the prospective contractor into e-QIP to complete the
+        SF-85. The contract employee must also complete fingerprinting.
+
+        (2) Contract employees employed in Low Risk non-IT service contracts for less than 180
+        days require processing of Form OFI-86C Special Agreement Check (SAC), to be
+        processed. The Sponsor will forward a completed Form OFI-86C, FD-258, Fingerprint
+        Chart, and Credit Release Authorization to the servicing Security Officer, who will send
+        the investigative packet to the Office of Personnel Management for processing.
+
+        (3) Any contract employee with a favorable SAC who remains on the contract over 180
+        days will be required to have a NACI conducted to continue working on the job site.
+
+        (4) For Low Risk non-IT service contracts, the scope of the SAC will include checks of the
+        Security/Suitability Investigations Index (SII), other agency files (INVA), Defense
+        Clearance Investigations Index (DCII), FBI Fingerprint (FBIF), and the FBI Information
+        Management Division (FBIN).
+
+        (5) In addition, for those individuals who are not U.S. citizens (lawful permanent
+        residents), the Sponsor may request a Customs Enforcement SAC on Form OFI-86C, by
+        checking Block #7, Item I. In Block 13, the Sponsor should enter the employee's Alien
+        Registration Receipt Card number to aid in verification.
+
+        (6) Copies of the appropriate forms can be obtained from the Sponsor or the Office of
+        Security. Upon receipt of the required forms, the Sponsor will forward the forms to the
+        servicing Security Officer. The Security Officer will process the forms and advise the
+        Sponsor and the Contracting Officer whether the contract employee can commence
+        work prior to completion of the suitability determination based on the type of work and
+        risk to the facility (i.e., adequate controls and restrictions are in place). The Sponsor will
+        notify the contractor of favorable or unfavorable findings of the suitability
+
+
+                                                                                               Page 28
+                                                                         1305M326Q0368 BASE
+
+
+        determinations. The Contracting Officer will notify the contractor of an approved
+        contract start date.
+
+(g) Security Processing Requirements for Low Risk IT Service Contracts. Processing of a NACI is
+required for all contract employees employed under Low Risk IT service contracts.
+
+        (1) Contract employees employed in all Low Risk IT service contracts will require a
+        National Agency Check and Inquiries (NACI) to be processed. The Contracting Officer's
+        Representative (COR) will invite the prospective contractor into e-QIP to complete the
+        SF-85. Fingerprints and a Credit Release Authorization must be completed within three
+        working days from start of work, and provided to the Servicing Security Officer, who will
+        forward the investigative package to OPM.
+
+        (2) For Low Risk IT service contracts, individuals who are not U.S. citizens (lawful
+        permanent residents) must undergo a NACI that includes an agency check conducted by
+        the Immigration and Customs Enforcement Service. The Sponsor must request the ICE
+        check as a part of the NAC.
+
+(h) Notification of Disqualifying Information. If the Office of Security receives disqualifying
+information on a contract employee, the Sponsor and Contracting Officer will be notified. The
+Sponsor shall coordinate with the Contracting Officer for the immediate removal of the
+employee from duty requiring access to Departmental facilities or IT systems. Contract
+employees may be barred from working on the premises of a facility for any of the following
+reasons:
+
+        (1) Conviction of a felony crime of violence or of a misdemeanor involving moral
+        turpitude.
+
+        (2) Falsification of information entered on security screening forms or of other
+        documents submitted to the Department.
+
+        (3) Improper conduct once performing on the contract, including criminal, infamous,
+        dishonest, immoral, or notoriously disgraceful conduct or other conduct prejudicial to
+        the Government regardless of whether the conduct was directly related to the contract.
+
+        (4) Any behavior judged to pose a potential threat to Departmental information
+        systems, personnel, property, or other assets.
+
+(i) Failure to comply with security processing requirements may result in termination of the
+contract or removal of contract employees from Department of Commerce facilities or denial of
+access to IT systems.
+
+(j) Access to National Security Information. Compliance with these requirements shall not be
+construed as providing a contract employee clearance to have access to national security
+information.
+
+(k) The contractor shall include the substance of this clause, including this paragraph, in all
+subcontracts.
+
+
+
+                                                                                              Page 29
+                                                                                1305M326Q0368 BASE
+
+
+(End of clause)
+
+CAR 1352.246-70 Place of acceptance. (APR 2010)
+
+        (a) The Contracting Officer or the duly authorized representative will accept supplies and
+        services to be provided under this contract.
+
+        (b) The place of acceptance will be:
+
+        FISH ECOLOGY DIVISION /F/NWC3
+        NMFS 2725 MONTLAKE BLVD E
+        SEATTLE WA 98112
+
+(End of clause)
+
+CAR 1352.270-70 Period of performance. (APR 2010)
+
+        (a) The base period of performance of this contract is from 10/01/2026 through 09/30/2027. If
+        an option is exercised, the period of performance shall be extended through the end of that
+        option period.
+
+        (b) The option periods that may be exercised are as follows:
+
+        Option Year One: 10/01/2027 to 09/30/2028
+        Option Year Two: 10/01/2028 to 09/30/2029
+
+        (c) The notice requirements for unilateral exercise of option periods are set out in FAR 52.217-9.
+
+(End of clause)
+
+NOAA Acquisition Manual 1330-52.222-70 NOAA SEXUAL ASSAULT AND SEXUAL HARASSMENT
+PREVENTION AND RESPONSE POLICY (MAY 2018)
+
+In accordance with NOAA Administrative Order (NAO) 202-1106, NOAA Sexual Assault and Sexual
+Harassment Prevention and Response Policy, it is the policy of NOAA to maintain a work environment
+free from sexual assault and sexual harassment. NOAA prohibits sexual assault and sexual harassment
+by or of any employee, supervisor, manager, contractor, vendor, affiliate, or other individual with whom
+NOAA employees come into contact by the virtue of their work for NOAA.
+
+(a) Definitions.
+
+Contractor Employees - The term “contractor employees,” as used in this solicitation and contract
+language, refers to employees of the prime contractor or its subcontractors, affiliates, consultants, or
+team members.
+
+Sexual Assault - The term sexual assault, as used in this solicitation and contract language, means any
+conduct proscribed by state or federal sexual abuse laws, including, but not limited to, those defined in
+chapter 109A of title 18 of the U.S. Code (sexual abuse), and assaults committed both by offenders who
+are strangers to the victim and by offenders who are known or related by blood or marriage to the
+victim.
+
+
+                                                                                                     Page 30
+                                                                                  1305M326Q0368 BASE
+
+
+Sexual Harassment - As defined by the Equal Employment Opportunity Commission, sexual harassment
+is a form of sex discrimination that violates Title VII of the Civil Rights Act of 1964. It includes unwelcome
+sexual advances, requests for sexual favors, and other verbal, non-verbal, or physical conduct of a sexual
+nature when any of the following are true:
+
+● Submission to such conduct is made either explicitly or implicitly as a term or condition of an
+individual's employment;
+
+● Submission to or rejection of such conduct by an individual is used as the basis for employment
+decisions affecting such individual;
+
+● The conduct unreasonably interferes with an individual's work performance or creates an intimidating,
+hostile, or offensive working environment.
+
+The main characteristics of sexual harassment are that the harasser's conduct is targeted against the
+recipient’s sex, gender identity, or sexual orientation, and is unwelcome to the recipient. It may include,
+but is not limited to: offensive jokes, slurs, epithets or name calling, undue attention, physical assaults
+or threats, unwelcome touching or contact, intimidation, ridicule or mockery, insults or put-downs,
+constant or unwelcome questions about an individual's identity, and offensive objects or pictures.
+
+(b) Requirements.
+
+1. It is the responsibility of the contractor to ensure that contractor employees maintain the highest
+degree of conduct and standards in performance of the contract. In support of this, NOAA urges its
+contractors to develop and enforce comprehensive company policy addressing sexual assault and sexual
+harassment.
+
+2. The contractor shall include wording substantially the same as this solicitation and contract language
+in every subcontract so that it is binding upon each subcontractor.
+
+3. If a contractor employee observes or is the object of sexual assault or sexual harassment, he or she is
+highly encouraged to report the matter, as soon as possible, to their immediate supervisor, the COR,
+subset of the COR (e.g. Task Manager or Assistant COR), or contracting officer (CO) if a COR is not
+assigned to the contract. The contract employee may also contact the NOAA Civil Rights Office to obtain
+guidance on reporting instances of sexual assault or sexual harassment. If deemed necessary, the
+contractor employee may also report such instances to local law enforcement. In the case where the
+incident occurs while performing at a remote location, such as at sea or in the field (at a field camp or
+other isolated location) where the above referenced individuals are unavailable, the contractor
+employee should follow the reporting procedure set forth in NAO 202-1106, Section 6.07, Reporting
+from Remote Locations.
+
+4. Swift reporting allows NOAA and the contractor to take the appropriate measures to ensure that
+offensive behavior stops and the complainants’ needs are addressed.
+
+5. The COR (if assigned), CO, and contractor, where applicable, will work together to ensure appropriate
+action is taken in accordance with applicable laws and regulations, contract terms and conditions, and
+the contractor’s written policy (where applicable).
+
+
+
+
+                                                                                                       Page 31
+                                                                              1305M326Q0368 BASE
+
+
+6. The contractor shall provide all contractor employees assigned to perform under this contract with
+mandatory sexual assault and sexual harassment prevention and response training in compliance with
+the requirements of NAO 202-1106, Section 5, Prevention Training and Awareness, as part of their initial
+in-processing and on an annual basis thereafter. The initial training shall be completed within [ ]
+business days (30 unless a different number is inserted) of contract award or the date a contractor
+employee is assigned to perform under the contract, as applicable.
+
+Evidence of initial training by name and date completed for each contractor employee, shall be
+submitted to the COR or contracting officer (if no COR assigned) within 10 business days of completion.
+
+Evidence of annual training by name and date completed for each contractor employee shall be
+submitted to the COR or contracting officer (if no COR assigned) no later than March 1st of each
+calendar year of contract performance.
+
+7. The mandatory sexual assault and sexual harassment training provided by the contractor shall include
+the required elements set forth by NOAA’s Workplace Violence Program Manager. A link to the website
+including the required elements of the training is provided at
+https://www.noaa.gov/organization/acquisition-grants/noaa-workplace-harassment-training-for-
+contractors-and-financial. The website will also provide training materials and resources to assist the
+contractor in conducting the training. The contractor may provide training that solely addresses the
+NOAA required elements or may supplement existing company sexual assault and sexual harassment
+training in a manner that ensures all of the elements are adequately addressed.
+
+8. The required elements of the training and resources available to the contractor for the training may
+be updated by NOAA periodically. The contractor is responsible for monitoring the website and
+incorporating any changes to the NOAA required elements into the contractor provided training.
+
+9. NOAA’s Workplace Violence Program Manager, COR, or CO may periodically review the contractor’s
+training outline to ensure all required elements are included and, if necessary, any appropriate
+adjustments are made to the training by the contractor.
+
+10. Contractor employees performing on assignments in a remote location, such as at a field camp or
+other isolated locations, are subject to receiving the same briefing on the parameters of the order
+provided to NOAA employees as set forth in Section 6 of NAO 202-1106.
+
+11. The contractor shall provide a copy of this solicitation and contract language and NAO 202-1106 to
+contractor employees.
+
+(c) Sexual Assault/Sexual Harassment (SASH) Helpline.
+
+For NOAA employees, affiliates, and contractors who have experienced sexual assault or sexual
+harassment, NOAA has established the NOAA Sexual Assault/Sexual Harassment (SASH) helpline. This
+helpline is designed to provide crisis intervention, referrals, and emotional support to those who are
+victims and/or survivors of sexual harassment or sexual assault within the workplace. Contractor
+employees may use the helpline to receive live, confidential, one-on-one support in an occurrence of
+sexual harassment or assault by a Federal Government employee.
+
+All services are anonymous, secure, and available worldwide, 24 hours a day, seven days a week. The
+NOAA SASH helpline is accessible through a variety of channels, including:
+
+
+                                                                                                   Page 32
+                                                                                1305M326Q0368 BASE
+
+
+● Phone: 1-866-288-6558
+
+● Website & Online Chat: https://www.noaasashhelpline.org/
+
+● Mobile App: NOAA SASH Helpline (available via iOS and Android App Stores)
+
+● Text: (202) 335-0265
+
+(d) Confidentiality.
+
+Any party receiving information from the filing of a complaint alleging sexual assault or sexual
+harassment, or while performing an investigation into such a complaint, shall keep the information
+confidential. “Confidentiality” means that the information shall only be shared with others who have a
+need to know the information to conduct their official duties.
+
+(e) Remedies.
+
+In addition to other remedies available to the Government, contractor employee violations of Federal
+requirements (e.g., law, statutes, executive orders, code, rules, regulations) applicable to sexual assault
+and sexual harassment and/or failure to complete the mandatory training set forth in this solicitation
+and contract language, may result in:
+
+1. Requiring the contractor to remove a contractor employee or employees from the performance of the
+contract;
+
+2. Requiring the contractor to terminate a subcontract;
+
+3. Suspension of contract payments until the Contractor has taken appropriate remedial action;
+
+4. Termination of the contract for default or cause, in accordance with the termination clause of this
+contract;
+
+5. Suspension or debarment; or
+
+6. Other appropriate action.
+
+(End of solicitation and contract language)
+
+NOAA Acquisition Manual 1330-52.232-71 ELECTRONIC SUBMISSION OF PAYMENT REQUESTS (FEB
+2023)
+
+The Contractor must submit payment requests electronically through the U.S. Department of the
+Treasury's Invoice Processing Platform System (IPP). The Contractor must use the IPP website to
+register, access, and submit payment requests. The IPP website address is https://www.ipp.gov.
+
+"Payment request" means any request for contract financing payment or invoice payment to the
+Contractor. To be considered proper, invoices must be prepared in accordance with, and contain all
+elements specified in, the contract payment clause (e.g., FAR 52.212-4(g), FAR 52.232-25(a)(3), FAR
+52.232-26(a)(2), FAR 52.232-27(a)(2)).
+
+
+
+
+                                                                                                     Page 33
+                                                                               1305M326Q0368 BASE
+
+
+The Contractor must include the following documents as attachments to payment requests submitted
+through the IPP: Vendor Invoice.
+
+If the Contractor is unable to comply with the requirement to submit payment requests through the IPP
+due to a threat to national security; a matter of unusual or compelling urgency; or because the political,
+financial, or communications infrastructure of a foreign country does not support access to the IPP, the
+Contractor must request an exception in writing. Contact the Contracting Officer for more information
+about requesting an exception.
+
+(End of solicitation and contract language)
+
+NOAA Acquisition Manual 1330-52.237-70 CONTRACTOR COMMUNICATIONS
+
+(a) A contractor employee shall be identified both by the individual’s name and the contractor’s name
+when:
+
+● Included in NOAA’s locator, and
+
+● When submitting any type of electronic correspondence to any NOAA employee or stakeholder.
+
+(b) Any written correspondence from a contractor or any contractor employee shall be printed on
+company/organization letterhead or otherwise clearly identify the sender as an employee of the
+company or organization and shall identify the contract number.
+
+(c) Contractors and/or contractor employees shall clearly identify themselves as such in any verbal
+communications, whether in informal discussion or a formal meeting.
+
+(End of solicitation and contract language)
+
+NOAA Acquisition Manual 1330-52.237-71 NOAA GOVERNMENT-CONTRACTOR RELATIONS - NON-
+PERSONAL SERVICES CONTRACT (SEPT 2017)
+
+(a) The Government and the contractor understand and agree that the services to be delivered under
+this contract by the contractor to the Government are non-personal services as defined in FAR Part 37,
+Service Contracting, and the parties recognize and agree that no employer-employee relationship exists
+or will exist under the contract between the Government and the contractor’s personnel. It is, therefore,
+in the best interest of the Government to afford both parties an understanding of their respective
+obligations.
+
+(b) Contractor personnel under this contract shall not:
+
+1. Be placed in a position where they are under relatively continuous supervision and control of a
+Government employee.
+
+2. Be placed in a position of command, supervision, administration, or control over Government
+personnel or over personnel of other contractors performing under other NOAA contracts.
+
+(c) The services to be performed under this contract do not require the contractor or the contractor’s
+personnel to exercise personal judgment and discretion on behalf of the Government. Rather, the
+
+
+
+                                                                                                     Page 34
+                                                                               1305M326Q0368 BASE
+
+
+contractor’s personnel will act and exercise personal judgment and discretion on behalf of the
+contractor.
+
+(d) Rules, regulations, directives, and requirements that are issued by the Department of Commerce and
+NOAA under its responsibility for good order, administration, and security are applicable to all personnel
+who enter the Government installation and facilities, who are provided access to Government systems,
+or who travel on Government transportation. This is not to be construed or interpreted to establish any
+degree of Government control that is inconsistent with a non-personal services contract.
+
+(e) Both parties are responsible for monitoring contract activities for indications of improper employee-
+employer relationships during performance. In the event a situation or occurrence takes place
+inconsistent with this contract language, the following applies:
+
+1. The contractor shall notify the contracting officer in writing within 5 business days from the date of
+any situation or occurrence where the contractor considers specific contract activity to be inconsistent
+with the intent of this contract language. The notice must include the date, nature and circumstance of
+the situation or occurrence, the name, function and activity of each Government employee or
+contractor employee involved or knowledgeable about the situation or occurrence, provide any
+documents or the substance of any oral communications related to the activity, and an estimated date
+by which the Government is recommended to respond to the notice in order to minimize cost, delay, or
+disruption of performance.
+
+2. The contracting officer will review the information provided by the contractor, obtain additional
+information (if needed), and respond in writing as soon as practicable after receipt of the notification
+from the contractor. The contracting officer’s response will provide a decision on whether the
+contracting officer determines the situation or occurrence to be inconsistent with the intent of this
+contract language and, if deemed necessary, will specify any corrective action(s) to be taken in order to
+resolve the issue.
+
+(End of solicitation and contract language)
+
+NOAA Acquisition Manual 1330-52.237-72 CONTRACTOR ACCESS TO NOAA FACILITIES (SEPT 2017)
+
+(a)
+
+1. The performance of this contract requires employees of the prime contractor or its subcontractors,
+affiliates, consultants, or team members (“contractor employees”) to have access to and to the extent
+authorized, mobility within, a NOAA facility.
+
+2. NOAA may close and or otherwise deny contractor employees access to a NOAA facility for a portion
+of a business day or longer for various reasons including, but not limited, to the following events:
+
+i. Federal public holidays for Federal employees in accordance with 5 U.S.C. 6103;
+
+ii. Fires, floods, earthquakes, and unusually severe weather, including but not limited to snow storms,
+tornadoes, and hurricanes;
+
+iii. Occupational safety or health hazards;
+
+
+
+
+                                                                                                   Page 35
+                                                                                 1305M326Q0368 BASE
+
+
+iv. Lapse in Appropriations; or
+
+v. Federal Statute, Executive Order, Presidential Proclamation, or any other unforeseen reason.
+
+3. In such events, the contractor employees may be denied access to a NOAA facility that is ordinarily
+available for the contractor to perform work or make delivery, as required by the contract.
+
+(b) In all instances where contractors are denied access or required to vacate a NOAA facility, in part or
+in whole, the contractor shall be responsible to ensure contractor personnel working under the contract
+comply. If the circumstances permit, the contracting officer will provide direction to the contractor,
+either directly or through the COR, which could include continuing on-site performance during the
+NOAA facility closure period; however, if Government oversight is required and is not available, on-site
+performance shall not be allowed. In the absence of such direction, the contractor shall exercise sound
+judgment to minimize unnecessary contract costs and performance impacts, for example, performing
+required work off- site if possible or reassigning personnel to other activities if appropriate.
+
+(c) The contractor shall be responsible for monitoring the Office of Personnel Management at opm.gov,
+the local radio, television stations, NOAA web sites, and other communication channels. Once the
+facility is accessible, the contractor shall resume contract performance as required by the contract.
+
+(d) For the period that NOAA facilities were not accessible to contractors who required access in order
+to perform the services, the contracting officer may—
+
+1. Adjust the contract performance or delivery schedule for a period equivalent to the period the NOAA
+facility was not accessible;
+
+2. Forego the work; or
+
+3. Reschedule the work by mutual agreement of the parties.
+
+(e) Notification procedures of a NOAA facility closure, including contractor denial of access, are as
+follows:
+
+1. The contractor shall be responsible for notification of its employees of the NOAA facility closure to
+include denial of access to the NOAA facility. The dismissal of NOAA employees in accordance with
+statute and regulations providing for such dismissals shall not, in itself, equate to a NOAA facility closure
+in which contractors are denied access. Moreover, the leave status of NOAA employees shall not be
+conveyed or imputed to contractor personnel. Accordingly, unless a NOAA facility is closed and the
+contractor is denied access to the facility, the contractor shall continue performance in accordance with
+the contract.
+
+2. Access to Government facilities and resources, including equipment and systems, will be limited and
+personnel necessary to administer contract performance may not be available. Generally, supply and
+service contracts that are funded beyond the date of the lapse in appropriation and do not require
+access to Government facilities, active administration by Government personnel or the use of
+Government resources in a manner that would cause the Government to incur additional obligations
+during the lapse in appropriation may continue. If a delivery date for a contract falls during the period of
+a lapse in appropriations, Government personnel may not be available to receive delivery. Contractors
+
+
+
+                                                                                                        Page 36
+                                                                                1305M326Q0368 BASE
+
+
+are directed to consult with a contracting officer before attempting to make a delivery. Contracting
+officers will be available throughout the lapse in appropriation period to provide guidance.
+
+Once OMB guidance is given, CORs, in consultation with the contracting officer, will notify those
+contractors that are deemed by the Program Office to be performing excepted work and identify the
+contractor personnel requiring access to NOAA facilities. CORs will also coordinate directly with facility
+management or physical security personnel at respective locations to ensure that the names of
+contractor personnel requiring access to Government facilities during the lapse in appropriations are
+provided to physical security personnel.
+
+Contractors who are not designated as performing excepted work are not allowed access to
+Government facilities or to utilize Government resources in a manner that would incur any additional
+obligation of funding on behalf of the Government during the lapse in appropriation.
+
+3. Unless otherwise specified within the contract award, contractors requiring access to NOAA facilities
+outside normal business hours or outside the normal workweek shall submit a written request in writing
+through the COR to the contracting officer. The written request shall provide justification supporting the
+required access and be submitted [ ] hours/days (contracting officer insert number of days. If blank, 72
+hours applies) before access to the NOAA facility is needed.
+
+(End of solicitation and contract language)
+
+
+
+
+                                                                                                     Page 37
+                                                                   1305M326Q0368 BASE
+
+
+                                 Section X - List of Attachments
+Attachment
+                                       Title
+  Number
+1          Attachment 01 - Statement of Work 08.06.2026
+2          Attachment 02 - Past Performance Questionnaire
+
+
+
+
+                                                                                Page 38
+                                                                                 1305M326Q0368 BASE
+
+
+                     Section XII - Instructions, Conditions, and Notices
+RFO 52.203-18 Prohibition on Contracting with Entities that Require Certain Internal Confidentiality
+Agreements or Statements-Representation. (JAN 2017)
+
+RFO 52.204-7 System for Award Management-Registration. (NOV 2024) (Deviation JAN 2026)
+
+RFO 52.209-2 Prohibition on Contracting With Inverted Domestic Corporations-Representation. (NOV
+2015) (Deviation JAN 2026)
+
+RFO 52.225-4 Buy American-Free Trade Agreements-Israeli Trade Act Certificate. (NOV 2023)
+(Deviation JAN 2026)
+
+RFO 52.209-11 Representation by Corporations Regarding Delinquent Tax Liability or a Felony
+Conviction under any Federal Law. (FEB 2016) (Deviation JAN 2026)
+
+        (a) The Government will not enter into a contract with any corporation that-
+
+                (1) Has any unpaid Federal tax liability that has been assessed, for which all judicial and
+                administrative remedies have been exhausted or have lapsed, and that is not being paid
+                in a timely manner pursuant to an agreement with the authority responsible for
+                collecting the tax liability, where the awarding agency is aware of the unpaid tax liability,
+                unless an agency has considered suspension or debarment of the corporation and made
+                a determination that suspension or debarment is not necessary to protect the interests
+                of the Government; or
+
+                (2) Was convicted of a felony criminal violation under any Federal law within the
+                preceding 24 months, where the awarding agency is aware of the conviction, unless an
+                agency has considered suspension or debarment of the corporation and made a
+                determination that this action is not necessary to protect the interests of the
+                Government.
+
+        (b) The Offeror represents that-
+
+                (1) It is ___ is not ___ a corporation that has any unpaid Federal tax liability that has
+                been assessed, for which all judicial and administrative remedies have been exhausted
+                or have lapsed, and that is not being paid in a timely manner pursuant to an agreement
+                with the authority responsible for collecting the tax liability; and
+
+                (2) It is ___ is not ___ a corporation that was convicted of a felony criminal violation
+                under a Federal law within the preceding 24 months.
+
+(End of provision)
+
+RFO 52.212-1 Instructions to Offerors-Commercial Products and Commercial Services. (SEP 2023)
+(Deviation JAN 2026)
+
+        (a) Submission of offers. Submit signed and dated offers to the office specified in this solicitation
+        at or before the exact time specified in this solicitation. As a minimum, offers shall include-
+
+
+
+                                                                                                      Page 39
+                                                                         1305M326Q0368 BASE
+
+
+        (1) The solicitation number;
+
+        (2) The name, address, telephone number of the Offeror;
+
+        (3) The Offeror's Unique Entity Identifier (UEI) and, if applicable, Electronic Funds
+        Transfer (EFT) indicator;
+
+        (4) Information necessary to evaluate the factors contained in the provision at 52.212-2
+        or as described in the solicitation;
+
+                a. Technical Approach and Key Personnel -
+                          1. Technical Approach - Quoters shall provide a Technical Capabilities
+        Statement in English, no more than two (2) pages in length, that explains their ability to
+        meet the requirements specified within Attachment 1 – Statement of Work. The
+        Technical Approach should include any experience the Quoter has presenting technical
+        language related to topics including:
+                                          - C++ programming
+                                          - Ecological and wildlife behavioral modeling
+                                          - Custom software work
+                                          - Other similar or related topics
+                          2. Key Personnel Qualifications - Quoters shall demonstrate how their
+        proposed Key Personnel meet or exceed the experience, education, and qualifications
+        required by the scope of work. Resumes (2 pages max per person) should demonstrate
+        recency, magnitude, and depth of experience of individual personnel working on similar
+        projects (size, scope, magnitude, duration, and complexity).
+
+                 b. Past Performance - Past Performance shall include recent and relevant past
+        performance or affirmatively state that it possesses no relevant past performance.
+        Include a maximum of three (3) contracts performed within the past three (3) years
+        prior to the solicitation closing date that are similar in scope, complexity and magnitude
+        to this solicitation using the form in Attachment 02 - Past Performance Questionnaire.
+
+                c. Price
+
+        (5) Responses to provisions that require Offeror completion of information,
+        representations, and certifications (other than those collected via the System for Award
+        Management (SAM)); and
+
+        (6) A statement specifying the extent of agreement with all terms, conditions, and
+        provisions included in the solicitation and any solicitation amendments.
+
+(b) Period for acceptance of offers. The Offeror agrees to hold the prices in its offer firm for 60
+calendar days from the date specified for receipt of offers, unless another time period is
+specified in an addendum to the solicitation.
+
+(c) Late submissions, modifications, revisions, and withdrawals of offers.
+
+
+
+
+                                                                                                Page 40
+                                                                       1305M326Q0368 BASE
+
+
+        (1) Offerors are responsible for submitting offers and any modifications or revisions to
+        the Government office designated in the solicitation by the time specified in the
+        solicitation.
+
+        (2) Any offer, modification, or revision received after the time specified for receipt of
+        offers is "late" and will not be considered unless it is received before award is made and
+        the Contracting Officer determines that accepting the late offer would not unduly delay
+        the acquisition. However, a late modification of an otherwise successful offer that
+        makes its terms more favorable to the Government will be considered at any time it is
+        received and may be accepted.
+
+        (3) If an emergency or unanticipated event interrupts normal Government processes so
+        that offers cannot be received at the Government office designated for receipt of offers
+        by the exact time specified in the solicitation, and urgent Government requirements
+        preclude amendment of the solicitation or other notice of an extension of the closing
+        date, the time specified for receipt of offers will be deemed to be extended to the same
+        time of day specified in the solicitation on the first work day on which normal
+        Government processes resume.
+
+        (4) Offerors may withdraw their offers by written notice to the Government received at
+        any time before award.
+
+(d) Contract award (not applicable to Invitation for Bids). The Government intends to evaluate
+offers and award a contract without discussions with Offerors. Therefore, the Offeror's initial
+offer should contain the Offeror's best terms. However, the Government reserves the right to
+conduct discussions, if necessary. The Government may reject any or all offers if such action is in
+the public interest, accept other than the lowest offer, and waive informalities and minor
+irregularities in offers received.
+
+(e) Debriefings. If a postaward debriefing is given to requesting Offerors, the Government will
+disclose the following information, if applicable:
+
+        (1) The agency's evaluation of the significant weak or deficient factors in the debriefed
+        Offeror's offer.
+
+        (2) The overall evaluated cost or price and technical rating of the successful Offeror and
+        the debriefed Offeror and past performance information on the debriefed Offeror.
+
+        (3) The overall ranking of all Offerors when any ranking was developed by the agency
+        during source selection.
+
+        (4) A summary of the rationale for award.
+
+        (5) For acquisitions of commercial products, the make and model of the product to be
+        delivered by the successful Offeror.
+
+        (6) Reasonable responses to relevant questions posed by the debriefed Offeror as to
+        whether the agency followed source-selection procedures set forth in the solicitation,
+        applicable regulations, and other applicable authorities.
+
+
+                                                                                            Page 41
+                                                                              1305M326Q0368 BASE
+
+
+                                           (End of provision)
+
+RFO 52.212-2 Evaluation-Commercial Products and Commercial Services. (NOV 2021) (Deviation JAN
+2026)
+
+        (a) Evaluation factors. The Government will award a contract resulting from this solicitation to
+        the responsible Offeror whose offer conforming to the solicitation will be most advantageous to
+        the Government, price and other factors considered. The Government may utilize a comparative
+        evaluation during the evaluation process. Technical capability and price will be evaluated as
+        approximately equal, followed by past performance. Specifications are as follows:
+
+
+
+1. Technical Approach, Capability, and Key Personnel: The Government will evaluate the Vendor’s
+Technical Approach and Capability approach, as defined in FAR 52.212-1, to determine its level of
+confidence based on the following four ratings:
+
+                       Highly Confident: The Government has high confidence that the Vendor
+understands the requirement and will be successful in performing the contract with no Government
+intervention. The Vendor provided a Technical Approach that exceeds the Government’s minimum
+requirements.
+
+                       Confident: The Government has confidence that the Vendor understands the
+requirement and will be successful in performing the contract with little to no Government intervention.
+The Vendor provided a Technical Approach that clearly meets the Government’s minimum
+requirements.
+
+                       Some Confidence: The Government has some confidence that the Vendor
+understands the requirement and may be successful in performing the contract with some Government
+intervention. The Vendor provided a Technical Approach that doesn’t clearly meet all of the
+Government’s minimum requirements.
+
+                       Low Confidence: The Government has low confidence that the Vendor
+understands the requirement or will be successful in performing the contract even with Government
+intervention. The Vendor provided a Technical Approach that does not meet the Government’s
+minimum requirements.
+
+2. Price: The Government will evaluate the Offeror’s pricing. The total evaluated price will include the
+sum of the Offeror’s price for each Line Item and will be evaluated for reasonableness and
+completeness.
+
+
+3. Past Performance: The Government’s evaluation of Past Performance will be used, as appropriate,
+to determine successful performance of contract requirements, quality and timeliness of delivery of
+goods, services and/or construction, cost management, communications between contracting parties,
+proactive management and/or customer satisfaction.
+
+
+
+
+                                                                                                  Page 42
+                                                                               1305M326Q0368 BASE
+
+
+
+The Government will evaluate all Past Performance Questionnaire(s) received in response to this
+solicitation.
+The Government may also consider past performance information from a wide variety of sources both
+inside and outside the Government. This may include reviewing performance information reported to
+the Contractor Performance Assessment Reporting System, as well as other sources of information. For
+some commercial products or services, such as emerging technology, this should include consideration
+of commercial market experience. Contracting officers may consider an offeror’s experience as a
+subcontractor.
+
+Vendors lacking relevant past performance history, or for whom past performance information is either
+not available or has not been submitted to the Government, will receive a rating of “Neutral” for past
+performance. Neutral ratings will not be considered negatively, but may be considered less favorably
+when compared to higher rated past performance ratings.
+
+The government will then assign one of the following Past Performance ratings, as an overall rating,
+for each vendor:
+
+Favorable: The vendor submitted positive past performance relevant to the requirement in this
+solicitation.
+
+Neutral: The vendor lacks relevant past performance history, past performance questionnaire(s) were
+not received by the Government, or past performance information received did not permit the
+government to assign a favorable or unfavorable rating.
+
+Unfavorable: The vendor submitted negative past performance relevant to the requirement in this
+solicitation.
+
+(b) Options.
+
+1. Evaluation of Option Periods - Except when it is determined in accordance with RFO FAR Part 17 not
+to be in the Government’s best interests, the Government will evaluate offers or quotations for award
+purposes by adding the total price for all options to the total price for the basic requirement to
+determine the total evaluated price. This total evaluated price includes options under RFO FAR 52.217-8,
+Option to Extend Services, which applies to this solicitation. The calculation for RFO FAR 52.217-8, for
+the purposes of evaluating all quotes equally, will be calculated at 50 percent of the vendor's final
+option period pricing. For example, if Option Period 4 is the final option period in the solicitation, and
+the vendor's quote is $5,000.00, the RFO FAR 52.217-8 pricing will be calculated and evaluated at 50% or
+$2,500.00 to determine the total evaluated price. Evaluation of options will not obligate the
+Government to exercise the option(s). An option is only exercised at the issuance of a modification
+signed by the Contracting Officer.
+
+2. Exercising Option Periods after Award - All Option Period(s) will be exercised as needed at any time
+during the life of the contract using the rates applicable at the time of exercise. If the Government
+exercises FAR 52.217-8 in Option Year 2 and the price of Option Year 2 is $3,000.00, then the maximum
+6-month extension cost is $1,500.00.
+
+
+
+
+                                                                                                   Page 43
+                                                                                1305M326Q0368 BASE
+
+
+(c) Notice of award. A written notice of award or acceptance of an offer furnished to the successful
+Offeror within the time for acceptance specified in the offer, shall result in a binding contract without
+further action by either party. Before the offer’s specified expiration time, the Government may accept
+an offer (or part of an offer), whether or not there are negotiations after its receipt, unless a written
+notice of withdrawal is received before award.
+
+(End of provision)
+
+RFO 52.217-5 Evaluation of Options. (JUL 1990) (Deviation JAN 2026)
+
+Except when it is determined in accordance with FAR 17.202(b) not to be in the Government's best
+interests, the Government will evaluate offers for award purposes by adding the total price for all
+options to the total price for the basic requirement. Evaluation of options will not obligate the
+Government to exercise the option(s).
+
+(End of provision)
+
+RFO 52.219-1 Small Business Program Representations. (FEB 2024) (Deviation JAN 2026)
+
+        (a) Definitions. As used in this provision-
+
+        Economically disadvantaged women-owned small business (EDWOSB) concern means a small
+        business concern that is at least 51 percent directly and unconditionally owned by, and the
+        management and daily business operations of which are controlled by, one or more women
+        who are citizens of the United States and who are economically disadvantaged in accordance
+        with 13 CFR part 127, and the concern is certified by SBA or an approved third-party certifier in
+        accordance with 13 CFR 127.300. It automatically qualifies as a women-owned small business
+        concern eligible under the WOSB Program.
+
+        HUBZone small business concern means a small business concern that meets the requirements
+        described in 13 CFR 126.200, is certified by the Small Business Administration (SBA) and
+        designated by SBA as a HUBZone small business concern in the Small Business Search (SBS) ( 13
+        CFR 126.103).
+
+        Service-disabled veteran-owned small business (SDVOSB) concern eligible under the SDVOSB
+        Program means an SDVOSB concern that is designated in the System for Award Management
+        (SAM) as certified by the Small Business Administration (SBA) in accordance with 13 CFR
+        128.300.
+
+        Small business concern-
+
+                (1) Means a concern, including its affiliates, that is independently owned and operated,
+                not dominant in its field of operation, and qualified as a small business under the
+                criteria in 13 CFR part 121 and the size standard in paragraph (b) of this provision.
+
+                (2) Affiliates, as used in this definition, means business concerns, one of whom directly
+                or indirectly controls or has the power to control the others, or a third party or parties
+                control or have the power to control the others. In determining whether affiliation
+                exists, consideration is given to all appropriate factors including common ownership,
+
+
+                                                                                                     Page 44
+                                                                            1305M326Q0368 BASE
+
+
+        common management, and contractual relationships. SBA determines affiliation based
+        on the factors set forth at 13 CFR 121.103.
+
+Small disadvantaged business concern means a small business concern that-
+
+        (1) Is at least 51 percent unconditionally and directly owned (as defined at 13 CFR
+        124.105) by one or more socially disadvantaged (as defined at 13 CFR 124.103) and
+        economically disadvantaged (as defined at 13 CFR 124.104) individuals who are citizens
+        of the United States, and
+
+        (2) The management and daily business operations of which are controlled (as defined
+        at 13 CFR 124.106) by individuals who meet the criteria in paragraph (1) of this
+        definition.
+
+Women-owned small business (WOSB) concern eligible under the WOSB Program (in accordance
+with 13 CFR part 127) means a small business concern that is at least 51 percent directly and
+unconditionally owned by, and the management and daily business operations of which are
+controlled by, one or more women who are citizens of the United States, and the concern is
+certified by SBA or an approved third-party certifier in accordance with 13 CFR 127.300.
+
+(b)(1) The North American Industry Classification System (NAICS) code for this acquisition is
+541511.
+
+        (2) The small business size standard is $34.0 Million.
+
+        (3) The small business size standard for a concern that submits an offer, other than on a
+        construction or service acquisition, but proposes to furnish an end item that it did not
+        itself manufacture, process, or produce (i.e., nonmanufacturer), is 500 employees, or
+        150 employees for information technology value-added resellers under NAICS code
+        541519, if the acquisition-
+
+                (i) Is set aside for small business and has a value above the simplified acquisition
+                threshold;
+
+                (ii) Uses the HUBZone price evaluation preference regardless of dollar value,
+                unless the offeror waives the price evaluation preference; or
+
+                (iii) Is an 8(a), HUBZone, service-disabled veteran-owned, economically
+                disadvantaged women-owned, or women-owned small business set-aside or
+                sole-source award regardless of dollar value.
+
+(c) Representations.(1) The offeror represents as part of its offer that-
+
+                (i) it [ ] is, [ ] is not a small business concern; or
+
+                (ii) It [ ] is, [ ] is not a small business joint venture that complies with the
+                requirements of 13 CFR 121.103(h) and 13 CFR 125.8(a) and (b). [ The offeror
+                shall enter the name and unique entity identifier of each party to the joint
+                venture: __.]
+
+
+
+                                                                                             Page 45
+                                                                                  1305M326Q0368 BASE
+
+
+                (2) [Complete only if the offeror represented itself as a small business concern in
+                paragraph (c)(1) of this provision.] The offeror represents that it [ ] is, [ ] is not a women-
+                owned small disadvantage business concern.
+
+                (3) Women-owned small business (WOSB) joint venture eligible under the WOSB
+                Program. The offeror represents as part of its offer that it [ ] is, [ ] is not a joint venture
+                that complies with the requirements of 13 CFR 127.506(a) through (c). [ The offeror shall
+                enter the name and unique entity identifier of each party to the joint venture: __.]
+
+                (4) Economically disadvantaged women-owned small business (EDWOSB) joint venture.
+                The offeror represents as part of its offer that it [ ] is, [ ] is not a joint venture that
+                complies with the requirements of 13 CFR 127.506(a) through (c). [ The offeror shall
+                enter the name and unique entity identifier of each party to the joint venture: __.]
+
+                (5) SDVOSB joint venture eligible under the SDVOSB Program. [Complete only if the
+                offeror is certified as a SDVOSB concern]. The offeror represents as part of its offer that
+                it [ ] is, [ ] is not a SDVOSB joint venture eligible under the SDVOSB Program that
+                complies with the requirements of 13 CFR 128.402. [ The offeror shall enter the name
+                and unique entity identifier of each party to the joint venture:__.]
+
+                (6) HUBZone joint venture eligible under the HUBZone Program. [Complete only if the
+                offeror is a HUBZone small business concern.] The offeror represents, as part of its offer,
+                that it [ ] is, [ ] is not a HUBZone joint venture that complies with the requirements of 13
+                CFR 126.616(a) through (c). [ The offeror shall enter the name and unique entity
+                identifier of each party to the joint venture: __.] Each HUBZone small business concern
+                participating in the HUBZone joint venture must be certified as a HUBZone concern.
+
+        (d) Notice. Under 15 U.S.C. 645(d), any person who misrepresents a firm's status as a business
+        concern that is small, HUBZone small, small disadvantaged, service-disabled veteran-owned
+        small, economically disadvantaged women-owned small, or women-owned small eligible under
+        the WOSB Program in order to obtain a contract to be awarded under the preference programs
+        established pursuant to section 8, 9, 15, 31, and 36 of the Small Business Act or any other
+        provision of Federal law that specifically references section 8(d) for a definition of program
+        eligibility, will be-
+
+                (1) Punished by imposition of fine, imprisonment, or both;
+
+                (2) Subject to administrative remedies, including suspension and debarment; and
+
+                (3) Ineligible for participation in programs conducted under the authority of the Act.
+
+(End of provision)
+
+RFO 52.252-1 Solicitation Provisions Incorporated by Reference. (FEB 1998)
+
+This solicitation incorporates one or more solicitation provisions by reference, with the same force and
+effect as if they were given in full text. Upon request, the Contracting Officer will make their full text
+available. The offeror is cautioned that the listed provisions may include blocks that must be completed
+by the offeror and submitted with its quotation or offer. In lieu of submitting the full text of those
+
+
+                                                                                                        Page 46
+                                                                                 1305M326Q0368 BASE
+
+
+provisions, the offeror may identify the provision by paragraph identifier and provide the appropriate
+information with its quotation or offer. Also, the full text of a solicitation provision may be accessed
+electronically at this/these address(es): www.acquisition.gov/far-overhaul/far-part-deviation-guide
+
+(End of provision)
+
+RFO 52.252-5 Authorized Deviations in Provisions. (NOV 2020)
+
+        (a) The use in this solicitation of any Federal Acquisition Regulation (48 CFR chapter 1) provision
+        with an authorized deviation is indicated by the addition of (DEVIATION) after the date of the
+        provision.
+
+        (b) The use in this solicitation of any Commerce Acquisition Regulation (48 CFR chapter 13)
+        provision with an authorized deviation is indicated by the addition of (DEVIATION) after the
+        name of the regulation.
+
+(End of provision)
+
+CAR 1352.215-72 Inquiries. (APR 2010)
+
+Offerors must submit all questions concerning this solicitation in writing to grace.lapierre@noaa.gov and
+charles.kendall@noaa.gov. Questions should be received no later than 08/11/2026 calendar days after
+the issuance date of this solicitation. Any responses to questions will be made in writing, without
+identification of the questioner, and will be included in an amendment to the solicitation. Even if
+provided in other form, only the question responses included in the amendment to the solicitation will
+govern performance of the contract.
+
+(End of clause)
+
+CAR 1352.233-70 Agency protests. (APR 2010)
+
+        (a) An agency protest may be filed with either: (1) The contracting officer, or (2) at a level above
+        the contracting officer, with the appropriate agency Protest Decision Authority. See 64 FR
+        16,651 (April 6, 1999).
+
+        (b) Agency protests filed with the Contracting Officer shall be sent to the following address:
+        Charles Kendall
+        Contracting Officer, Seattle-SAP
+        Western Acquisitions Division
+        7600 Sand Point Way NE, Bldg 1,
+        Seattle, WA 98115
+        charles.kendall@noaa.gov
+
+        (c) Agency protests filed with the agency Protest Decision Authority shall be sent to the
+        following address: Aakanksha Bhargava
+        Branch Chief, Seattle-SAP
+        Western Acquisitions Division
+        7600 Sand Point Way NE, Bldg 1,
+
+
+
+
+                                                                                                      Page 47
+                                                                                 1305M326Q0368 BASE
+
+
+        Seattle, WA 98115
+        aakanksha.bhargava@noaa.gov
+
+        (d) A complete copy of all agency protests, including all attachments, shall be served upon the
+        Contract Law Division of the Office of the General Counsel within one day of filing a protest with
+        either the Contracting Officer or the Protest Decision Authority.
+
+        (e) Service upon the Contract Law Division shall be made as follows: U.S. Department of
+        Commerce, Office of the General Counsel, Chief, Contract Law Division, Room 5893, Herbert C.
+        Hoover Building, 14th Street and Constitution Avenue, NW., Washington, DC 20230. FAX: (202)
+        482-5858.
+
+(End of clause)
+
+CAR 1352.233-71 GAO and Court of Federal Claims protests. (APR 2010)
+
+        (a) A protest may be filed with either the Government Accountability Office (GAO) or the Court
+        of Federal Claims unless an agency protest has been filed.
+
+        (b) A complete copy of all GAO or Court of Federal Claims protests, including all attachments,
+        shall be served upon (i) the Contracting Officer, and (ii) the Contract Law Division of the Office of
+        the General Counsel, within one day of filing a protest with either GAO or the Court of Federal
+        Claims.
+
+        (c) Service upon the Contract Law Division shall be made as follows: U.S. Department of
+        Commerce, Office of the General Counsel, Chief, Contract Law Division, Room 5893, Herbert C.
+        Hoover Building, 14th Street and Constitution Avenue, NW., Washington, DC 20230. FAX: (202)
+        482-5858.
+
+(End of clause)
+
+
+
+
+                                                                                                      Page 48
+

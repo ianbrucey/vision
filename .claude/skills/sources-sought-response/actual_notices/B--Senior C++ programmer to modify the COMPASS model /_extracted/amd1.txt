@@ -1,0 +1,124 @@
+                                                                                                                        1. CONTRACT ID CODE                 PAGE       OF   PAGES
+     AMENDMENT OF SOLICITATION/MODIFICATION OF CONTRACT                                                                                                         1           3
+2. AMENDMENT/MODIFICATION NUMBER                              3. EFFECTIVE DATE             4. REQUISITION/PURCHASE REQUISITION NUMBER           5. PROJECT NUMBER (If applicable)
+0001                                                  08/17/2026
+6. ISSUED BY                          CODE    WAD-SAP-S                                     7.ADMINISTERED BY (If other than Item 6) CODE
+WAD-SAP
+7600 Sand Point Way NE
+SEATTLE WA 98115
+
+
+
+8. NAME AND ADDRESS OF CONTRACTOR (Number, street, county, State and ZIP Code)                                    9A. AMENDMENT OF SOLICITATION NUMBER
+                                                                                                             (X) 1305M326Q0368
+                                                                                                                  9B. DATED (SEE ITEM 11)
+                                                                                                                   08/06/2026
+                                                                                                                  10A. MODIFICATION OF CONTRACT/ORDER NUMBER
+
+
+
+
+                                                                                                                  10B. DATED (SEE ITEM 13)
+
+
+
+
+CODE                                                     FACILITY CODE
+
+                                         11. THIS ITEM ONLY APPLIES TO AMENDMENTS OF SOLICITATIONS
+     The above numbered solicitation is amended as set forth in Item 14. The hour and date specified for receipt of Offers       is extended.           is not extended.
+Offers must acknowledge receipt of this amendment prior to the hour and date specified in the solicitation or as amended, by one of the following methods:
+(a) By completing items 8 and 15, and returning      1          copies of the amendment; (b) By acknowledging receipt of this amendment on each copy of the offer submitted;
+or (c) By separate letter or electronic communication which includes a reference to the solicitation and amendment numbers. FAILURE OF YOUR ACKNOWLEDGMENT TO BE
+RECEIVED AT THE PLACE DESIGNATED FOR THE RECEIPT OF OFFERS PRIOR TO THE HOUR AND DATE SPECIFIED MAY RESULT IN REJECTION OF YOUR OFFER. If
+by virtue of this amendment you desire to change an offer already submitted, such change may be made by letter or electronic communication, provided each letter or electronic
+communication makes reference to the solicitation and this amendment, and is received prior to the opening hour and date specified.
+12. ACCOUNTING AND APPROPRIATION DATA (If required)
+
+
+                                   13. THIS ITEM APPLIES ONLY TO MODIFICATIONS OF CONTRACTS/ORDERS.
+                                    IT MODIFIES THE CONTRACT/ORDER NUMBER AS DESCRIBED IN ITEM 14.
+CHECK ONE A. THIS CHANGE ORDER IS ISSUED PURSUANT TO: (Specify authority) THE CHANGES SET FORTH IN ITEM 14 ARE MADE IN THE CONTRACT ORDER
+             NUMBER IN ITEM 10A.
+
+
+             B. THE ABOVE NUMBERED CONTRACT/ORDER IS MODIFIED TO REFLECT THE ADMINISTRATIVE CHANGES (such as changes in paying office,
+                appropriation data, etc.) SET FORTH IN ITEM 14, PURSUANT TO THE AUTHORITY OF FAR 43.103(b).
+
+
+             C. THIS SUPPLEMENTAL AGREEMENT IS ENTERED INTO PURSUANT TO AUTHORITY OF:
+
+
+             D. OTHER (Specify type of modification and authority)
+
+
+
+E. IMPORTANT: Contractor                   is not          is required to sign this document and return                                 copies to the issuing office.
+14. DESCRIPTION OF AMENDMENT/MODIFICATION (Organized by UCF section headings, including solicitation/contract subject matter where feasible.)
+See continuation page
+
+Except as provided herein, all terms and conditions of the document referenced in Item 9A or 10A, as heretofore changed, remains unchanged and in full force and effect.
+15A. NAME AND TITLE OF SIGNER (Type or print)                                             16A. NAME AND TITLE OF CONTRACTING OFFICER (Type or print)
+
+                                                                                          CHARLES M. KENDALL
+
+15B. CONTRACTOR/OFFEROR                                            15C. DATE SIGNED 16B. UNITED STATES OF AMERICA                                              16C. DATE SIGNED
+
+
+
+
+            (Signature of person authorized to sign)                                                        (Signature of Contracting Officer)
+
+Previous edition unusable                                                                                                      STANDARD FORM 30 (REV. 11/2016)
+                                                                                                                               Prescribed by GSA FAR (48 CFR) 53.243
+                           REFERENCE NO. OF DOCUMENT BEING CONTINUED                                      PAGES
+
+CONTINUATION SHEET
+                            1305M326Q0368/0001                                                            PAGE 2 OF 3
+NAME OF OFFEROR OR CONTRACTOR
+
+
+ ITEM NO.                       SUPPLIES/SERVICES                      QUANTITY   UNIT UNIT PRICE             AMOUNT
+     (A)                                (B)                               (C)      (D)     (E)                    (F)
+               The purpose of this amendment is to:
+
+               a. Add "Attachment 03 - RFI Tracker - C++
+               Programmer 08.17.2026" to answer questions
+               received during the inquiries period.
+
+               b. Extend the due date for quote submissions
+               until 1500 ED on 08/21/2026.
+
+               All other solicitation terms and conditions
+               remain unchanged.
+               Period of Performance: 10/01/2026 to
+               09/30/2027
+
+
+
+
+NSN 7540-01-152-8067                                                                             OPTIONAL FORM 336 (4-86)
+                                                                                             Sponsored by GSA FAR (48 CFR) 53.110
+                                                                     1305M326Q0368 0001
+
+
+                      Section II - Supplies or Services and Price/Costs
+
+CLIN List
+
+                                 Section X - List of Attachments
+
+Table has been revised and now reads as follows:
+
+Attachment
+                                        Title
+  Number
+1          Attachment 01 - Statement of Work 08.06.2026
+2          Attachment 02 - Past Performance Questionnaire
+3          Attachment 03 - RFI Tracker - C++ Programmer 08.17.2026
+
+
+
+
+                                                                                   Page 3
+

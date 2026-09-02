@@ -49,6 +49,15 @@
   /* Fonts (defined in layout.tsx via next/font/google) */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* GSC Landing Page — dark navy palette (logo-derived)
+     See: design-system.md §15. Landing page only; app pages stay light. */
+  --color-gsc-navy: #2e4e9a;
+  --color-gsc-navy-panel: #0B1430;
+  --color-gsc-navy-line: #1E2A4D;
+  --color-gsc-navy-hover: #131F42;
+  --color-gsc-body: #AEB8D4;
+  --color-gsc-dim: #7C89AB;
 }
 
 /* =============================================
