@@ -8,7 +8,15 @@ state/local intake is fully synchronous. Per 02-api-contract.json.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+import io
+import os
+import shutil
+import tempfile
+import zipfile
+import uuid
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -18,8 +26,10 @@ from core.solicitation import SolicitationManager, DuplicateNoticeError
 from core.vendor import VendorManager
 from core.vendor_match import VendorMatchManager
 from core.email_mailgun import MailgunSendError
+from ingestion.dispatcher import ingest_file
 from ingestion.jobs import enqueue as _enqueue_job
-from ingestion.sam_client import extract_notice_id
+from ingestion.sam_client import extract_notice_id, fetch_notice, fetch_description
+from ingestion.storage import upload_file as _upload_to_minio, upload_attachment
 
 import psycopg2.extras
 
@@ -28,6 +38,35 @@ router = APIRouter(prefix="/api", tags=["solicitations"])
 mgr = SolicitationManager()
 vendor_match_mgr = VendorMatchManager()
 vendor_mgr = VendorManager()
+
+
+def _safe_extract_zip(zip_path: Path, target_dir: Path) -> list[Path]:
+    """Safely extract all valid files from a zip archive, ignoring macOS junk."""
+    extracted = []
+    try:
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            for member in zf.infolist():
+                if member.is_dir():
+                    continue
+                filename = member.filename
+                parts = Path(filename).parts
+                if any(p.startswith(".") or p.startswith("__MACOSX") or p == ".DS_Store" for p in parts):
+                    continue
+                clean_name = Path(filename).name
+                if not clean_name or clean_name.startswith("."):
+                    continue
+                dest_path = target_dir / clean_name
+                counter = 1
+                while dest_path.exists():
+                    dest_path = target_dir / f"{dest_path.stem}_{counter}{dest_path.suffix}"
+                    counter += 1
+
+                with zf.open(member) as src, open(dest_path, "wb") as dst:
+                    shutil.copyfileobj(src, dst)
+                extracted.append(dest_path)
+    except Exception as e:
+        print(f"[_safe_extract_zip] Error unzipping {zip_path}: {e}")
+    return extracted
 
 
 # ---------------------------------------------------------------------------
@@ -96,6 +135,140 @@ def create_solicitation_endpoint(
         job_id = job["id"]
 
     return {"solicitation": sol, "job_id": job_id}
+
+
+@router.get("/solicitations/preview-sam")
+def preview_sam_metadata(
+    url: str | None = Query(None),
+    notice_id: str | None = Query(None),
+    user: dict = Depends(get_current_user),
+):
+    """Pre-fetch metadata from SAM.gov v2 API without downloading attachments."""
+    nid = (notice_id or "").strip()
+    if not nid and url:
+        nid = extract_notice_id(url) or ""
+    if not nid:
+        raise HTTPException(status_code=400, detail="A valid SAM.gov URL or Notice ID is required.")
+
+    try:
+        notice = fetch_notice(nid)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Failed to query SAM.gov API: {e}")
+
+    desc = None
+    try:
+        desc = fetch_description(nid)
+    except Exception:
+        pass
+
+    return {
+        "notice_id": nid,
+        "title": notice.get("title"),
+        "department": notice.get("department"),
+        "sub_tier": notice.get("subTier"),
+        "office": notice.get("office"),
+        "posted_date": notice.get("postedDate"),
+        "response_deadline": notice.get("responseDeadLine"),
+        "naics_code": notice.get("naicsCode"),
+        "set_aside": (
+            notice.get("typeOfSetAsideDescription")
+            or notice.get("typeOfSetAside")
+        ),
+        "description": desc,
+    }
+
+
+@router.post("/solicitations/ingest-package", status_code=201)
+async def ingest_solicitation_package(
+    files: list[UploadFile] = File(...),
+    source_type: str = Form("federal"),
+    url: str | None = Form(None),
+    notice_id: str | None = Form(None),
+    title: str | None = Form(None),
+    description: str | None = Form(None),
+    user: dict = Depends(get_current_user),
+):
+    """Directly ingest a solicitation package (ZIP archive or individual files).
+
+    - Instant response: creates case & solicitation record, stages files to MinIO.
+    - Asynchronously in worker: fetches SAM.gov metadata (if notice_id provided),
+      extracts files/zips, ingests documents into MinIO/DB, and triggers triage.
+    """
+    if not files:
+        raise HTTPException(status_code=400, detail="At least one file or .zip archive is required.")
+
+    resolved_url = (url or "").strip()
+    resolved_notice_id = (notice_id or "").strip()
+    if not resolved_notice_id and resolved_url:
+        resolved_notice_id = extract_notice_id(resolved_url) or ""
+
+    has_user_title = bool((title or "").strip())
+    has_user_description = bool((description or "").strip())
+
+    initial_title = (title or "").strip()
+    if not initial_title:
+        initial_title = f"Solicitation {resolved_notice_id}" if resolved_notice_id else "New Solicitation"
+
+    # 1. Create Solicitation & Case records immediately (ingestion_status='pending')
+    try:
+        sol = mgr.create(
+            source_type=source_type,
+            url=resolved_url,
+            title=initial_title,
+            notice_id=resolved_notice_id or None,
+            description=(description or "").strip() or None,
+        )
+    except DuplicateNoticeError as e:
+        return JSONResponse(
+            status_code=409,
+            content={
+                "detail": str(e),
+                "existing_external_id": e.existing_external_id,
+            },
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    case_id = sol["case_id"]
+    sol_id = sol["id"]
+
+    # 2. Stage uploaded files to MinIO
+    staged_files = []
+    for upload_file in files:
+        fname = upload_file.filename or "upload"
+        clean_fname = Path(fname).name
+        if not clean_fname or clean_fname.startswith("."):
+            continue
+        content = await upload_file.read()
+        if not content:
+            continue
+        obj_key = f"staging/{sol_id}/{uuid.uuid4().hex[:8]}_{clean_fname}"
+        upload_attachment(obj_key, content)
+        staged_files.append({"object_key": obj_key, "filename": clean_fname})
+
+    if not staged_files:
+        mgr.update(sol_id, ingestion_status="failed", error_message="No valid files provided")
+        raise HTTPException(status_code=400, detail="No valid files uploaded.")
+
+    # 3. Enqueue smart_ingest job for background worker
+    job = _enqueue_job(
+        case_id=case_id,
+        job_type="smart_ingest",
+        metadata={
+            "solicitation_id": sol_id,
+            "notice_id": resolved_notice_id or None,
+            "has_user_title": has_user_title,
+            "has_user_description": has_user_description,
+            "staged_files": staged_files,
+        },
+    )
+
+    refreshed_sol = mgr.get(sol_id) or sol
+    return {
+        "solicitation": refreshed_sol,
+        "document_count": len(staged_files),
+        "job_id": job["id"],
+    }
 
 
 # ---------------------------------------------------------------------------

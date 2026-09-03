@@ -60,14 +60,10 @@ ALTER TABLE solicitations ADD COLUMN IF NOT EXISTS artifact_submission_checklist
 CREATE INDEX IF NOT EXISTS idx_solicitations_triage_status ON solicitations (triage_status);
 
 -- ----------------------------------------------------------------------------
--- jobs.job_type — add 'solicitation_triage' for the unattended pipeline run
+-- jobs.job_type — 'solicitation_triage' added for the unattended pipeline
+-- run. The jobs_job_type_check constraint is no longer redefined here; it is
+-- consolidated into 033_smart_ingest_job_type.sql (see that file's header).
 -- ----------------------------------------------------------------------------
-ALTER TABLE jobs DROP CONSTRAINT IF EXISTS jobs_job_type_check;
-ALTER TABLE jobs ADD CONSTRAINT jobs_job_type_check
-    CHECK (job_type IN ('ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
-                         'analyze', 'export', 'ocr', 'embed', 'enrich',
-                         'synthesize', 'profile_synthesis', 'capability_statement',
-                         'sam_fetch', 'solicitation_triage', 'vendor_matching', 'inbound_email', 'sam_notice_import', 'other'));
 
 -- ============================================================================
 -- Migration Bookkeeping

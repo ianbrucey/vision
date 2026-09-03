@@ -794,7 +794,9 @@ RULES (follow exactly):
 6. Delete unused <li> items only when the placeholder description
    explicitly says "delete this line if none" or "delete unused lines."
    Otherwise keep the structure intact.
-7. When you are done, call save_artifact with the complete HTML."""
+7. NEVER use an em dash (—) anywhere in extracted content. Use a comma,
+   period, colon, or parentheses instead.
+8. When you are done, call save_artifact with the complete HTML."""
 
 # Type-specific guidance appended to the system prompt per notice type.
 _TYPE_GUIDANCE: dict[str, str] = {
@@ -850,16 +852,76 @@ Extract everything available from the documents.""",
 }
 
 
+_SOURCING_SCRIPT_EMAIL_GUIDANCE = """\
+SAMPLE OUTREACH EMAIL: This artifact contains a ready-to-send email
+(Subject + body) that a sourcing specialist copies and pastes directly
+into an email client to contact a potential subcontractor — the same way
+a technical recruiter emails candidates about a job opening.
+- Write real, complete copy — not a description of what the email should
+  contain. Use the actual solicitation number, agency, scope, and
+  deadline you extracted elsewhere in this document.
+- TONE: Write like a busy person emailing another busy person — short,
+  plain, and direct. No corporate throat-clearing, no legalese, no
+  restating the solicitation's formal language back at them. Get to the
+  point in the first sentence. Prefer short sentences and everyday words
+  over long compound sentences.
+- ONLY ASK WHAT WE ACTUALLY NEED RIGHT NOW: at this stage we only need to
+  know if they have the capacity and qualifications to do the work, and
+  a rough price/lead time. Do NOT ask for UEI, CAGE code, SAM.gov
+  registration status, Buy American / country-of-origin forms, bonding,
+  insurance certificates, or any other compliance paperwork — that comes
+  later once we know they can do the job. Do not reference the
+  "Questions to Ask Subcontractors" list wholesale; pull only the 1-2
+  questions from it that are about capability/capacity (e.g. relevant
+  experience, ability to meet the deadline), not administrative/
+  registration questions.
+- Keep it to 3 short paragraphs: (1) one line on who we are and the
+  opportunity (agency + solicitation #), (2) one line on the scope in
+  plain English and what we need from them (can they do it, rough
+  price/lead time), (3) the deadline to respond.
+- BRAND: We are "Gov Services Connect" — refer to us by that name in the
+  body of the email (e.g. "Gov Services Connect is pursuing..."). Do NOT
+  use "Justice Quest LLC" in the body text.
+- SIGNATURE: End with this exact literal signature block, on separate
+  lines, with no other placeholders:
+  "Ian Bruce"
+  "Director"
+  "Gov Services Connect (a Justice Quest LLC company)"
+  "470-785-3007"
+  "https://govservicesconnect.com"
+  Do not include an email address in the signature — outreach is sent
+  from a Gov Services Connect email address.
+- The email body placeholder must contain real line breaks between
+  paragraphs and no HTML tags — it will be pasted as-is into an email."""
+
+
 def _build_extraction_prompt(notice_type: str, artifact_label: str) -> str:
     """Build a type-aware system prompt for one extraction agent."""
     guidance = _TYPE_GUIDANCE.get(notice_type, _TYPE_GUIDANCE["solicitation"])
+    extra = (
+        f"\n\n{_SOURCING_SCRIPT_EMAIL_GUIDANCE}"
+        if artifact_label == "Sourcing Script"
+        else ""
+    )
     return (
-        f"You are a federal procurement analyst. Your ONLY job is to fill in "
+        f"You are a federal procurement analyst. Your job is to fill in "
         f"placeholders in an HTML template with content extracted from "
-        f"solicitation documents.\n\n"
+        f"the solicitation documents in your workspace.\n\n"
+        f"AVAILABLE TOOLS:\n"
+        f"- `list_documents`: Lists all files in the workspace with sizes and line counts.\n"
+        f"- `search_documents(query)`: Search across documents for clauses, CLINs, SOW, wage rates, or keywords.\n"
+        f"- `read_document(filename, start_line, max_lines)`: Read specific lines or sections from any file.\n"
+        f"- `save_artifact(html)`: Call this with the complete populated HTML when all placeholders are filled.\n\n"
+        f"WORKFLOW:\n"
+        f"1. Use `search_documents` and `read_document` to inspect the relevant documents (e.g. SOW/PWS, instructions, pricing sheets).\n"
+        f"2. Extract the exact facts, requirements, dates, and CLINs from the text.\n"
+        f"3. Note source page numbers from the document [page N] markers and cite them as (p. N).\n"
+        f"4. Replace every [EXTRACT: ...] placeholder in the template.\n"
+        f"5. Call `save_artifact` with the complete, fully populated HTML.\n\n"
         f"NOTICE TYPE: {notice_type}\n{guidance}\n\n"
         f"This is the \"{artifact_label}\" artifact.\n\n"
         f"{_EXTRACTION_RULES}"
+        f"{extra}"
     )
 
 
@@ -868,8 +930,8 @@ async def _invoke_triage_agent(
 ) -> str:
     """Invoke 3 agents in parallel — one per artifact template.
 
-    Each agent gets a pre-built HTML template and fills in [EXTRACT: ...]
-    placeholders with content from the exported solicitation documents.
+    Each agent inspects the exported documents in work_dir using dedicated
+    document tools (list, read, search) and fills in the designated HTML template.
     Backend is selected via VISION_TRIAGE_BACKEND env var.
     """
     import os as _os
@@ -877,16 +939,16 @@ async def _invoke_triage_agent(
     backend = _os.environ.get("VISION_TRIAGE_BACKEND", "claude_sdk")
     templates_dir = Path(__file__).resolve().parent.parent / "test_triage" / "templates"
 
-    # Read the exported document text once
-    doc_texts = []
+    # Build concise overview of files in work_dir for orientation
+    doc_summary = []
     for md_file in sorted(work_dir.glob("*.md")):
-        doc_texts.append(f"### {md_file.name}\n\n{md_file.read_text()}")
-    combined_docs = "\n\n---\n\n".join(doc_texts)
-
-    user_message = (
-        f"Solicitation documents for case {case_id} "
-        f"(notice type: {notice_type}):\n\n{combined_docs}"
-    )
+        try:
+          line_count = sum(1 for _ in md_file.open(encoding="utf-8"))
+          size_kb = md_file.stat().st_size / 1024
+          doc_summary.append(f"- `{md_file.name}` ({size_kb:.1f} KB, {line_count} lines)")
+        except Exception:
+          doc_summary.append(f"- `{md_file.name}`")
+    docs_overview = "\n".join(doc_summary) if doc_summary else "No files found."
 
     # Run 3 parallel agents, one per template
     tasks = []
@@ -907,8 +969,10 @@ async def _invoke_triage_agent(
                     spec=spec,
                     system_prompt=system_prompt,
                     template_html=template_html,
-                    user_message=user_message,
+                    docs_overview=docs_overview,
                     work_dir=work_dir,
+                    case_id=case_id,
+                    notice_type=notice_type,
                 )
             )
         else:
@@ -941,11 +1005,15 @@ async def _run_template_extractor(
     spec: dict,
     system_prompt: str,
     template_html: str,
-    user_message: str,
+    docs_overview: str,
     work_dir: Path,
+    case_id: int,
+    notice_type: str,
 ) -> dict:
-    """Run one Claude Agent SDK agent to fill a single HTML template.
+    """Run one Claude Agent SDK agent to inspect files and fill an HTML template.
 
+    The agent has access to `list_documents`, `read_document`, `search_documents`,
+    and `save_artifact` to inspect files on-demand instead of receiving huge payloads.
     Returns {'key': str, 'ok': bool, 'error': str|None}.
     """
     import json as _json
@@ -957,6 +1025,123 @@ async def _run_template_extractor(
     )
 
     output_path = work_dir / spec["output"]
+
+    @tool(
+        "list_documents",
+        "List all available solicitation documents in the workspace with file sizes and line counts.",
+        {"type": "object", "properties": {}},
+    )
+    async def list_documents(args: dict) -> dict:
+        files_info = []
+        for f in sorted(work_dir.glob("*.md")):
+            try:
+                lines = sum(1 for _ in f.open(encoding="utf-8"))
+                files_info.append({
+                    "filename": f.name,
+                    "size_kb": round(f.stat().st_size / 1024, 1),
+                    "lines": lines,
+                })
+            except Exception:
+                files_info.append({"filename": f.name})
+        return {"content": [{"type": "text", "text": _json.dumps(files_info, indent=2)}]}
+
+    @tool(
+        "read_document",
+        "Read a range of lines from a specific solicitation document in the workspace.",
+        {
+            "type": "object",
+            "properties": {
+                "filename": {
+                    "type": "string",
+                    "description": "The exact name of the file to read (e.g. '04_Solicitation.pdf.md').",
+                },
+                "start_line": {
+                    "type": "integer",
+                    "description": "1-based line number to start reading from.",
+                    "default": 1,
+                },
+                "max_lines": {
+                    "type": "integer",
+                    "description": "Maximum number of lines to return (default: 300, max: 600).",
+                    "default": 300,
+                },
+            },
+            "required": ["filename"],
+        },
+    )
+    async def read_document(args: dict) -> dict:
+        fname = Path(args["filename"]).name
+        target = work_dir / fname
+        if not target.exists() or not target.is_file():
+            avail = [f.name for f in work_dir.glob("*.md")]
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": f"Error: File '{fname}' not found. Available documents: {avail}",
+                }],
+                "is_error": True,
+            }
+
+        start_line = max(1, int(args.get("start_line") or 1))
+        max_lines = min(600, max(1, int(args.get("max_lines") or 300)))
+
+        try:
+            with target.open("r", encoding="utf-8", errors="replace") as fp:
+                all_lines = fp.readlines()
+            total = len(all_lines)
+            start_idx = start_line - 1
+            end_idx = min(total, start_idx + max_lines)
+            slice_lines = all_lines[start_idx:end_idx]
+            numbered = [f"{i:4d}: {line.rstrip()}" for i, line in enumerate(slice_lines, start_line)]
+            header = f"=== {fname} (lines {start_line}–{end_idx} of {total}) ===\n"
+            return {"content": [{"type": "text", "text": header + "\n".join(numbered)}]}
+        except Exception as exc:
+            return {
+                "content": [{"type": "text", "text": f"Error reading '{fname}': {exc}"}],
+                "is_error": True,
+            }
+
+    @tool(
+        "search_documents",
+        "Search all solicitation documents in the workspace for keywords, clauses, CLINs, or phrases.",
+        {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "Case-insensitive search string (e.g. 'PWS', 'evaluation', 'CLIN', 'wage determination', 'deadline', 'bonding').",
+                }
+            },
+            "required": ["query"],
+        },
+    )
+    async def search_documents(args: dict) -> dict:
+        query = str(args.get("query", "")).strip().lower()
+        if not query:
+            return {"content": [{"type": "text", "text": "Error: query cannot be empty"}]}
+
+        matches = []
+        for f in sorted(work_dir.glob("*.md")):
+            try:
+                with f.open("r", encoding="utf-8", errors="replace") as fp:
+                    for line_no, line in enumerate(fp, 1):
+                        if query in line.lower():
+                            matches.append(f"[{f.name}:{line_no}] {line.strip()[:180]}")
+                            if len(matches) >= 50:
+                                break
+            except Exception:
+                pass
+            if len(matches) >= 50:
+                break
+
+        if not matches:
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": f"No occurrences of '{query}' found. Try broader terms or read the main solicitation/PWS file directly.",
+                }]
+            }
+        return {"content": [{"type": "text", "text": f"Found {len(matches)} match(es):\n" + "\n".join(matches)}]}
 
     @tool(
         "save_artifact",
@@ -975,30 +1160,42 @@ async def _run_template_extractor(
         },
     )
     async def save_artifact(args: dict) -> dict:
-        # Stamp the generation date
         today = datetime.now().strftime("%B %d, %Y")
         html = args["html"].replace("[EXTRACT: date generated]", today)
-        output_path.write_text(html)
+        output_path.write_text(html, encoding="utf-8")
         return {"content": [{"type": "text", "text": f"{spec['label']} saved."}]}
 
-    artifact_server = create_sdk_mcp_server(
-        name=f"extractor_{spec['key']}", version="1.0.0", tools=[save_artifact],
+    triage_server = create_sdk_mcp_server(
+        name=f"triage_{spec['key']}",
+        version="1.0.0",
+        tools=[list_documents, read_document, search_documents, save_artifact],
     )
 
-    # Build the full prompt: template + "fill it in with the docs below"
-    instruction = (
-        f"Below is an HTML template for the \"{spec['label']}\" artifact. "
-        f"Replace every [EXTRACT: ...] placeholder with content from "
-        f"the solicitation documents that follow the template.\n\n"
-        f"=== TEMPLATE ===\n{template_html}\n=== END TEMPLATE ==="
+    user_message = (
+        f"You are assigned to extract the \"{spec['label']}\" artifact for Case {case_id} "
+        f"(Notice Type: {notice_type}).\n\n"
+        f"=== SOLICITATION DOCUMENTS IN YOUR WORKSPACE ===\n"
+        f"{docs_overview}\n\n"
+        f"=== HTML TEMPLATE TO POPULATE ===\n"
+        f"{template_html}\n"
+        f"=== END TEMPLATE ===\n\n"
+        f"INSTRUCTIONS:\n"
+        f"1. Use `search_documents` and `read_document` to inspect the documents in your workspace.\n"
+        f"2. Note the page citations [page N] in the source files and cite them as (p. N).\n"
+        f"3. Replace every [EXTRACT: ...] placeholder in the template above with your findings.\n"
+        f"4. Call `save_artifact` with the complete HTML document when ready."
     )
 
-    workdir = Path(__file__).resolve().parent.parent
     options = ClaudeAgentOptions(
         system_prompt=system_prompt,
-        mcp_servers={"artifact": artifact_server},
-        allowed_tools=["mcp__artifact__save_artifact"],
-        cwd=str(workdir),
+        mcp_servers={"tools": triage_server},
+        allowed_tools=[
+            "mcp__tools__list_documents",
+            "mcp__tools__read_document",
+            "mcp__tools__search_documents",
+            "mcp__tools__save_artifact",
+        ],
+        cwd=str(work_dir),
         permission_mode="bypassPermissions",
         setting_sources=[],
     )
@@ -1006,7 +1203,7 @@ async def _run_template_extractor(
     client = ClaudeSDKClient(options=options)
     try:
         await client.connect()
-        await client.query(f"{instruction}\n\n{user_message}")
+        await client.query(user_message)
         from claude_agent_sdk.types import ResultMessage
         async for msg in client.receive_response():
             if isinstance(msg, ResultMessage):
@@ -1055,73 +1252,63 @@ async def run_solicitation_triage(case_id: int, solicitation_id: int) -> dict:
         work_dir = Path(__file__).resolve().parent.parent / "test_triage" / f"case_{case_id}"
         work_dir.mkdir(parents=True, exist_ok=True)
 
-        exported = _export_documents_to_folder(case_id, work_dir)
-        notice_type = exported["notice_type"]
-        print(
-            f"[solicitation_triage] case_id={case_id} solicitation_id={solicitation_id} "
-            f"— exported {exported['doc_count']} docs, {exported['total_chars']:,} chars, "
-            f"type={notice_type}"
-        )
-
-        # ---- Step 2: Invoke 3 parallel agents to fill templates ----
         try:
-            result = await _invoke_triage_agent(case_id, work_dir, notice_type)
+            exported = _export_documents_to_folder(case_id, work_dir)
+            notice_type = exported["notice_type"]
+            print(
+                f"[solicitation_triage] case_id={case_id} solicitation_id={solicitation_id} "
+                f"— exported {exported['doc_count']} docs, {exported['total_chars']:,} chars, "
+                f"type={notice_type}"
+            )
+
+            # ---- Step 2: Invoke 3 parallel agents to fill templates ----
+            try:
+                result = await _invoke_triage_agent(case_id, work_dir, notice_type)
+                print(
+                    f"[solicitation_triage] case_id={case_id} — "
+                    f"agent completed: {result}"
+                )
+            except Exception as e:
+                print(
+                    f"[solicitation_triage] case_id={case_id} — "
+                    f"agent FAILED: {e}"
+                )
+                mgr.update(solicitation_id, triage_status="failed", triage_error=str(e))
+                return {"error": str(e)}
+
+            # ---- Step 3: Persist artifacts to DB (solicitations + workspace) ----
+            persisted = _persist_artifacts(solicitation_id, case_id, work_dir)
             print(
                 f"[solicitation_triage] case_id={case_id} — "
-                f"agent completed: {result}"
-            )
-        except Exception as e:
-            print(
-                f"[solicitation_triage] case_id={case_id} — "
-                f"agent FAILED: {e}"
-            )
-            mgr.update(solicitation_id, triage_status="failed", triage_error=str(e))
-            return {"error": str(e)}
-
-        # ---- Step 3: Persist artifacts to DB (solicitations + workspace) ----
-        persisted = _persist_artifacts(solicitation_id, case_id, work_dir)
-        print(
-            f"[solicitation_triage] case_id={case_id} — "
-            f"persisted {persisted['count']} artifacts to DB, "
-            f"errors={persisted['errors']}"
-        )
-
-        # ---- Cleanup: remove work directory after successful upload ----
-        import shutil
-        try:
-            shutil.rmtree(work_dir)
-            print(f"[solicitation_triage] case_id={case_id} — cleaned up {work_dir}")
-        except Exception as e:
-            print(f"[solicitation_triage] case_id={case_id} — cleanup warning: {e}")
-
-        mgr.update(
-            solicitation_id,
-            triage_status="complete",
-            triage_error=None,
-            has_partial_artifacts=bool(persisted["errors"]),
-        )
-
-        # ---- Step 4: Enqueue vendor matching ----
-        try:
-            from ingestion.jobs import enqueue
-            enqueue(
-                case_id=case_id,
-                job_type="vendor_matching",
-                metadata={"solicitation_id": solicitation_id},
-            )
-        except Exception as e:
-            print(
-                f"Failed to enqueue vendor_matching for "
-                f"solicitation_id={solicitation_id}: {e}"
+                f"persisted {persisted['count']} artifacts to DB, "
+                f"errors={persisted['errors']}"
             )
 
-        return {
-            "quick_kill": False,
-            "quick_kill_reason": None,
-            "notice_type": "other",
-            "has_partial_artifacts": False,
-            "errors": [],
-        }
+            mgr.update(
+                solicitation_id,
+                triage_status="complete",
+                triage_error=None,
+                has_partial_artifacts=bool(persisted["errors"]),
+            )
+
+            return {
+                "quick_kill": False,
+                "quick_kill_reason": None,
+                "notice_type": "other",
+                "has_partial_artifacts": False,
+                "errors": [],
+            }
+        finally:
+            # ---- Cleanup: always remove the per-case work directory when
+            # triage finishes, whether it succeeded or failed. Only this
+            # case_{id} subfolder is removed — test_triage/templates and
+            # any other shared/unrelated content are left untouched.
+            import shutil
+            try:
+                shutil.rmtree(work_dir, ignore_errors=True)
+                print(f"[solicitation_triage] case_id={case_id} — cleaned up {work_dir}")
+            except Exception as e:
+                print(f"[solicitation_triage] case_id={case_id} — cleanup warning: {e}")
     else:
         # ---- Current triage + extractors (to be replaced) ----
         try:
@@ -1155,22 +1342,6 @@ async def run_solicitation_triage(case_id: int, solicitation_id: int) -> dict:
             has_partial_artifacts=has_partial,
             triage_error="; ".join(errors) if errors else None,
         )
-
-        # Auto-trigger vendor matching — always runs after artifact extraction.
-        # quick_kill is informational only; it never blocks the pipeline.
-        try:
-            from ingestion.jobs import enqueue
-
-            enqueue(
-                case_id=case_id,
-                job_type="vendor_matching",
-                metadata={"solicitation_id": solicitation_id},
-            )
-        except Exception as e:
-            print(
-                f"Failed to enqueue vendor_matching for "
-                f"solicitation_id={solicitation_id}: {e}"
-            )
 
         return {
             "quick_kill": triage_result["quick_kill"],

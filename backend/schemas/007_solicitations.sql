@@ -80,14 +80,10 @@ CREATE INDEX IF NOT EXISTS idx_solicitations_ingestion_status ON solicitations (
 CREATE INDEX IF NOT EXISTS idx_solicitations_deadline ON solicitations (response_deadline);
 
 -- ----------------------------------------------------------------------------
--- jobs.job_type — add 'sam_fetch' for the async SAM.gov metadata+attachment pull
+-- jobs.job_type — 'sam_fetch' added for the async SAM.gov metadata+attachment
+-- pull. The jobs_job_type_check constraint is no longer redefined here; it is
+-- consolidated into 033_smart_ingest_job_type.sql (see that file's header).
 -- ----------------------------------------------------------------------------
-ALTER TABLE jobs DROP CONSTRAINT IF EXISTS jobs_job_type_check;
-ALTER TABLE jobs ADD CONSTRAINT jobs_job_type_check
-    CHECK (job_type IN ('ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
-                         'analyze', 'export', 'ocr', 'embed', 'enrich',
-                         'synthesize', 'profile_synthesis', 'capability_statement',
-                         'sam_fetch', 'solicitation_triage', 'vendor_matching', 'inbound_email', 'sam_notice_import', 'other'));
 
 -- ----------------------------------------------------------------------------
 -- documents.source — add 'sam_gov' to tag SAM-fetched attachments distinctly

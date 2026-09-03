@@ -283,6 +283,44 @@ export const createSolicitation = (
 ): Promise<{ solicitation: Solicitation; job_id: number | null }> =>
   fetchAPI("/api/solicitations", { method: "POST", body: JSON.stringify(data) });
 
+export interface SamMetadataPreview {
+  notice_id: string;
+  title: string | null;
+  department: string | null;
+  sub_tier: string | null;
+  office: string | null;
+  posted_date: string | null;
+  response_deadline: string | null;
+  naics_code: string | null;
+  set_aside: string | null;
+  description: string | null;
+}
+
+export const previewSamMetadata = (urlOrNoticeId: string): Promise<SamMetadataPreview> => {
+  const qs = new URLSearchParams();
+  if (urlOrNoticeId.includes("/") || urlOrNoticeId.includes("?")) {
+    qs.set("url", urlOrNoticeId);
+  } else {
+    qs.set("notice_id", urlOrNoticeId);
+  }
+  return fetchAPI(`/api/solicitations/preview-sam?${qs}`);
+};
+
+export const ingestSolicitationPackage = async (
+  formData: FormData
+): Promise<{ solicitation: Solicitation; document_count: number; job_id: number }> => {
+  const res = await fetch(`${API_BASE}/api/solicitations/ingest-package`, {
+    method: "POST",
+    body: formData,
+    headers: { ...getAuthHeaders() },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || `Package upload failed: ${res.statusText}`);
+  }
+  return res.json();
+};
+
 export const getSolicitation = (id: number): Promise<SolicitationWithDocuments> =>
   fetchAPI(`/api/solicitations/${id}`);
 

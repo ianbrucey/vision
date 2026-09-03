@@ -21,7 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from core.case import CaseManager
-from core.db import ensure_schema, ensure_strategy_schema, ensure_chat_schema, ensure_correspondence_schema, ensure_solicitations_schema, ensure_solicitation_triage_schema, ensure_solicitation_assignee_schema, ensure_quotes_schema, ensure_vendor_profiles_schema, ensure_fix_users_role_vendor_schema, ensure_vendor_teaming_agreements_schema, ensure_vendors_schema, ensure_vendor_matching_schema, ensure_vendor_matches_manual_schema, ensure_vendor_matches_cap_schema, ensure_vendor_outreach_schema, ensure_vendor_outreach_email_schema, ensure_vendor_outreach_messages_schema, ensure_workspace_pdf_filetype_schema, ensure_sam_notices_schema, ensure_sam_notice_import_job_schema, ensure_forecast_opportunities_schema, ensure_saved_reports_schema, ensure_ga_doas_opportunities_schema, ensure_dibbs_rfqs_schema, ensure_dla_batch_search_schema, ensure_pipeline_processing_schema, ensure_subcontracting_leads_schema, ensure_fix_sam_notices_unique_schema, ensure_naics_codes_schema
+from core.db import ensure_schema, ensure_strategy_schema, ensure_chat_schema, ensure_correspondence_schema, ensure_solicitations_schema, ensure_solicitation_triage_schema, ensure_solicitation_assignee_schema, ensure_quotes_schema, ensure_vendor_profiles_schema, ensure_fix_users_role_vendor_schema, ensure_vendor_teaming_agreements_schema, ensure_vendors_schema, ensure_vendor_matching_schema, ensure_vendor_matches_manual_schema, ensure_vendor_matches_cap_schema, ensure_vendor_outreach_schema, ensure_vendor_outreach_email_schema, ensure_vendor_outreach_messages_schema, ensure_workspace_pdf_filetype_schema, ensure_sam_notices_schema, ensure_sam_notice_import_job_schema, ensure_forecast_opportunities_schema, ensure_saved_reports_schema, ensure_ga_doas_opportunities_schema, ensure_dibbs_rfqs_schema, ensure_dla_batch_search_schema, ensure_pipeline_processing_schema, ensure_subcontracting_leads_schema, ensure_fix_sam_notices_unique_schema, ensure_naics_codes_schema, ensure_smart_ingest_job_type_schema
 from core.vendor import VendorManager
 from ingestion.storage import upload_file as _upload_to_minio
 from ingestion.jobs import enqueue as _enqueue_job, get_job, list_jobs
@@ -38,7 +38,7 @@ app = FastAPI(
 )
 
 # CORS — env-driven. Unset (local dev) keeps the historical wildcard behavior.
-# In prod, set CORS_ALLOWED_ORIGINS=https://vision.justicequest.pro.
+# In prod, set CORS_ALLOWED_ORIGINS=https://govservicesconnect.com.
 _cors_origins_env = os.environ.get("CORS_ALLOWED_ORIGINS")
 _cors_origins = (
     [o.strip() for o in _cors_origins_env.split(",") if o.strip()]
@@ -92,6 +92,7 @@ def _apply_schemas():
     ensure_subcontracting_leads_schema()    # 026 — Subcontracting leads from USASpending
     ensure_fix_sam_notices_unique_schema()  # 027 — Fix erroneous unique index on sam_notices
     ensure_naics_codes_schema()             # 028 — NAICS code lookup table
+    ensure_smart_ingest_job_type_schema()   # 038 — 'smart_ingest' job type
 
 
 mgr = CaseManager()

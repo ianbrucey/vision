@@ -45,6 +45,7 @@ from core.db import (
     ensure_pipeline_processing_schema,
     ensure_subcontracting_leads_schema,
     ensure_fix_sam_notices_unique_schema,
+    ensure_smart_ingest_job_type_schema,
 )
 
 # ---------------------------------------------------------------------------
@@ -236,6 +237,10 @@ def main() -> int:
         fix_unique = ensure_fix_sam_notices_unique_schema()
         for path in fix_unique:
             print(f"  FixUnique:{path}")
+
+        smart_ingest = ensure_smart_ingest_job_type_schema()
+        for path in smart_ingest:
+            print(f"  SmartIngest:{path}")
     except Exception as e:
         print(f"  ERROR applying schemas: {e}", file=sys.stderr)
         return 1

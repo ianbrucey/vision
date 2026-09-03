@@ -595,6 +595,23 @@ def ensure_sam_notice_import_job_schema() -> list[str]:
     return [str(sql_path)]
 
 
+def ensure_smart_ingest_job_type_schema() -> list[str]:
+    """Apply the smart ingest job type migration (v38).
+
+    Adds 'smart_ingest' to jobs.job_type CHECK constraint.
+    Idempotent — drops and re-adds the constraint.
+    """
+    sql_path = _SCHEMA_DIR / "033_smart_ingest_job_type.sql"
+    if not sql_path.exists():
+        raise FileNotFoundError(
+            f"Smart ingest job type schema file not found: {sql_path}"
+        )
+    with tx() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql_path.read_text())
+    return [str(sql_path)]
+
+
 def ensure_forecast_opportunities_schema() -> list[str]:
     """Apply the forecast opportunities migration (v28).
 

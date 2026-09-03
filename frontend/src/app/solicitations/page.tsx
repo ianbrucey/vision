@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { listSolicitations, createSolicitation, deleteSolicitation, rerunSolicitation, triggerTriage, lookupSolicitationUrl, listNaicsCodes, type Solicitation } from "@/lib/api";
+import { listSolicitations, createSolicitation, deleteSolicitation, rerunSolicitation, triggerTriage, lookupSolicitationUrl, listNaicsCodes, previewSamMetadata, ingestSolicitationPackage, type Solicitation, type SamMetadataPreview } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
-import { Plus, FolderOpen, ClipboardList, Loader2, FileSearch, AlertTriangle, Trash2, RefreshCw, RotateCcw, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Sparkles, Send, Bot, ExternalLink, Settings } from "lucide-react";
+import { Plus, ChevronDown, FolderOpen, ClipboardList, Loader2, FileSearch, AlertTriangle, Trash2, RefreshCw, RotateCcw, Search, ArrowUpDown, ArrowUp, ArrowDown, X, Sparkles, Send, Bot, ExternalLink, Settings, UploadCloud, FileArchive, FileText } from "lucide-react";
 import { useSystemAgent, type SystemMessage } from "@/hooks/useSystemAgent";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -79,6 +79,10 @@ export default function SolicitationsPage() {
   const [description, setDescription] = useState("");
   const [createError, setCreateError] = useState("");
   const [creating, setCreating] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const [formOpen, setFormOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mobileFileInputRef = useRef<HTMLInputElement>(null);
   const [showCreateMobile, setShowCreateMobile] = useState(false);
   const [showAgent, setShowAgent] = useState(false);
   const [agentInput, setAgentInput] = useState("");
@@ -139,6 +143,7 @@ export default function SolicitationsPage() {
     setUrl("");
     setTitle("");
     setDescription("");
+    setFiles([]);
     setCreateError("");
   };
 
@@ -146,6 +151,31 @@ export default function SolicitationsPage() {
   const needsManualFields = sourceType !== "federal" || isManualEntry;
 
   const handleCreate = async () => {
+    // If files are attached, use the direct Smart Ingest workflow (no SAM download bottleneck)
+    if (files.length > 0) {
+      setCreateError("");
+      setCreating(true);
+      try {
+        const formData = new FormData();
+        formData.append("source_type", sourceType);
+        if (url.trim()) formData.append("url", url.trim());
+        if (title.trim()) formData.append("title", title.trim());
+        if (description.trim()) formData.append("description", description.trim());
+        files.forEach((f) => formData.append("files", f));
+
+        await ingestSolicitationPackage(formData);
+        resetForm();
+        setFormOpen(false);
+        setShowCreateMobile(false);
+        await refresh();
+      } catch (err: unknown) {
+        setCreateError(err instanceof Error ? err.message : "Failed to ingest package");
+      } finally {
+        setCreating(false);
+      }
+      return;
+    }
+
     if (!needsManualFields && !url.trim()) return;
     if (needsManualFields && !title.trim()) return;
     setCreateError("");
@@ -157,13 +187,14 @@ export default function SolicitationsPage() {
         ...(needsManualFields ? { title, description } : {}),
       });
       resetForm();
+      setFormOpen(false);
       setShowCreateMobile(false);
       setManualFederal(false);
       if (needsManualFields) {
         // No sam_fetch job — send user to Documents tab to upload files.
         router.push(`/cases/${solicitation.case_id}?tab=documents`);
       } else {
-        refresh();
+        await refresh();
       }
     } catch (err: unknown) {
       setCreateError(err instanceof Error ? err.message : "Failed to create solicitation");
@@ -349,54 +380,188 @@ export default function SolicitationsPage() {
 
       {/* === Content === */}
       <div className="flex-1 max-w-5xl mx-auto w-full px-4 py-6">
-        {/* --- Create Solicitation (Desktop) --- */}
-        <div className="hidden sm:block bg-surface-1 border border-border rounded-lg p-4 mb-6">
-          <h2 className="text-sm font-medium text-text-secondary mb-3">New Solicitation</h2>
-          {sourceTypeSelector}
-          <div className="flex gap-3">
-            {needsManualFields && (
-              <input
-                required
-                className={inputClasses}
-                placeholder="Solicitation title..."
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            )}
-            {!needsManualFields && (
-              <input
-                required
-                className={`flex-1 ${inputClasses}`}
-                placeholder={urlPlaceholder}
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-              />
-            )}
-            <button
-              onClick={handleCreate}
-              disabled={creating}
-              className="bg-brand hover:bg-brand-hover active:bg-brand-active
-                         disabled:opacity-50 disabled:cursor-not-allowed
-                         text-white px-4 py-2 rounded-lg text-sm font-medium
-                         transition-colors duration-150 inline-flex items-center gap-2 shrink-0"
-            >
-              {creating && <Loader2 size={14} className="animate-spin" />}
-              {creating ? "Creating..." : "Create"}
-            </button>
+        {/* --- Create Solicitation (Desktop Collapsible Card) --- */}
+        <div className="hidden sm:block bg-surface-1 border border-border rounded-lg mb-6 shadow-sm overflow-hidden transition-all">
+          <div
+            onClick={() => setFormOpen((prev) => !prev)}
+            className="flex items-center justify-between p-4 cursor-pointer hover:bg-surface-2/40 select-none transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="size-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center font-bold shrink-0">
+                <Plus size={18} className={`transition-transform duration-200 ${formOpen ? "rotate-45 text-text-secondary" : "text-brand"}`} />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-text-primary">New Solicitation</h2>
+                <p className="text-xs text-text-disabled">Upload attachments directly — bypasses SAM.gov download rate limits</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-text-secondary font-medium px-2.5 py-1 rounded-md border border-border bg-surface-2 hover:bg-surface-3 flex items-center gap-1.5 transition-colors">
+                {formOpen ? "Collapse Form" : "Create Solicitation"}
+                <ChevronDown size={14} className={`transition-transform duration-200 ${formOpen ? "rotate-180" : ""}`} />
+              </span>
+            </div>
           </div>
-          {needsManualFields && (
-            <textarea
-              required
-              rows={2}
-              className={`w-full mt-3 resize-none ${inputClasses}`}
-              placeholder="Description... (what is this solicitation for? you'll upload documents next)"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          )}
-          {createError && (
-            <p className="text-danger text-xs mt-2">{createError}</p>
+
+          {formOpen && (
+            <div className="px-5 pb-5 pt-3 border-t border-border">
+              {sourceTypeSelector}
+
+              {/* SAM Opportunity URL */}
+              {!needsManualFields && (
+                <div className="mb-3">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <label className="text-xs font-medium text-text-secondary">SAM.gov Opportunity URL or Notice ID</label>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-3 text-text-disabled font-medium uppercase tracking-wide">Optional</span>
+                    <span className="text-[10px] text-text-disabled">— if provided without title/description, metadata will be fetched in the background</span>
+                  </div>
+                  <input
+                    className={`w-full ${inputClasses}`}
+                    placeholder={urlPlaceholder}
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {/* Title */}
+              <div className="mb-3">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <label className="text-xs font-medium text-text-secondary">Title</label>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-3 text-text-disabled font-medium uppercase tracking-wide">Optional</span>
+                  <span className="text-[10px] text-text-disabled">— auto-derived from SAM.gov if URL provided</span>
+                </div>
+                <input
+                  className={`w-full ${inputClasses}`}
+                  placeholder="Solicitation title..."
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+
+              {/* Description */}
+              <div className="mb-4">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <label className="text-xs font-medium text-text-secondary">Description</label>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-3 text-text-disabled font-medium uppercase tracking-wide">Optional</span>
+                  <span className="text-[10px] text-text-disabled">— auto-populated from SAM.gov in background when available</span>
+                </div>
+                <textarea
+                  rows={2}
+                  className={`w-full resize-none ${inputClasses}`}
+                  placeholder="What is this solicitation for? (Leave blank to auto-populate from SAM.gov)"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+
+              {/* Document Dropzone — REQUIRED */}
+              <div className="mb-3">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <label className="text-xs font-medium text-text-secondary">Solicitation Documents</label>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-brand/10 text-brand font-semibold uppercase tracking-wide">Required</span>
+                  <span className="text-[10px] text-text-disabled">— upload the .ZIP &ldquo;Download All&rdquo; package or individual files from SAM.gov</span>
+                </div>
+                <div
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (e.dataTransfer.files) {
+                      const newFiles = Array.from(e.dataTransfer.files);
+                      setFiles((prev) => [...prev, ...newFiles]);
+                    }
+                  }}
+                  className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer
+                    ${files.length > 0
+                      ? "border-brand/40 bg-brand/5"
+                      : "border-border hover:border-brand/50 bg-surface-2/30"
+                    }`}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        const newFiles = Array.from(e.target.files);
+                        setFiles((prev) => [...prev, ...newFiles]);
+                      }
+                    }}
+                  />
+                  <div className="flex flex-col items-center justify-center gap-1 pointer-events-none">
+                    <UploadCloud size={22} className={files.length > 0 ? "text-brand mb-0.5" : "text-text-disabled mb-0.5"} />
+                    <div className="text-xs font-medium text-text-primary">
+                      {files.length > 0
+                        ? <><span className="text-brand font-semibold">{files.length} file{files.length > 1 ? "s" : ""} selected</span> — click or drop to add more</>
+                        : <>Drop <span className="font-semibold text-brand">.ZIP</span> package or files here, or <span className="underline text-brand">click to browse</span></>
+                      }
+                    </div>
+                    <div className="text-[11px] text-text-disabled">
+                      Accepts: .zip, .pdf, .docx, .doc, .xlsx, .txt, .csv, .md — ZIP files are auto-extracted
+                    </div>
+                  </div>
+                </div>
+
+                {/* Attached Files List */}
+                {files.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2 max-h-36 overflow-y-auto p-1.5 bg-surface-2/60 rounded-md border border-border">
+                    {files.map((f, idx) => (
+                      <div
+                        key={`${f.name}-${idx}`}
+                        className="flex items-center gap-1.5 px-2.5 py-1 bg-surface-1 border border-border rounded text-xs text-text-primary shadow-xs"
+                      >
+                        {f.name.toLowerCase().endsWith(".zip") ? (
+                          <FileArchive size={14} className="text-warning shrink-0" />
+                        ) : (
+                          <FileText size={14} className="text-text-secondary shrink-0" />
+                        )}
+                        <span className="truncate max-w-[220px]" title={f.name}>{f.name}</span>
+                        <span className="text-[10px] text-text-disabled shrink-0">
+                          ({f.size > 1024 * 1024 ? `${(f.size / (1024 * 1024)).toFixed(1)} MB` : `${Math.round(f.size / 1024)} KB`})
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFiles((prev) => prev.filter((_, i) => i !== idx));
+                          }}
+                          className="hover:text-danger ml-1"
+                          title="Remove file"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {createError && (
+                <p className="text-danger text-xs mb-3">{createError}</p>
+              )}
+
+              <div className="flex items-center justify-between pt-2 border-t border-border mt-2">
+                <span className="text-xs text-text-disabled">
+                  {files.length > 0
+                    ? `${files.length} file(s) ready — background ingestion &amp; triage will start immediately`
+                    : <span className="text-warning text-xs">⚠ No files attached yet — documents are required to run triage</span>
+                  }
+                </span>
+                <button
+                  onClick={handleCreate}
+                  disabled={creating || files.length === 0}
+                  className="bg-brand hover:bg-brand-hover active:bg-brand-active
+                             disabled:opacity-40 disabled:cursor-not-allowed
+                             text-white px-5 py-2 rounded-lg text-sm font-medium
+                             transition-colors duration-150 inline-flex items-center gap-2 shrink-0 shadow-xs"
+                >
+                  {creating && <Loader2 size={14} className="animate-spin" />}
+                  {creating ? "Creating..." : "Create & Start Triage"}
+                </button>
+              </div>
+            </div>
           )}
         </div>
 
@@ -426,39 +591,73 @@ export default function SolicitationsPage() {
                         animate-in slide-in-from-bottom-4 duration-250"
             >
               <div className="w-10 h-1 bg-surface-5 rounded-full mx-auto mb-4" />
-              <h2 className="text-lg font-semibold mb-4">New Solicitation</h2>
+              <h2 className="text-lg font-semibold mb-3">New Solicitation</h2>
               <div className="flex flex-col gap-3">
                 {sourceTypeSelector}
-                {needsManualFields && (
-                  <input
-                    required
-                    className={`${inputClasses} text-[16px]`}
-                    placeholder="Solicitation title..."
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    autoFocus
-                  />
-                )}
+
                 {!needsManualFields && (
+                  <div>
+                    <label className="text-xs font-medium text-text-secondary block mb-1">
+                      SAM.gov Opportunity URL or Notice ID <span className="text-[10px] text-text-disabled">(Optional)</span>
+                    </label>
+                    <input
+                      className={`w-full ${inputClasses} text-[16px]`}
+                      placeholder={urlPlaceholder}
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                    />
+                  </div>
+                )}
+
+                <input
+                  className={`${inputClasses} text-[16px]`}
+                  placeholder="Solicitation title..."
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+
+                <textarea
+                  rows={2}
+                  className={`resize-none ${inputClasses} text-[16px]`}
+                  placeholder="Description (optional)..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+
+                {/* Mobile Dropzone */}
+                <div
+                  className="border-2 border-dashed border-border rounded-lg p-3 text-center bg-surface-2/30"
+                  onClick={() => mobileFileInputRef.current?.click()}
+                >
                   <input
-                    required
-                    className={`${inputClasses} text-[16px]`}
-                    placeholder={urlPlaceholder}
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
+                    ref={mobileFileInputRef}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        setFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+                      }
+                    }}
                   />
+                  <UploadCloud size={20} className="text-brand mx-auto mb-1" />
+                  <div className="text-xs font-medium">Attach .ZIP or document files</div>
+                  <div className="text-[10px] text-text-disabled">Tap to select files</div>
+                </div>
+
+                {files.length > 0 && (
+                  <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
+                    {files.map((f, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1 text-[11px] bg-surface-2 px-2 py-0.5 rounded">
+                        {f.name}
+                        <button type="button" onClick={() => setFiles((p) => p.filter((_, i) => i !== idx))}><X size={10} /></button>
+                      </span>
+                    ))}
+                  </div>
                 )}
-                {needsManualFields && (
-                  <textarea
-                    required
-                    rows={2}
-                    className={`resize-none ${inputClasses} text-[16px]`}
-                    placeholder="Description... (what is this solicitation for? you'll upload documents next)"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                )}
+
                 {createError && <p className="text-danger text-xs">{createError}</p>}
+
                 <div className="flex flex-col gap-2 mt-2">
                   <button
                     onClick={handleCreate}
@@ -470,7 +669,7 @@ export default function SolicitationsPage() {
                                min-h-[44px]"
                   >
                     {creating && <Loader2 size={16} className="animate-spin" />}
-                    {creating ? "Creating..." : "Create"}
+                    {creating ? "Ingesting & Triaging..." : (files.length > 0 ? "Create & Start Triage" : "Create Solicitation")}
                   </button>
                   <button
                     onClick={() => setShowCreateMobile(false)}
@@ -757,10 +956,13 @@ export default function SolicitationsPage() {
                     {s.source_type}
                   </span>
                   <span
-                    className={`text-[10px] px-2 py-0.5 rounded-sm font-medium ${
+                    className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-sm font-medium ${
                       STATUS_COLORS[s.ingestion_status] || "bg-surface-2 text-text-secondary"
                     }`}
                   >
+                    {(s.ingestion_status === "pending" || s.ingestion_status === "fetching") && (
+                      <Loader2 size={10} className="animate-spin" />
+                    )}
                     {s.ingestion_status}
                   </span>
                   {s.has_outreach && (
@@ -776,10 +978,13 @@ export default function SolicitationsPage() {
                 {s.ingestion_status === "complete" && (
                   <span
                     title={s.triage_error || undefined}
-                    className={`text-[11px] px-2 py-0.5 rounded-sm font-medium shrink-0 ${
+                    className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-sm font-medium shrink-0 ${
                       TRIAGE_STATUS_COLORS[s.triage_status] || "bg-surface-2 text-text-secondary"
                     }`}
                   >
+                    {s.triage_status === "running" && (
+                      <Loader2 size={10} className="animate-spin" />
+                    )}
                     triage: {s.triage_status}
                   </span>
                 )}

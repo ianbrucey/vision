@@ -31,6 +31,14 @@ _BACKEND = _HERE.parent
 if str(_BACKEND) not in sys.path:
     sys.path.insert(0, str(_BACKEND))
 
+from dotenv import load_dotenv
+
+# Search for .env in project root, backend/, or cwd
+for _env_path in [Path.cwd() / ".env", _BACKEND.parent / ".env", _BACKEND / ".env"]:
+    if _env_path.exists():
+        load_dotenv(_env_path)
+        break
+
 from core.db import connect
 from core.case import CaseManager
 from core.solicitation import SolicitationManager
@@ -363,22 +371,184 @@ def process_sam_fetch_job(job: dict) -> None:
         f"has_missing_docs={has_missing_docs}"
     )
 
-    # Auto-trigger the unattended triage pipeline — only when document
-    # retrieval fully succeeded. If any docs are missing, leave it for the
-    # manual "Run Triage" trigger instead (per product decision).
-    if not has_missing_docs:
+    # Auto-trigger triage pipeline on whatever documents were retrieved
+    try:
+        enqueue(
+            case_id=case_id,
+            job_type="solicitation_triage",
+            metadata={"solicitation_id": solicitation_id},
+        )
+        print(
+            f"[{WORKER_ID}] Job {job_id}: enqueued solicitation_triage "
+            f"for solicitation_id={solicitation_id} (has_missing_docs={has_missing_docs})"
+        )
+    except Exception as e:
+        print(f"[{WORKER_ID}] Job {job_id}: failed to enqueue solicitation_triage — {e}")
+
+
+def process_smart_ingest_job(job: dict) -> None:
+    """Process direct package ingestion in background.
+
+    1. Enriches SAM.gov metadata in the background if notice_id is provided.
+    2. Downloads staged files from MinIO staging.
+    3. Extracts ZIP archives safely (skipping OS/junk files).
+    4. Ingests all documents into PostgreSQL + permanent MinIO storage.
+    5. Cleans up staging files.
+    6. Updates solicitation ingestion_status to 'complete'.
+    7. Enqueues solicitation_triage.
+    """
+    job_id = job["id"]
+    case_id = job["case_id"]
+    meta = job.get("metadata") or {}
+    solicitation_id = meta.get("solicitation_id")
+    notice_id = meta.get("notice_id")
+    has_user_title = meta.get("has_user_title", False)
+    has_user_description = meta.get("has_user_description", False)
+    staged_files = meta.get("staged_files") or []
+
+    if not solicitation_id:
+        mark_failed(job_id, "Missing solicitation_id in job metadata")
+        return
+
+    mgr = SolicitationManager()
+    mgr.update(solicitation_id, ingestion_status="fetching")
+    update_progress(job_id, 10)
+
+    try:
+        # 1. SAM.gov metadata enrichment (background)
+        sam_meta = {}
+        if notice_id:
+            try:
+                print(f"[{WORKER_ID}] Job {job_id}: fetching SAM.gov notice {notice_id} metadata in background...")
+                sam_meta = fetch_notice(notice_id)
+            except Exception as e:
+                print(f"[{WORKER_ID}] Job {job_id}: SAM metadata fetch failed (non-fatal): {e}")
+
+        metadata_updates: dict[str, Any] = {}
+        if sam_meta:
+            for src_key, dst_key in [
+                ("department", "agency"),
+                ("fullParentPathName", "agency"),
+                ("naicsCode", "naics_code"),
+                ("classificationCode", "psc_code"),
+                ("typeOfSetAside", "set_aside_type"),
+                ("typeOfSetAsideDescription", "set_aside_description"),
+                ("pointOfContact", "point_of_contact"),
+                ("placeOfPerformance", "place_of_performance"),
+                ("responseDeadLine", "response_deadline"),
+                ("postedDate", "posted_date"),
+            ]:
+                if sam_meta.get(src_key):
+                    metadata_updates[dst_key] = sam_meta[src_key]
+            if sam_meta.get("typeOfSetAsideDescription") or sam_meta.get("typeOfSetAside"):
+                metadata_updates["set_aside"] = (
+                    sam_meta.get("typeOfSetAsideDescription") or sam_meta.get("typeOfSetAside")
+                )
+
+            if not has_user_title and sam_meta.get("title"):
+                metadata_updates["title"] = sam_meta["title"]
+
+        if metadata_updates:
+            mgr.update(solicitation_id, **metadata_updates)
+
+        # Fetch description from SAM if user did not provide one
+        if not has_user_description and notice_id:
+            try:
+                desc = fetch_description(notice_id)
+                if desc:
+                    case_mgr = CaseManager()
+                    case_mgr.update_case(case_id, description=desc)
+                    narrative = _build_solicitation_narrative(metadata_updates, desc)
+                    if narrative:
+                        case_mgr.update_case(case_id, narrative=narrative)
+            except Exception as e:
+                print(f"[{WORKER_ID}] Job {job_id}: SAM description fetch failed (non-fatal): {e}")
+
+        update_progress(job_id, 30)
+
+        # 2. Download staged files and process
+        TEMP_DIR.mkdir(parents=True, exist_ok=True)
+        staging_dir = TEMP_DIR / f"{job_id}_staging"
+        staging_dir.mkdir(parents=True, exist_ok=True)
+        extracted_docs: list[Path] = []
+
         try:
-            enqueue(
-                case_id=case_id,
-                job_type="solicitation_triage",
-                metadata={"solicitation_id": solicitation_id},
-            )
-            print(
-                f"[{WORKER_ID}] Job {job_id}: enqueued solicitation_triage "
-                f"for solicitation_id={solicitation_id}"
-            )
-        except Exception as e:
-            print(f"[{WORKER_ID}] Job {job_id}: failed to enqueue solicitation_triage — {e}")
+            for item in staged_files:
+                obj_key = item["object_key"]
+                fname = item["filename"]
+                dest_file = staging_dir / fname
+                download_file(_MINIO_BUCKET, obj_key, dest_file)
+
+                if fname.lower().endswith(".zip"):
+                    unzipped = _safe_extract_zip(dest_file, staging_dir)
+                    extracted_docs.extend(unzipped)
+                else:
+                    extracted_docs.append(dest_file)
+
+            total = len(extracted_docs)
+            total_ingested = 0
+            for i, doc_path in enumerate(extracted_docs):
+                pct = 30 + int((i / max(total, 1)) * 55)
+                update_progress(job_id, pct)
+                try:
+                    ingest_res = ingest_file(
+                        case_id=case_id,
+                        file_path=doc_path,
+                        document_name=doc_path.name,
+                    )
+                    doc_id = ingest_res.get("document_id")
+
+                    storage_ref = _upload_to_minio(str(doc_path), doc_path.name)
+                    storage_path = f"{storage_ref['bucket']}/{storage_ref['object_key']}"
+
+                    if doc_id:
+                        from core.db import tx
+                        with tx() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute(
+                                    "UPDATE documents SET source = 'user_upload', storage_path = %s WHERE id = %s",
+                                    (storage_path, doc_id),
+                                )
+                    total_ingested += 1
+                    print(f"[{WORKER_ID}] Job {job_id}: Ingested {doc_path.name} (doc_id={doc_id})")
+                except Exception as exc:
+                    print(f"[{WORKER_ID}] Job {job_id}: Failed to ingest {doc_path.name}: {exc}")
+
+            # Clean up staged files in MinIO
+            for item in staged_files:
+                try:
+                    _delete_from_minio(_MINIO_BUCKET, item["object_key"])
+                except Exception:
+                    pass
+
+        finally:
+            import shutil
+            try:
+                shutil.rmtree(staging_dir)
+            except Exception:
+                pass
+
+        # 3. Mark ingestion complete
+        mgr.update(solicitation_id, ingestion_status="complete", has_missing_docs=False)
+        update_progress(job_id, 95)
+
+        # 4. Enqueue triage
+        enqueue(
+            case_id=case_id,
+            job_type="solicitation_triage",
+            metadata={"solicitation_id": solicitation_id},
+        )
+
+        mark_complete(job_id)
+        print(f"[{WORKER_ID}] Job {job_id}: smart_ingest finished ({total_ingested} docs). Enqueued solicitation_triage.")
+
+    except Exception as e:
+        print(f"[{WORKER_ID}] Job {job_id}: smart_ingest FAILED — {e}")
+        traceback.print_exc()
+        if solicitation_id:
+            mgr.update(solicitation_id, ingestion_status="failed", error_message=str(e))
+        mark_failed(job_id, str(e))
+
 
 
 def process_enrich_job(job: dict) -> None:
@@ -437,6 +607,34 @@ def _should_skip_zip_entry(entry_name: str) -> bool:
     if basename.startswith("~$"):  # Office temp files
         return True
     return False
+
+
+def _safe_extract_zip(zip_path: Path, target_dir: Path) -> list[Path]:
+    """Safely extract all valid files from a zip archive, ignoring junk."""
+    import zipfile, shutil
+    extracted = []
+    try:
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            for member in zf.infolist():
+                if member.is_dir():
+                    continue
+                if _should_skip_zip_entry(member.filename):
+                    continue
+                clean_name = Path(member.filename).name
+                if not clean_name or clean_name.startswith("."):
+                    continue
+                dest_path = target_dir / clean_name
+                counter = 1
+                while dest_path.exists():
+                    dest_path = target_dir / f"{dest_path.stem}_{counter}{dest_path.suffix}"
+                    counter += 1
+
+                with zf.open(member) as src, open(dest_path, "wb") as dst:
+                    shutil.copyfileobj(src, dst)
+                extracted.append(dest_path)
+    except Exception as e:
+        print(f"[_safe_extract_zip] Error unzipping {zip_path}: {e}")
+    return extracted
 
 
 def _extract_zip_and_enqueue(
@@ -768,7 +966,7 @@ def _send_reply_notification(
     try:
         from core.email_mailgun import send_email
 
-        thread_url = f"https://vision.justicequest.pro/cases/{case_id}/vendor-matches/{vendor_match_id}"
+        thread_url = f"https://govservicesconnect.com/cases/{case_id}/vendor-matches/{vendor_match_id}"
         body = (
             f"Vendor: {vendor_name} ({vendor_email})\n"
             f"Subject: {subject}\n"
@@ -1064,6 +1262,8 @@ def main():
                 process_capability_statement_job(job)
             elif job["job_type"] == "sam_fetch":
                 process_sam_fetch_job(job)
+            elif job["job_type"] == "smart_ingest":
+                process_smart_ingest_job(job)
             elif job["job_type"] == "solicitation_triage":
                 process_solicitation_triage_job(job)
             elif job["job_type"] == "vendor_matching":

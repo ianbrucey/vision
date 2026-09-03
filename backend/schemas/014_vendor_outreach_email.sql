@@ -22,13 +22,9 @@ ALTER TABLE vendor_matches ADD COLUMN IF NOT EXISTS outreach_reply_token TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_vendor_matches_reply_token
     ON vendor_matches (outreach_reply_token) WHERE outreach_reply_token IS NOT NULL;
 
-ALTER TABLE jobs DROP CONSTRAINT IF EXISTS jobs_job_type_check;
-ALTER TABLE jobs ADD CONSTRAINT jobs_job_type_check
-    CHECK (job_type IN ('ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
-                         'analyze', 'export', 'ocr', 'embed', 'enrich',
-                         'synthesize', 'profile_synthesis', 'capability_statement',
-                         'sam_fetch', 'solicitation_triage', 'vendor_matching',
-                         'inbound_email', 'other'));
+-- jobs.job_type — 'inbound_email' added for the async ingest path. The
+-- jobs_job_type_check constraint is no longer redefined here; it is
+-- consolidated into 033_smart_ingest_job_type.sql (see that file's header).
 
 INSERT INTO schema_migrations (version, name) VALUES (23, 'vendor_outreach_email')
 ON CONFLICT (version) DO NOTHING;

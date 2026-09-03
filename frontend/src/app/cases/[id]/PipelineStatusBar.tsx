@@ -75,28 +75,14 @@ function deriveSteps(sol: SolicitationWithDocuments): Step[] {
   };
 
   const triageDone = sol.triage_status === "complete";
-  const matching: Step = {
-    key: "matching",
-    label: "Matching",
-    state: !triageDone
-      ? "pending"
-      : sol.matching_status === "complete"
-        ? "complete"
-        : sol.matching_status === "failed"
-          ? "failed"
-          : sol.matching_status === "running"
-            ? "active"
-            : "pending",
-    detail: sol.matching_status === "failed" ? sol.matching_error : null,
-  };
 
   const done: Step = {
     key: "done",
     label: "Done",
-    state: matching.state === "complete" ? "complete" : "pending",
+    state: triageDone ? "complete" : "pending",
   };
 
-  return [fetching, triaging, matching, done];
+  return [fetching, triaging, done];
 }
 
 export default function PipelineStatusBar({ caseId }: PipelineStatusBarProps) {
@@ -117,8 +103,7 @@ export default function PipelineStatusBar({ caseId }: PipelineStatusBarProps) {
 
   const isActive =
     sol?.ingestion_status === "fetching" ||
-    sol?.triage_status === "running" ||
-    sol?.matching_status === "running";
+    sol?.triage_status === "running";
 
   useEffect(() => {
     if (!isActive) return;

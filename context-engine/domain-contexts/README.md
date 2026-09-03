@@ -8,6 +8,7 @@
 
 Create one `.md` file per domain in your application. For example:
 
+- `solicitation-triage.md` - Automated document deconstruction, multi-agent template extraction, and sourcing briefs
 - `events.md` - Event creation, management, cancellation
 - `payments.md` - Payment processing, refunds, Stripe integration  
 - `users.md` - User registration, authentication, profiles

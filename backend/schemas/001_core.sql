@@ -441,7 +441,7 @@ CREATE TABLE IF NOT EXISTS jobs (
                         'ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
                         'analyze', 'export', 'ocr', 'embed', 'enrich',
                         'synthesize', 'profile_synthesis', 'capability_statement',
-                        'sam_fetch', 'solicitation_triage', 'vendor_matching', 'inbound_email', 'sam_notice_import', 'other'
+                        'sam_fetch', 'solicitation_triage', 'vendor_matching', 'inbound_email', 'sam_notice_import', 'smart_ingest', 'other'
                     )),
     status          TEXT NOT NULL DEFAULT 'queued' CHECK (
                         status IN ('queued', 'processing', 'complete', 'failed')
@@ -491,31 +491,18 @@ INSERT INTO schema_migrations (version, name) VALUES (1, 'initial_schema')
 ON CONFLICT (version) DO NOTHING;
 
 -- Add enrich job type (migration v2). The CREATE TABLE above has the new
--- constraint for fresh installs; this block updates existing databases.
-DO $$
-BEGIN
-    ALTER TABLE jobs DROP CONSTRAINT IF EXISTS jobs_job_type_check;
-    ALTER TABLE jobs ADD CONSTRAINT jobs_job_type_check
-        CHECK (job_type IN ('ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
-                             'analyze', 'export', 'ocr', 'embed', 'enrich',
-                             'synthesize', 'profile_synthesis', 'capability_statement',
-                             'sam_fetch', 'solicitation_triage', 'vendor_matching', 'inbound_email', 'sam_notice_import', 'other'));
-END $$;
-
+-- constraint for fresh installs. NOTE: the jobs_job_type_check constraint
+-- itself is no longer redefined here for existing databases — it is
+-- consolidated into the single canonical ALTER in
+-- 033_smart_ingest_job_type.sql (the highest-numbered migration touching
+-- this constraint, applied last in api/main.py::_apply_schemas). Adding a
+-- new job_type only requires editing that one file. See that file's header
+-- comment for details.
 INSERT INTO schema_migrations (version, name) VALUES (2, 'add_enrich_job_type')
 ON CONFLICT (version) DO NOTHING;
 
--- Add synthesize job type (migration v3).
-DO $$
-BEGIN
-    ALTER TABLE jobs DROP CONSTRAINT IF EXISTS jobs_job_type_check;
-    ALTER TABLE jobs ADD CONSTRAINT jobs_job_type_check
-        CHECK (job_type IN ('ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
-                             'analyze', 'export', 'ocr', 'embed', 'enrich',
-                             'synthesize', 'profile_synthesis', 'capability_statement',
-                             'sam_fetch', 'solicitation_triage', 'vendor_matching', 'inbound_email', 'sam_notice_import', 'other'));
-END $$;
-
+-- Add synthesize job type (migration v3). See note above — constraint is
+-- consolidated in 033_smart_ingest_job_type.sql.
 INSERT INTO schema_migrations (version, name) VALUES (3, 'add_synthesize_job_type')
 ON CONFLICT (version) DO NOTHING;
 

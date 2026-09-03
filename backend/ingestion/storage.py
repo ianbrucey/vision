@@ -142,7 +142,7 @@ def _get_public_client() -> Minio | None:
     # Strip scheme; the endpoint is host-only (no port) so the presigned URL
     # matches exactly what the browser will request.
     parsed = urlsplit(server_url)
-    host = parsed.netloc.split(":")[0]  # e.g. "files-vision.justicequest.pro"
+    host = parsed.netloc.split(":")[0]  # e.g. "files.govservicesconnect.com"
     return Minio(
         host,
         access_key=_MINIO_ACCESS_KEY,

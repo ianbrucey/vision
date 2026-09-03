@@ -19,26 +19,29 @@ interface TabDef {
   label: string;
   shortLabel: string;
   icon: typeof Eye;
+  /** Kept in the codebase/routing but not shown in the nav menu. */
+  hidden?: boolean;
 }
 
 const BASE_TABS: TabDef[] = [
-  { id: "overview", label: "Overview", shortLabel: "Overview", icon: Eye },
-  { id: "chat", label: "Chat", shortLabel: "Chat", icon: MessageCircle },
-  { id: "documents", label: "Documents", shortLabel: "Docs", icon: FolderOpen },
   { id: "triage", label: "Triage", shortLabel: "Triage", icon: FileSearch },
   { id: "quotes", label: "Quotes", shortLabel: "Quotes", icon: Receipt },
-  { id: "vendor_matches", label: "Vendor Matches", shortLabel: "Matches", icon: Users },
-  { id: "outreach", label: "Outreach", shortLabel: "Outreach", icon: Send },
   { id: "workspace", label: "Workspace", shortLabel: "Work", icon: FolderTree },
-  { id: "correspondence", label: "Correspondence", shortLabel: "Corr.", icon: Mail },
+  { id: "chat", label: "Chat", shortLabel: "Chat", icon: MessageCircle },
   { id: "tasks", label: "Tasks", shortLabel: "Tasks", icon: CheckSquare },
   { id: "calendar", label: "Calendar", shortLabel: "Cal", icon: CalendarDays },
-  { id: "vendors", label: "Vendors", shortLabel: "Vendors", icon: Building2 },
-  { id: "sam_notices", label: "Sam Notices", shortLabel: "SAM", icon: Database },
-  { id: "forecasts", label: "Forecasts", shortLabel: "Forecast", icon: TrendingUp },
-  { id: "ga_doas", label: "GA DOAS", shortLabel: "GA", icon: MapPin },
-  { id: "dibbs", label: "DIBBS RFQs", shortLabel: "DIBBS", icon: Truck },
-  { id: "dla_batch", label: "DLA Batch Search", shortLabel: "DLA Batch", icon: FileSearch },
+  { id: "documents", label: "Documents", shortLabel: "Docs", icon: FolderOpen },
+  { id: "correspondence", label: "Correspondence", shortLabel: "Corr.", icon: Mail },
+  // Hidden from the nav menu (not deleted) — still reachable via URL/routing.
+  { id: "overview", label: "Overview", shortLabel: "Overview", icon: Eye, hidden: true },
+  { id: "vendor_matches", label: "Vendor Matches", shortLabel: "Matches", icon: Users, hidden: true },
+  { id: "outreach", label: "Outreach", shortLabel: "Outreach", icon: Send, hidden: true },
+  { id: "vendors", label: "Vendors", shortLabel: "Vendors", icon: Building2, hidden: true },
+  { id: "sam_notices", label: "Sam Notices", shortLabel: "SAM", icon: Database, hidden: true },
+  { id: "forecasts", label: "Forecasts", shortLabel: "Forecast", icon: TrendingUp, hidden: true },
+  { id: "ga_doas", label: "GA DOAS", shortLabel: "GA", icon: MapPin, hidden: true },
+  { id: "dibbs", label: "DIBBS RFQs", shortLabel: "DIBBS", icon: Truck, hidden: true },
+  { id: "dla_batch", label: "DLA Batch Search", shortLabel: "DLA Batch", icon: FileSearch, hidden: true },
 ];
 
 /** First 4 tabs are always visible on mobile */
@@ -51,6 +54,7 @@ export default function TabNav({
   showVendorMatches = false,
 }: TabNavProps) {
   const TABS = BASE_TABS.filter((t) => {
+    if (t.hidden) return false;
     if (t.id === "triage" && !showTriage) return false;
     if ((t.id === "vendor_matches" || t.id === "outreach") && !showVendorMatches) return false;
     return true;

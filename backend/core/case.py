@@ -149,9 +149,17 @@ class CaseManager:
                 return dict(result) if result else None
 
     def delete_case(self, case_id: int) -> bool:
-        """Delete a case and all related entities (CASCADE)."""
+        """Delete a case and all related entities (CASCADE).
+
+        `jobs.case_id` has no FK constraint, so it is not covered by the
+        cases FK cascade — any queued/processing jobs for this case must be
+        deleted explicitly here, otherwise the worker later claims an
+        orphaned job and crashes with a ForeignKeyViolation (e.g. trying to
+        insert_draft for a case that no longer exists).
+        """
         with tx() as conn:
             with conn.cursor() as cur:
+                cur.execute("DELETE FROM jobs WHERE case_id = %s", (case_id,))
                 cur.execute(
                     "DELETE FROM cases WHERE id = %s", (case_id,)
                 )

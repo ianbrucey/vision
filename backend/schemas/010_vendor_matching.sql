@@ -88,15 +88,11 @@ CREATE TRIGGER trg_vendor_matches_updated_at
     EXECUTE FUNCTION update_vendor_matches_updated_at();
 
 -- ----------------------------------------------------------------------------
--- jobs.job_type — add 'vendor_matching' for the unattended matching pipeline
+-- jobs.job_type — 'vendor_matching' added for the unattended matching
+-- pipeline. The jobs_job_type_check constraint is no longer redefined here;
+-- it is consolidated into 033_smart_ingest_job_type.sql (see that file's
+-- header).
 -- ----------------------------------------------------------------------------
-ALTER TABLE jobs DROP CONSTRAINT IF EXISTS jobs_job_type_check;
-ALTER TABLE jobs ADD CONSTRAINT jobs_job_type_check
-    CHECK (job_type IN ('ingest', 'ingest_pdf', 'ingest_docx', 'ingest_xlsx',
-                         'analyze', 'export', 'ocr', 'embed', 'enrich',
-                         'synthesize', 'profile_synthesis', 'capability_statement',
-                         'sam_fetch', 'solicitation_triage', 'vendor_matching',
-                         'inbound_email', 'sam_notice_import', 'other'));
 
 -- ============================================================================
 -- Migration Bookkeeping
